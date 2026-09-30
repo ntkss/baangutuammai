@@ -1,10 +1,10 @@
-# FloodLens Development Skill
+# BaanGuTuamMai Development Skill
 
 ## Purpose
 
-This skill defines how an AI coding agent should design, implement, review, and extend FloodLens.
+This skill defines how an AI coding agent should design, implement, review, and extend BaanGuTuamMai.
 
-FloodLens is a minimalist flood-risk information product for Thailand. Its backend may process complex hydrological data, but its user interface must remain simple and understandable.
+BaanGuTuamMai is a minimalist flood-risk information product for Thailand. Its backend may process complex hydrological data, but its user interface must remain simple and understandable.
 
 The primary product question is:
 
@@ -48,6 +48,7 @@ The homepage should still feel like a simple answer, not a hydrology dashboard.
 ## 1.3 Never fabricate data
 
 Never:
+
 - invent API endpoints;
 - invent API responses;
 - invent historical measurements;
@@ -62,6 +63,7 @@ If data cannot be verified, mark it as unknown or unavailable.
 The product is an estimate.
 
 Always maintain:
+
 - source;
 - observation time;
 - fetch time;
@@ -79,12 +81,14 @@ Before implementing a new data source:
 ### Step 1 — Find the official source
 
 Prefer:
+
 1. Thai government agency.
 2. Official open-data portal.
 3. Official agency API.
 4. Reputable public dataset with documented provenance.
 
 Avoid relying on:
+
 - random GitHub repositories;
 - scraped dashboards;
 - unofficial APIs;
@@ -148,11 +152,7 @@ Example:
 ```ts
 interface WaterLevelProvider {
   getStations(): Promise<WaterStation[]>;
-  getObservations(
-    stationId: string,
-    from: Date,
-    to: Date
-  ): Promise<WaterObservation[]>;
+  getObservations(stationId: string, from: Date, to: Date): Promise<WaterObservation[]>;
 }
 ```
 
@@ -198,7 +198,7 @@ Example:
 
 ```text
 observedAt = when the sensor measured the value
-fetchedAt  = when FloodLens retrieved the value
+fetchedAt  = when BaanGuTuamMai retrieved the value
 ```
 
 These are not interchangeable.
@@ -210,6 +210,7 @@ These are not interchangeable.
 Water data can be dangerously misleading if units or reference levels are mixed.
 
 Always store:
+
 - unit;
 - vertical datum/reference where applicable;
 - source metadata.
@@ -224,6 +225,7 @@ datum = "provider-defined"
 Do not assume all `meters` are directly comparable.
 
 Before comparing two stations:
+
 - verify their reference datum;
 - verify station meaning;
 - verify measurement type.
@@ -299,14 +301,7 @@ Do not use ML in MVP.
 Conceptually:
 
 ```ts
-riskScore =
-  waterLevelRisk * 0.30 +
-  waterTrendRisk * 0.20 +
-  rainfallRisk * 0.15 +
-  upstreamRisk * 0.10 +
-  elevationRisk * 0.10 +
-  infrastructureRisk * 0.10 +
-  tideRisk * 0.05;
+riskScore = waterLevelRisk * 0.3 + waterTrendRisk * 0.2 + rainfallRisk * 0.15 + upstreamRisk * 0.1 + elevationRisk * 0.1 + infrastructureRisk * 0.1 + tideRisk * 0.05;
 ```
 
 Weights must be configuration, not hard-coded throughout the application.
@@ -333,6 +328,7 @@ Severe
 ## 8.3 Thresholds must be sourced
 
 If a threshold comes from:
+
 - government warning level;
 - station flood stage;
 - historical observed level;
@@ -629,11 +625,7 @@ Every source should define a freshness policy.
 Example:
 
 ```ts
-type FreshnessStatus =
-  | "fresh"
-  | "aging"
-  | "stale"
-  | "unavailable";
+type FreshnessStatus = "fresh" | "aging" | "stale" | "unavailable";
 ```
 
 Do not treat old data as current.
@@ -666,12 +658,14 @@ If the provider normally updates every 10 minutes, this is stale.
 # 20. Testing Rules
 
 Every data provider must have:
+
 - fixture tests;
 - malformed-response tests;
 - missing-field tests;
 - unit conversion tests.
 
 Every risk calculation must have:
+
 - normal case;
 - boundary case;
 - missing-data case;
@@ -693,14 +687,17 @@ Use explicit tests for boundary behavior.
 # 21. Coding Style
 
 Prefer:
+
 - small functions;
 - typed domain objects;
 - pure calculation functions;
 - dependency injection for providers;
 - configuration over magic numbers;
 - descriptive variable names.
+- Readable codebase for humans.
 
 Avoid:
+
 - giant service classes;
 - hidden global state;
 - provider calls inside React components;
@@ -765,6 +762,7 @@ When Claude receives a task:
 ### First
 
 Read:
+
 - `IMPLEMENTATION_PLAN.md`
 - `SKILL.md`
 - existing `README.md`
@@ -773,6 +771,7 @@ Read:
 ### Then
 
 Determine:
+
 1. What already exists.
 2. What the task changes.
 3. What data sources are required.
@@ -787,6 +786,7 @@ Do not guess.
 ### Before changing the risk engine
 
 Explain:
+
 - input;
 - transformation;
 - threshold;
@@ -797,6 +797,7 @@ Explain:
 ### After implementation
 
 Run:
+
 - typecheck;
 - lint;
 - unit tests;
@@ -841,7 +842,7 @@ If any answer is bad, do not ship the feature yet.
 
 # 26. Golden Rule
 
-> **FloodLens should do the complicated thinking so the user does not have to.**
+> **BaanGuTuamMai should do the complicated thinking so the user does not have to.**
 
 The product is successful when a person opens it during heavy rain, looks at the screen for a few seconds, and immediately understands:
 

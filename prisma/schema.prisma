@@ -1,0 +1,280 @@
+// This is your Prisma schema file for BaanGuTuamMai
+// Deployed on Vercel + Neon PostgreSQL (with PostGIS)
+//
+// Neon uses two URLs:
+//   DATABASE_URL  → pooled connection (used by Prisma at runtime via Neon adapter)
+//   DIRECT_URL    → direct connection (used by Prisma Migrate / db push)
+//
+// PostGIS geometry columns use Unsupported("geometry(...)").
+// Spatial queries (ST_DWithin, ST_Distance, etc.) must use $queryRaw / $executeRaw.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+  // Prisma v5.10+ required for driverAdapters stable support
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Data source registry ─────────────────────────────────────────────────
+
+model DataSource {
+  id                   String    @id
+  name                 String
+  organization         String
+  category             String    // water_level | rainfall | reservoir | infrastructure | tide | elevation | historical_flood
+  baseUrl              String    @map("base_url")
+  endpoint             String?
+  authType             String    @default("none") @map("auth_type")
+  updateFrequencyMin   Int?      @map("update_frequency_min")
+  historicalStartYear  Int?      @map("historical_start_year")
+  format               String?
+  license              String?
+  attribution          String?
+  status               String    @default("unverified")
+  lastVerifiedAt       DateTime? @map("last_verified_at")
+  notes                String?
+
+  lastSuccessfulFetch  DateTime? @map("last_successful_fetch")
+  lastObservationTime  DateTime? @map("last_observation_time")
+  fetchStatus          String?   @map("fetch_status")
+  errorMessage         String?   @map("error_message")
+
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+
+  @@map("data_sources")
+}
+
+// ─── Water stations ───────────────────────────────────────────────────────
+// NOTE: location is PostGIS geometry — managed via raw SQL / migration
+
+model WaterStation {
+  id          String  @id
+  provider    String
+  externalId  String  @map("external_id")
+  name        String
+  // location GEOMETRY(Point, 4326) — created by 001_initial.sql
+  // Use $queryRaw for spatial queries
+  river       String?
+  basin       String?
+  datum       String?
+  unit        String  @default("m")
+  status      String? @default("unknown")
+  metadata    Json?
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  observations        WaterObservation[]
+  historicalObs       HistoricalObservation[]
+  riskAssessments     RiskAssessment[]
+
+  @@unique([provider, externalId])
+  @@map("water_stations")
+}
+
+model WaterObservation {
+  id            BigInt    @id @default(autoincrement())
+  stationId     String    @map("station_id")
+  observedAt    DateTime  @map("observed_at")
+  fetchedAt     DateTime  @default(now()) @map("fetched_at")
+  waterLevelM   Decimal?  @map("water_level_m") @db.Decimal(8, 3)
+  dischargeM3s  Decimal?  @map("discharge_m3s") @db.Decimal(10, 3)
+  quality       String?
+  provider      String
+  rawValue      String?   @map("raw_value")
+
+  station       WaterStation @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([stationId, observedAt])
+  @@index([stationId, observedAt(sort: Desc)])
+  @@index([observedAt(sort: Desc)])
+  @@map("water_observations")
+}
+
+// ─── Rainfall ─────────────────────────────────────────────────────────────
+
+model RainStation {
+  id          String  @id
+  provider    String
+  externalId  String  @map("external_id")
+  name        String
+  // location GEOMETRY(Point, 4326) — managed via raw SQL
+  basin       String?
+  status      String? @default("unknown")
+  metadata    Json?
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  observations RainObservation[]
+
+  @@unique([provider, externalId])
+  @@map("rain_stations")
+}
+
+model RainObservation {
+  id           BigInt   @id @default(autoincrement())
+  stationId    String   @map("station_id")
+  observedAt   DateTime @map("observed_at")
+  fetchedAt    DateTime @default(now()) @map("fetched_at")
+  rainfallMm   Decimal? @map("rainfall_mm") @db.Decimal(8, 2)
+  windowHours  Decimal? @map("window_hours") @db.Decimal(4, 1)
+  provider     String
+
+  station      RainStation @relation(fields: [stationId], references: [id], onDelete: Cascade)
+
+  @@unique([stationId, observedAt, windowHours])
+  @@index([stationId, observedAt(sort: Desc)])
+  @@map("rain_observations")
+}
+
+// ─── Reservoirs ───────────────────────────────────────────────────────────
+
+model Reservoir {
+  id            String  @id
+  provider      String
+  externalId    String  @map("external_id")
+  name          String
+  // location GEOMETRY(Point, 4326) — managed via raw SQL
+  capacityMcm   Decimal? @map("capacity_mcm") @db.Decimal(12, 3)
+  metadata      Json?
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  observations  ReservoirObservation[]
+
+  @@unique([provider, externalId])
+  @@map("reservoirs")
+}
+
+model ReservoirObservation {
+  id              BigInt   @id @default(autoincrement())
+  reservoirId     String   @map("reservoir_id")
+  observedAt      DateTime @map("observed_at")
+  fetchedAt       DateTime @default(now()) @map("fetched_at")
+  storageMcm      Decimal? @map("storage_mcm") @db.Decimal(12, 3)
+  storagePercent  Decimal? @map("storage_percent") @db.Decimal(5, 2)
+  inflowM3s       Decimal? @map("inflow_m3s") @db.Decimal(10, 3)
+  outflowM3s      Decimal? @map("outflow_m3s") @db.Decimal(10, 3)
+  provider        String
+
+  reservoir       Reservoir @relation(fields: [reservoirId], references: [id], onDelete: Cascade)
+
+  @@unique([reservoirId, observedAt])
+  @@index([reservoirId, observedAt(sort: Desc)])
+  @@map("reservoir_observations")
+}
+
+// ─── Infrastructure ───────────────────────────────────────────────────────
+
+model InfrastructureAsset {
+  id          String  @id
+  provider    String
+  externalId  String  @map("external_id")
+  name        String
+  assetType   String  @map("asset_type")  // gate | pump | weir | other
+  // location GEOMETRY(Point, 4326) — managed via raw SQL
+  river       String?
+  metadata    Json?
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  observations InfrastructureObservation[]
+
+  @@unique([provider, externalId])
+  @@map("infrastructure_assets")
+}
+
+model InfrastructureObservation {
+  id              BigInt   @id @default(autoincrement())
+  assetId         String   @map("asset_id")
+  observedAt      DateTime @map("observed_at")
+  fetchedAt       DateTime @default(now()) @map("fetched_at")
+  status          String?
+  openingPercent  Decimal? @map("opening_percent") @db.Decimal(5, 2)
+  flowM3s         Decimal? @map("flow_m3s") @db.Decimal(10, 3)
+  provider        String
+
+  asset           InfrastructureAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  @@unique([assetId, observedAt])
+  @@map("infrastructure_observations")
+}
+
+// ─── Historical observations ──────────────────────────────────────────────
+
+model HistoricalObservation {
+  id                 String   @id @default(cuid())
+  stationId          String   @map("station_id")
+  eventYear          Int      @map("event_year")
+  observedDate       DateTime @map("observed_date") @db.Date
+  waterLevelM        Decimal? @map("water_level_m") @db.Decimal(8, 3)
+  rainfallMm         Decimal? @map("rainfall_mm") @db.Decimal(8, 2)
+  knownFloodStatus   String?  @map("known_flood_status")
+  source             String
+  datum              String?
+  notes              String?
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  station            WaterStation @relation(fields: [stationId], references: [id])
+
+  @@unique([stationId, eventYear, observedDate])
+  @@index([stationId, eventYear, observedDate])
+  @@map("historical_observations")
+}
+
+// ─── Risk assessments (cache) ─────────────────────────────────────────────
+
+model RiskAssessment {
+  id                          String   @id @default(cuid())
+  locationLat                 Decimal  @map("location_lat") @db.Decimal(9, 6)
+  locationLng                 Decimal  @map("location_lng") @db.Decimal(9, 6)
+  locationLabel               String?  @map("location_label")
+  generatedAt                 DateTime @default(now()) @map("generated_at")
+  level                       String   // low | watch | high | severe
+  score                       Decimal  @db.Decimal(4, 3)
+  confidence                  String   // high | medium | limited
+  waterLevelRisk              Decimal? @map("water_level_risk") @db.Decimal(4, 3)
+  waterTrendRisk              Decimal? @map("water_trend_risk") @db.Decimal(4, 3)
+  rainfallRisk                Decimal? @map("rainfall_risk") @db.Decimal(4, 3)
+  upstreamRisk                Decimal? @map("upstream_risk") @db.Decimal(4, 3)
+  infrastructureRisk          Decimal? @map("infrastructure_risk") @db.Decimal(4, 3)
+  tideRisk                    Decimal? @map("tide_risk") @db.Decimal(4, 3)
+  elevationRisk               Decimal? @map("elevation_risk") @db.Decimal(4, 3)
+  reasons                     String[]
+  recommendedAction           String?  @map("recommended_action")
+  distanceToCriticalLevelM    Decimal? @map("distance_to_critical_level_m") @db.Decimal(6, 2)
+  estimatedElevationMarginM   Decimal? @map("estimated_elevation_margin_m") @db.Decimal(6, 2)
+  primaryStationId            String?  @map("primary_station_id")
+  weightsUsed                 Json?    @map("weights_used")
+  createdAt                   DateTime @default(now()) @map("created_at")
+
+  primaryStation              WaterStation? @relation(fields: [primaryStationId], references: [id])
+
+  @@index([locationLat, locationLng, generatedAt(sort: Desc)])
+  @@map("risk_assessments")
+}
+
+// ─── Ingestion job log ────────────────────────────────────────────────────
+
+model IngestionJobLog {
+  id               BigInt    @id @default(autoincrement())
+  jobName          String    @map("job_name")
+  startedAt        DateTime  @default(now()) @map("started_at")
+  finishedAt       DateTime? @map("finished_at")
+  status           String?   // running | ok | error | partial
+  recordsIngested  Int       @default(0) @map("records_ingested")
+  errorMessage     String?   @map("error_message")
+  metadata         Json?
+
+  @@index([jobName, startedAt(sort: Desc)])
+  @@map("ingestion_job_log")
+}
