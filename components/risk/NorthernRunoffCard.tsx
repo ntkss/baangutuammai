@@ -1,6 +1,9 @@
 "use client";
 
-import type { NorthernRunoffSummary, KeyRiverStation } from "@/lib/providers/thaiwater";
+import type {
+  NorthernRunoffSummary,
+  KeyRiverStation,
+} from "@/lib/providers/thaiwater";
 
 interface NorthernRunoffCardProps {
   data: NorthernRunoffSummary | null;
@@ -77,8 +80,14 @@ export function NorthernRunoffCard({ data }: NorthernRunoffCardProps) {
   if (!data) return null;
 
   const { c2NakhonSawan, c13ChaoPhrayaDam, corridor } = data;
-  const c2Status = getDischargeStatus(c2NakhonSawan?.dischargeM3s ?? null, "c2");
-  const c13Status = getDischargeStatus(c13ChaoPhrayaDam?.dischargeM3s ?? null, "c13");
+  const c2Status = getDischargeStatus(
+    c2NakhonSawan?.dischargeM3s ?? null,
+    "c2",
+  );
+  const c13Status = getDischargeStatus(
+    c13ChaoPhrayaDam?.dischargeM3s ?? null,
+    "c13",
+  );
 
   return (
     <div className="card" style={{ marginBottom: "16px" }}>
@@ -152,7 +161,9 @@ export function NorthernRunoffCard({ data }: NorthernRunoffCardProps) {
             {c2NakhonSawan?.dischargeM3s
               ? c2NakhonSawan.dischargeM3s.toLocaleString()
               : "—"}{" "}
-            <span style={{ fontSize: "0.7rem", fontWeight: 400 }}>ลบ.ม./วินาที</span>
+            <span style={{ fontSize: "0.7rem", fontWeight: 400 }}>
+              ลบ.ม./วินาที
+            </span>
           </div>
           <div
             style={{
@@ -207,7 +218,9 @@ export function NorthernRunoffCard({ data }: NorthernRunoffCardProps) {
             {c13ChaoPhrayaDam?.dischargeM3s
               ? c13ChaoPhrayaDam.dischargeM3s.toLocaleString()
               : "—"}{" "}
-            <span style={{ fontSize: "0.7rem", fontWeight: 400 }}>ลบ.ม./วินาที</span>
+            <span style={{ fontSize: "0.7rem", fontWeight: 400 }}>
+              ลบ.ม./วินาที
+            </span>
           </div>
           <div
             style={{
@@ -329,14 +342,21 @@ function StationCorridorRow({
         justifyContent: "space-between",
         alignItems: "center",
         padding: "8px 10px",
-        background: isHighlighted ? "rgba(29, 90, 168, 0.08)" : "var(--color-surface)",
+        background: isHighlighted
+          ? "rgba(29, 90, 168, 0.08)"
+          : "var(--color-surface)",
         border: `1px solid ${isHighlighted ? "rgba(29, 90, 168, 0.3)" : "var(--color-border)"}`,
         borderRadius: "6px",
       }}
     >
       <div style={{ flex: 1, minWidth: 0, paddingRight: "8px" }}>
         <div
-          style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            flexWrap: "wrap",
+          }}
         >
           <span style={{ fontSize: "0.8rem" }}>{icon}</span>
           <span
@@ -350,12 +370,16 @@ function StationCorridorRow({
             {tag}
           </span>
           {station.distanceKm !== undefined && (
-            <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}>
+            <span
+              style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}
+            >
               ({station.distanceKm} กม.)
             </span>
           )}
           {hint && (
-            <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}>
+            <span
+              style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}
+            >
               • {hint}
             </span>
           )}
@@ -400,7 +424,9 @@ function StationCorridorRow({
             style={{
               fontSize: "0.7rem",
               fontWeight: 600,
-              color: isOverflow ? "var(--color-severe)" : "var(--color-text-secondary)",
+              color: isOverflow
+                ? "var(--color-severe)"
+                : "var(--color-text-secondary)",
             }}
           >
             {isOverflow ? "⚠️ ล้นตลิ่ง " : "ต่ำกว่าตลิ่ง "}

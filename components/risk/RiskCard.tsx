@@ -109,7 +109,9 @@ export function RiskStatusCard({
                 color: "var(--color-text-primary)",
               }}
             >
-              <span style={{ color: getLevelColor(level), marginTop: "2px" }}>•</span>
+              <span style={{ color: getLevelColor(level), marginTop: "2px" }}>
+                •
+              </span>
               <span>{r}</span>
             </li>
           ))}
@@ -156,7 +158,8 @@ export function ConfidenceChip({ level }: { level: ConfidenceLevel }) {
       className={`confidence-chip confidence-chip--${level}`}
       title={CONFIDENCE_DESCRIPTION[level]}
     >
-      {level === "high" ? "✓" : level === "medium" ? "~" : "!"} {CONFIDENCE_LABEL[level]}
+      {level === "high" ? "✓" : level === "medium" ? "~" : "!"}{" "}
+      {CONFIDENCE_LABEL[level]}
     </span>
   );
 }
@@ -168,7 +171,12 @@ export function RiskCardSkeleton() {
     <div className="card card--elevated" style={{ textAlign: "center" }}>
       <div
         className="skeleton"
-        style={{ width: 88, height: 88, borderRadius: "50%", margin: "0 auto 16px" }}
+        style={{
+          width: 88,
+          height: 88,
+          borderRadius: "50%",
+          margin: "0 auto 16px",
+        }}
       />
       <div
         className="skeleton"
@@ -182,7 +190,10 @@ export function RiskCardSkeleton() {
         className="skeleton"
         style={{ height: 16, width: "65%", margin: "0 auto 20px" }}
       />
-      <div className="skeleton" style={{ height: 12, width: "40%", margin: "0 auto" }} />
+      <div
+        className="skeleton"
+        style={{ height: 12, width: "40%", margin: "0 auto" }}
+      />
     </div>
   );
 }
@@ -190,9 +201,18 @@ export function RiskCardSkeleton() {
 export function DataCardSkeleton() {
   return (
     <div className="card">
-      <div className="skeleton" style={{ height: 16, width: "40%", marginBottom: 12 }} />
-      <div className="skeleton" style={{ height: 14, width: "90%", marginBottom: 8 }} />
-      <div className="skeleton" style={{ height: 14, width: "70%", marginBottom: 8 }} />
+      <div
+        className="skeleton"
+        style={{ height: 16, width: "40%", marginBottom: 12 }}
+      />
+      <div
+        className="skeleton"
+        style={{ height: 14, width: "90%", marginBottom: 8 }}
+      />
+      <div
+        className="skeleton"
+        style={{ height: 14, width: "70%", marginBottom: 8 }}
+      />
       <div className="skeleton" style={{ height: 14, width: "80%" }} />
     </div>
   );

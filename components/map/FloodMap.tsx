@@ -29,7 +29,7 @@ interface FloodMapProps {
 type GoogleMapsAPI = {
   Map: new (
     el: HTMLElement,
-    opts: unknown
+    opts: unknown,
   ) => {
     setCenter: (pos: { lat: number; lng: number }) => void;
   };
@@ -40,7 +40,11 @@ type GoogleMapsAPI = {
   };
   InfoWindow: new (opts?: unknown) => {
     setContent: (content: string) => void;
-    open: (opts: { map: unknown; anchor?: unknown; shouldFocus?: boolean }) => void;
+    open: (opts: {
+      map: unknown;
+      anchor?: unknown;
+      shouldFocus?: boolean;
+    }) => void;
     close: () => void;
   };
   MapTypeControlStyle: {
@@ -82,7 +86,11 @@ export function FloodMap({
   >(new Map());
   const activeInfoWindowRef = useRef<{
     setContent: (c: string) => void;
-    open: (opts: { map: unknown; anchor?: unknown; shouldFocus?: boolean }) => void;
+    open: (opts: {
+      map: unknown;
+      anchor?: unknown;
+      shouldFocus?: boolean;
+    }) => void;
     close: () => void;
   } | null>(null);
 
@@ -126,7 +134,9 @@ export function FloodMap({
     };
 
     script.onerror = () => {
-      setLoadError("ไม่สามารถโหลด Google Maps ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต");
+      setLoadError(
+        "ไม่สามารถโหลด Google Maps ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต",
+      );
     };
 
     document.head.appendChild(script);

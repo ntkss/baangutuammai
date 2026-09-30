@@ -94,7 +94,7 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
 
   // Flatten all dams
   const allDams: (RidDam & { region: string })[] = json.data.flatMap((r) =>
-    r.dam.map((d) => ({ ...d, region: r.region }))
+    r.dam.map((d) => ({ ...d, region: r.region })),
   );
 
   // Map to domain observations
@@ -146,7 +146,7 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
  * Use outflow trend and storage combination.
  */
 export function calcUpstreamRiskFromReservoirs(
-  basin: RidReservoirResult["chaoPrayaBasin"]
+  basin: RidReservoirResult["chaoPrayaBasin"],
 ): number {
   if (!basin) return 0;
 
@@ -157,7 +157,9 @@ export function calcUpstreamRiskFromReservoirs(
     basin.totalCapacityMcm > 0
       ? Math.min(
           1,
-          (basin.totalOutflowM3s * 86400) / 1_000_000 / (basin.totalCapacityMcm * 0.05)
+          (basin.totalOutflowM3s * 86400) /
+            1_000_000 /
+            (basin.totalCapacityMcm * 0.05),
         )
       : 0;
 

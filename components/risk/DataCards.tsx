@@ -8,14 +8,23 @@ interface WaterDataCardProps {
 }
 
 export function WaterDataCard({ water }: WaterDataCardProps) {
-  const { station, current, trend6h, trend12h, trend24h, rateMetersPerHour, freshness } =
-    water;
+  const {
+    station,
+    current,
+    trend6h,
+    trend12h,
+    trend24h,
+    rateMetersPerHour,
+    freshness,
+  } = water;
 
   function trendLabel(changeM: number | null): string {
     if (changeM === null) return UI_TEXT.dataNotAvailable;
     if (Math.abs(changeM) < 0.01) return UI_TEXT.stableTrend;
     const dir =
-      changeM > 0 ? `▲ +${changeM.toFixed(2)} ม.` : `▼ ${changeM.toFixed(2)} ม.`;
+      changeM > 0
+        ? `▲ +${changeM.toFixed(2)} ม.`
+        : `▼ ${changeM.toFixed(2)} ม.`;
     return dir;
   }
 
@@ -50,7 +59,8 @@ export function WaterDataCard({ water }: WaterDataCardProps) {
         <span
           style={{
             fontSize: "0.72rem",
-            color: freshness === "fresh" ? "var(--color-low)" : "var(--color-watch)",
+            color:
+              freshness === "fresh" ? "var(--color-low)" : "var(--color-watch)",
           }}
         >
           {FRESHNESS_LABEL[freshness]}
@@ -82,19 +92,28 @@ export function WaterDataCard({ water }: WaterDataCardProps) {
       {/* Trend rows */}
       <div className="data-row">
         <span className="data-row__label">{UI_TEXT.lastXHours(6)}</span>
-        <span className="data-row__value" style={{ color: trendColor(trend6h) }}>
+        <span
+          className="data-row__value"
+          style={{ color: trendColor(trend6h) }}
+        >
           {trendLabel(trend6h)}
         </span>
       </div>
       <div className="data-row">
         <span className="data-row__label">{UI_TEXT.lastXHours(12)}</span>
-        <span className="data-row__value" style={{ color: trendColor(trend12h) }}>
+        <span
+          className="data-row__value"
+          style={{ color: trendColor(trend12h) }}
+        >
           {trendLabel(trend12h)}
         </span>
       </div>
       <div className="data-row">
         <span className="data-row__label">{UI_TEXT.lastXHours(24)}</span>
-        <span className="data-row__value" style={{ color: trendColor(trend24h) }}>
+        <span
+          className="data-row__value"
+          style={{ color: trendColor(trend24h) }}
+        >
           {trendLabel(trend24h)}
         </span>
       </div>
@@ -154,7 +173,8 @@ export function RainDataCard({ rain }: RainDataCardProps) {
         <span
           style={{
             fontSize: "0.72rem",
-            color: freshness === "fresh" ? "var(--color-low)" : "var(--color-watch)",
+            color:
+              freshness === "fresh" ? "var(--color-low)" : "var(--color-watch)",
           }}
         >
           {FRESHNESS_LABEL[freshness]}

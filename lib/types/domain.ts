@@ -201,7 +201,11 @@ export type HistoricalComparison = {
 // ---------------------------------------------------------------------------
 
 export type DataSourceStatus =
-  "verified" | "partially_verified" | "research_only" | "unverified" | "deprecated";
+  | "verified"
+  | "partially_verified"
+  | "research_only"
+  | "unverified"
+  | "deprecated";
 
 export type DataSource = {
   id: string;

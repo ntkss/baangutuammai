@@ -152,7 +152,11 @@ Example:
 ```ts
 interface WaterLevelProvider {
   getStations(): Promise<WaterStation[]>;
-  getObservations(stationId: string, from: Date, to: Date): Promise<WaterObservation[]>;
+  getObservations(
+    stationId: string,
+    from: Date,
+    to: Date,
+  ): Promise<WaterObservation[]>;
 }
 ```
 
@@ -301,7 +305,14 @@ Do not use ML in MVP.
 Conceptually:
 
 ```ts
-riskScore = waterLevelRisk * 0.3 + waterTrendRisk * 0.2 + rainfallRisk * 0.15 + upstreamRisk * 0.1 + elevationRisk * 0.1 + infrastructureRisk * 0.1 + tideRisk * 0.05;
+riskScore =
+  waterLevelRisk * 0.3 +
+  waterTrendRisk * 0.2 +
+  rainfallRisk * 0.15 +
+  upstreamRisk * 0.1 +
+  elevationRisk * 0.1 +
+  infrastructureRisk * 0.1 +
+  tideRisk * 0.05;
 ```
 
 Weights must be configuration, not hard-coded throughout the application.

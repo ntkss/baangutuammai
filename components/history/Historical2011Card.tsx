@@ -203,7 +203,12 @@ export function Historical2011Card({
                     borderRadius: "6px",
                   }}
                 >
-                  <div style={{ color: "var(--color-text-muted)", fontSize: "0.68rem" }}>
+                  <div
+                    style={{
+                      color: "var(--color-text-muted)",
+                      fontSize: "0.68rem",
+                    }}
+                  >
                     🔴 ปี 2554 (มหาอุทกภัย)
                   </div>
                   <div
@@ -236,7 +241,12 @@ export function Historical2011Card({
                     border: "1px solid rgba(45, 125, 70, 0.15)",
                   }}
                 >
-                  <div style={{ color: "var(--color-text-muted)", fontSize: "0.68rem" }}>
+                  <div
+                    style={{
+                      color: "var(--color-text-muted)",
+                      fontSize: "0.68rem",
+                    }}
+                  >
                     🟢 ปัจจุบัน (ปี 2569)
                   </div>
                   <div
@@ -293,8 +303,9 @@ export function Historical2011Card({
           lineHeight: 1.5,
         }}
       >
-        <strong>สรุป:</strong> ตัวชี้วัดสำคัญทั้ง 4 ด้านยังห่างจากสถิติวิกฤตปี 2554
-        พอสมควร ทั้งนี้ควรติดตามช่วงเวลาที่น้ำทะเลหนุนสูงร่วมกับฝนตกหนักในพื้นที่
+        <strong>สรุป:</strong> ตัวชี้วัดสำคัญทั้ง 4 ด้านยังห่างจากสถิติวิกฤตปี
+        2554 พอสมควร
+        ทั้งนี้ควรติดตามช่วงเวลาที่น้ำทะเลหนุนสูงร่วมกับฝนตกหนักในพื้นที่
       </div>
     </div>
   );

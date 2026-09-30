@@ -47,7 +47,7 @@ export type ElevationResult = {
  */
 export async function fetchTerrainElevation(
   lat: number,
-  lng: number
+  lng: number,
 ): Promise<ElevationResult | null> {
   try {
     const url = `${OPEN_ELEVATION_URL}?locations=${lat},${lng}`;

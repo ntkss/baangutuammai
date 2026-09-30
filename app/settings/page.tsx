@@ -11,13 +11,17 @@ export default function SettingsPage() {
   return (
     <>
       <main className="page" id="main-content">
-        <h1 style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "16px" }}>
+        <h1
+          style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "16px" }}
+        >
           ⚙️ {NAV_LABELS.settings}
         </h1>
 
         {/* Location section */}
         <div className="card" style={{ marginBottom: "12px" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 12px 0" }}>
+          <h2
+            style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 12px 0" }}
+          >
             📍 {UI_TEXT.locationTitle}
           </h2>
           <div className="data-row">
@@ -30,7 +34,9 @@ export default function SettingsPage() {
             </span>
           </div>
           <div className="data-row">
-            <span className="data-row__label">{UI_TEXT.estimatedElevation}</span>
+            <span className="data-row__label">
+              {UI_TEXT.estimatedElevation}
+            </span>
             <span
               className="data-row__value"
               style={{ color: "var(--color-text-muted)" }}
@@ -58,7 +64,9 @@ export default function SettingsPage() {
 
         {/* Notifications section */}
         <div className="card" style={{ marginBottom: "12px" }}>
-          <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 6px 0" }}>
+          <h2
+            style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 6px 0" }}
+          >
             🔔 {UI_TEXT.notificationsTitle}
           </h2>
           <p
@@ -79,7 +87,9 @@ export default function SettingsPage() {
             }}
           >
             <span style={{ fontSize: "0.875rem" }}>เปิดใช้การแจ้งเตือน</span>
-            <span style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
+            <span
+              style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}
+            >
               กำลังพัฒนา
             </span>
           </div>
@@ -87,7 +97,9 @@ export default function SettingsPage() {
 
         {/* Data source info */}
         <div className="card">
-          <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 8px 0" }}>
+          <h2
+            style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 8px 0" }}
+          >
             📡 {UI_TEXT.dataSource}
           </h2>
           <p

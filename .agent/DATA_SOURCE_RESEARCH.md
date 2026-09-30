@@ -21,20 +21,20 @@ The most important finding is that **water level and rainfall data are much easi
 
 # 1. Priority Matrix
 
-| Signal | Source | Availability | MVP Priority | Notes |
-|---|---|---:|---:|---|
-| River water level | HII / ThaiWater | High | P0 | Best foundation |
-| Rainfall | HII / DWR / ThaiWater | High | P0 | Strong supporting signal |
-| Elevation / terrain | HII / government LiDAR/DEM | Medium-High | P0 | Critical for location context |
-| Reservoir status | RID | High | P1 | Useful upstream context |
-| Reservoir outflow | RID / EGAT datasets | Medium | P1 | Need temporal/spatial interpretation |
-| River discharge/runoff | ThaiWater Standard | Medium-High | P1 | Potentially valuable |
-| 2011 historical water levels | RID / HII | Medium | P0 | Signature feature |
-| 2011 flood extent | GISTDA / research datasets | Medium | P1 | Strong map feature |
-| Gate status | RID / agency-specific | Unclear | P2 | Verify before integration |
-| Tide | Thai agencies | Partial | P2 | More difficult for Chao Phraya use |
-| Weather forecast | External provider | High | P2 | Useful later, but not required for MVP |
-| Satellite flood extent | GISTDA / satellite products | Medium | P3 | Future feature |
+| Signal                       | Source                      | Availability | MVP Priority | Notes                                  |
+| ---------------------------- | --------------------------- | -----------: | -----------: | -------------------------------------- |
+| River water level            | HII / ThaiWater             |         High |           P0 | Best foundation                        |
+| Rainfall                     | HII / DWR / ThaiWater       |         High |           P0 | Strong supporting signal               |
+| Elevation / terrain          | HII / government LiDAR/DEM  |  Medium-High |           P0 | Critical for location context          |
+| Reservoir status             | RID                         |         High |           P1 | Useful upstream context                |
+| Reservoir outflow            | RID / EGAT datasets         |       Medium |           P1 | Need temporal/spatial interpretation   |
+| River discharge/runoff       | ThaiWater Standard          |  Medium-High |           P1 | Potentially valuable                   |
+| 2011 historical water levels | RID / HII                   |       Medium |           P0 | Signature feature                      |
+| 2011 flood extent            | GISTDA / research datasets  |       Medium |           P1 | Strong map feature                     |
+| Gate status                  | RID / agency-specific       |      Unclear |           P2 | Verify before integration              |
+| Tide                         | Thai agencies               |      Partial |           P2 | More difficult for Chao Phraya use     |
+| Weather forecast             | External provider           |         High |           P2 | Useful later, but not required for MVP |
+| Satellite flood extent       | GISTDA / satellite products |       Medium |           P3 | Future feature                         |
 
 ---
 
@@ -49,10 +49,12 @@ The Thai Government Open Data portal provides HII water-level data.
 The dataset contains water-level observations at 10-minute intervals and uses meters referenced to mean sea level (ม.รทก.). The catalog states that data from February 2026 follows the ThaiWater Standard format.
 
 Source:
+
 - data.go.th dataset: Water Level
 - Organization: Hydro-Informatics Institute (HII)
 
 The dataset documentation states that missing values may be represented by:
+
 - `-999`
 - `999999`
 - `9999`
@@ -114,6 +116,7 @@ The standard describes API A001.1 for reading rainfall data.
 This is important because it provides a more standardized path than scraping dashboards.
 
 Use the standard documentation to understand:
+
 - request parameters;
 - response fields;
 - station information;
@@ -127,6 +130,7 @@ Do not implement a guessed endpoint.
 https://standard.thaiwater.net/
 
 Relevant documentation:
+
 - ThaiWater Standard rainfall API.
 
 ---
@@ -136,6 +140,7 @@ Relevant documentation:
 The Thai government open-data catalog also provides HII rainfall data.
 
 It includes:
+
 - hourly accumulated rainfall;
 - daily accumulated rainfall;
 - unit: millimeters.
@@ -160,6 +165,7 @@ DWR rainfall dataset
 Do not average all rainfall stations indiscriminately.
 
 Select stations based on:
+
 - distance;
 - watershed;
 - upstream/downstream relationship;
@@ -172,6 +178,7 @@ Select stations based on:
 DWR provides a public rainfall dataset through data.go.th.
 
 The dataset is based on:
+
 - Early Warning System (EWS);
 - telemetry monitoring systems.
 
@@ -311,6 +318,7 @@ user location
 The Thai open-data portal also exposes RID reservoir datasets.
 
 Example:
+
 - reservoir condition;
 - storage;
 - water-use volume.
@@ -319,6 +327,7 @@ Source:
 https://data.go.th/dataset/rid010
 
 This is useful as:
+
 - validation;
 - historical storage;
 - backup source;
@@ -334,6 +343,7 @@ Source:
 https://data.go.th/dataset/s_00000008
 
 Potential use:
+
 - major dam monitoring;
 - cross-validation;
 - historical context.
@@ -353,6 +363,7 @@ This is one of the most important pieces of FloodLens.
 The Thai government open-data ecosystem now exposes high-resolution terrain datasets.
 
 HII's terrain dataset describes terrain data generated using:
+
 - LiDAR;
 - drone surveys;
 - mobile mapping systems.
@@ -386,12 +397,15 @@ and allow the user to manually enter:
 ### Recommendation
 
 P0:
+
 - terrain elevation.
 
 P1:
+
 - high-resolution LiDAR where coverage exists.
 
 P2:
+
 - user-contributed floor elevation.
 
 ---
@@ -428,6 +442,7 @@ If the coverage is available, it could significantly improve the location-elevat
 The research found a Thai government dataset for tide-monitoring stations.
 
 The Department of Mineral Resources dataset includes eight tide-monitoring locations:
+
 - Trat
 - Rayong
 - Prachuap Khiri Khan
@@ -451,6 +466,7 @@ Therefore:
 For the lower Chao Phraya, tidal influence should initially be treated as a contextual factor.
 
 Future research should investigate:
+
 - Marine Department.
 - Hydrographic Department / Royal Thai Navy.
 - Bangkok river-level/tide observations.
@@ -471,6 +487,7 @@ The initial research did not find a clean, standardized nationwide public real-t
 This is a warning sign.
 
 Gate information is likely fragmented by:
+
 - RID;
 - Bangkok Metropolitan Administration;
 - local authorities;
@@ -482,7 +499,7 @@ Gate information is likely fragmented by:
 Create the architecture now:
 
 ```ts
-InfrastructureProvider
+InfrastructureProvider;
 ```
 
 but do not make the first risk engine depend on it.
@@ -529,6 +546,7 @@ RID has archived 2011 flood situation PDFs.
 One example is the 30 September 2011 report.
 
 It contains:
+
 - Chao Phraya basin situation;
 - flow values;
 - reservoir / diversion information;
@@ -586,6 +604,7 @@ Do not use them as primary numerical sensor data when official observations are 
 Academic work based on GISTDA remote sensing is particularly valuable.
 
 A study on estimating the 2011 flood area and volume over the Chao Phraya basin explains that GISTDA used:
+
 - SAR satellite imagery;
 - optical satellite imagery;
 - DEM;
@@ -635,6 +654,7 @@ Only do this when the actual geospatial layer is verified.
 Another study specifically analyzed the long-duration 2011 flood in the lower Chao Phraya valley using satellite imagery.
 
 It describes:
+
 - extensive flooding;
 - monthly flood mapping;
 - lower Chao Phraya inundation;
@@ -814,6 +834,7 @@ Before Claude writes provider code, complete these tasks:
 ### Task A — HII Water
 
 Verify:
+
 - station metadata download;
 - current data path;
 - historical data path;
@@ -825,6 +846,7 @@ Verify:
 ### Task B — Rainfall
 
 Verify:
+
 - ThaiWater Standard API;
 - HII rainfall dataset;
 - DWR rainfall API/data.
@@ -832,6 +854,7 @@ Verify:
 ### Task C — RID
 
 Verify:
+
 - dam API;
 - reservoir metadata;
 - outflow;
@@ -841,6 +864,7 @@ Verify:
 ### Task D — Elevation
 
 Verify:
+
 - HII terrain coverage;
 - RTARF LiDAR coverage for Nonthaburi;
 - access/download mechanism;
@@ -850,6 +874,7 @@ Verify:
 ### Task E — 2011
 
 Find:
+
 - historical water-level observations;
 - RID daily PDFs;
 - HII historical data;

@@ -8,7 +8,11 @@
  * All user-facing strings are sourced from lib/i18n/th.ts (Thai).
  */
 
-import type { RiskLevel, RiskAssessment, ConfidenceLevel } from "@/lib/types/domain";
+import type {
+  RiskLevel,
+  RiskAssessment,
+  ConfidenceLevel,
+} from "@/lib/types/domain";
 import { RISK_REASONS, RECOMMENDED_ACTIONS } from "@/lib/i18n/th";
 
 // ---------------------------------------------------------------------------
@@ -60,7 +64,7 @@ export function clamp01(value: number): number {
 export function normalizeWaterLevel(
   currentLevelM: number,
   criticalLevelM: number,
-  watchLevelM?: number
+  watchLevelM?: number,
 ): number {
   if (currentLevelM >= criticalLevelM) return 1.0;
   const lower = watchLevelM ?? criticalLevelM * 0.7;
@@ -74,7 +78,10 @@ export function normalizeWaterLevel(
  * @param changeM    - Change in metres over the trend window (positive = rising)
  * @param windowHours - Duration of the window (e.g. 6, 12, 24)
  */
-export function normalizeWaterTrend(changeM: number, windowHours: number): number {
+export function normalizeWaterTrend(
+  changeM: number,
+  windowHours: number,
+): number {
   // A rise of ≥ 0.5 m in 6 h is considered severe.
   const severeRatePerHour = 0.5 / 6;
   const ratePerHour = changeM / windowHours;
@@ -91,7 +98,10 @@ export function normalizeWaterTrend(changeM: number, windowHours: number): numbe
  * @param rainfallMm  - Accumulated rainfall in mm
  * @param windowHours - Accumulation window
  */
-export function normalizeRainfall(rainfallMm: number, windowHours: number): number {
+export function normalizeRainfall(
+  rainfallMm: number,
+  windowHours: number,
+): number {
   // Rough thresholds per 24 h scaled to window:
   // Light:  0–35 mm/24h
   // Moderate: 35–90 mm/24h
@@ -137,7 +147,7 @@ export type RiskInputs = {
  */
 export function computeRiskScore(
   inputs: RiskInputs,
-  weights: RiskWeights = DEFAULT_RISK_WEIGHTS
+  weights: RiskWeights = DEFAULT_RISK_WEIGHTS,
 ): number {
   return clamp01(
     inputs.waterLevelRisk * weights.waterLevel +
@@ -146,7 +156,7 @@ export function computeRiskScore(
       inputs.upstreamRisk * weights.upstream +
       inputs.elevationRisk * weights.elevation +
       inputs.infrastructureRisk * weights.infrastructure +
-      inputs.tideRisk * weights.tide
+      inputs.tideRisk * weights.tide,
   );
 }
 
@@ -234,7 +244,9 @@ export function generateReasons(inputs: RiskInputs): string[] {
  * Generate a recommended action string based on risk level.
  * All text is Thai. These are general suggestions, NOT official emergency guidance.
  */
-export function generateRecommendedAction(level: RiskLevel): string | undefined {
+export function generateRecommendedAction(
+  level: RiskLevel,
+): string | undefined {
   const action = RECOMMENDED_ACTIONS[level];
   return action || undefined;
 }
@@ -262,7 +274,8 @@ export function computeConfidence(inputs: ConfidenceInputs): ConfidenceLevel {
   }
 
   const isWaterFresh = inputs.waterObservationAgeMinutes <= 30;
-  const isRainFresh = !inputs.hasRainfall || inputs.rainObservationAgeMinutes <= 60;
+  const isRainFresh =
+    !inputs.hasRainfall || inputs.rainObservationAgeMinutes <= 60;
   const isNearby = inputs.stationDistanceKm <= 15;
   const hasEnoughSignals = inputs.numberOfSignals >= 2;
 
@@ -293,7 +306,7 @@ export function computeConfidence(inputs: ConfidenceInputs): ConfidenceLevel {
  */
 export function calculateWaterLevelTrend(
   observations: Array<{ timestamp: Date; level: number }>,
-  windowMs: number
+  windowMs: number,
 ): number | null {
   if (observations.length < 2) return null;
 
@@ -314,7 +327,9 @@ export function calculateWaterLevelTrend(
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  return sorted.length % 2 !== 0
+    ? sorted[mid]
+    : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 // ---------------------------------------------------------------------------
@@ -330,7 +345,9 @@ export type BuildAssessmentParams = {
   confidence: ConfidenceLevel;
 };
 
-export function buildRiskAssessment(params: BuildAssessmentParams): RiskAssessment {
+export function buildRiskAssessment(
+  params: BuildAssessmentParams,
+): RiskAssessment {
   const {
     locationId,
     inputs,

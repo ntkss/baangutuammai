@@ -40,8 +40,9 @@ export function LocationPicker({
   const googleInputRef = useRef<HTMLInputElement>(null);
   const [googleLoaded, setGoogleLoaded] = useState(() => {
     if (typeof window !== "undefined") {
-      const g = (window as unknown as { google?: { maps?: { places?: unknown } } })
-        .google;
+      const g = (
+        window as unknown as { google?: { maps?: { places?: unknown } } }
+      ).google;
       return Boolean(g?.maps?.places);
     }
     return false;
@@ -69,14 +70,16 @@ export function LocationPicker({
       setSearchQuery("");
       setSearchResults([]);
     },
-    [onLocationSelect, setHomeLocation]
+    [onLocationSelect, setHomeLocation],
   );
 
   // ── Load Google Maps JavaScript API if API Key is available ───────────────
   useEffect(() => {
     if (!googleApiKey || typeof window === "undefined" || googleLoaded) return;
 
-    const g = (window as unknown as { google?: { maps?: { places?: unknown } } }).google;
+    const g = (
+      window as unknown as { google?: { maps?: { places?: unknown } } }
+    ).google;
     if (g?.maps?.places) {
       queueMicrotask(() => setGoogleLoaded(true));
       return;
@@ -106,7 +109,7 @@ export function LocationPicker({
           places?: {
             Autocomplete: new (
               el: HTMLInputElement,
-              opts: Record<string, unknown>
+              opts: Record<string, unknown>,
             ) => {
               addListener: (event: string, handler: () => void) => void;
               getPlace: () => {
@@ -126,7 +129,11 @@ export function LocationPicker({
     };
 
     const gWin = window as unknown as GoogleWindow;
-    if (!googleLoaded || !googleInputRef.current || !gWin.google?.maps?.places) {
+    if (
+      !googleLoaded ||
+      !googleInputRef.current ||
+      !gWin.google?.maps?.places
+    ) {
       return;
     }
 
@@ -136,7 +143,7 @@ export function LocationPicker({
         {
           componentRestrictions: { country: "th" },
           fields: ["formatted_address", "geometry", "name"],
-        }
+        },
       );
 
       autocomplete.addListener("place_changed", () => {
@@ -149,7 +156,9 @@ export function LocationPicker({
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
         const label =
-          place.name || place.formatted_address || "ตำแหน่งที่เลือกจาก Google Maps";
+          place.name ||
+          place.formatted_address ||
+          "ตำแหน่งที่เลือกจาก Google Maps";
 
         handleSelect(lat, lng, label);
       });
@@ -209,7 +218,7 @@ export function LocationPicker({
           setGeoError("ไม่สามารถดึงตำแหน่ง GPS ได้ในขณะนี้");
         }
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { timeout: 10000, enableHighAccuracy: true },
     );
   }
 
@@ -217,11 +226,22 @@ export function LocationPicker({
     e.preventDefault();
     const lat = parseFloat(manualLat);
     const lng = parseFloat(manualLng);
-    if (isNaN(lat) || isNaN(lng) || lat < 5 || lat > 21 || lng < 97 || lng > 106) {
+    if (
+      isNaN(lat) ||
+      isNaN(lng) ||
+      lat < 5 ||
+      lat > 21 ||
+      lng < 97 ||
+      lng > 106
+    ) {
       setGeoError("กรุณาระบุพิกัดในประเทศไทย (Lat: 5–21, Lng: 97–106)");
       return;
     }
-    handleSelect(lat, lng, `พิกัดระบุเอง (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+    handleSelect(
+      lat,
+      lng,
+      `พิกัดระบุเอง (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
+    );
   }
 
   const displayLabel =
@@ -243,7 +263,14 @@ export function LocationPicker({
           boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            minWidth: 0,
+          }}
+        >
           <span style={{ fontSize: "1.1rem" }}>📍</span>
           <div style={{ minWidth: 0 }}>
             <div
@@ -258,7 +285,9 @@ export function LocationPicker({
             >
               {displayLabel}
             </div>
-            <div style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}>
+            <div
+              style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}
+            >
               {currentLat.toFixed(4)}, {currentLng.toFixed(4)}
             </div>
           </div>
@@ -318,7 +347,9 @@ export function LocationPicker({
           >
             <span>{isLocating ? "⏳" : "🎯"}</span>
             <span>
-              {isLocating ? "กำลังดึงพิกัด GPS..." : "ใช้ตำแหน่งปัจจุบันของฉัน (GPS)"}
+              {isLocating
+                ? "กำลังดึงพิกัด GPS..."
+                : "ใช้ตำแหน่งปัจจุบันของฉัน (GPS)"}
             </span>
           </button>
 
@@ -421,7 +452,8 @@ export function LocationPicker({
                         "rgba(29, 90, 168, 0.08)")
                     }
                     onMouseLeave={(e) =>
-                      ((e.currentTarget as HTMLElement).style.background = "transparent")
+                      ((e.currentTarget as HTMLElement).style.background =
+                        "transparent")
                     }
                   >
                     <div style={{ fontWeight: 600 }}>📍 {item.name}</div>
@@ -450,7 +482,8 @@ export function LocationPicker({
                 }}
               >
                 * สามารถระบุ <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> ใน{" "}
-                <code>.env.local</code> เพื่อเปิดใช้ Google Places Autocomplete ได้โดยตรง
+                <code>.env.local</code> เพื่อเปิดใช้ Google Places Autocomplete
+                ได้โดยตรง
               </p>
             )}
           </div>

@@ -10,8 +10,10 @@ export async function GET() {
 
     // Filter stations in Central / Chao Phraya / Pasak / Tha Chin basins or major rivers
     const valid = rawStations.filter((s) => {
-      if (!s.waterlevel_msl || isNaN(parseFloat(s.waterlevel_msl))) return false;
-      if (!s.station?.tele_station_lat || !s.station?.tele_station_long) return false;
+      if (!s.waterlevel_msl || isNaN(parseFloat(s.waterlevel_msl)))
+        return false;
+      if (!s.station?.tele_station_lat || !s.station?.tele_station_long)
+        return false;
       return true;
     });
 
@@ -72,6 +74,9 @@ export async function GET() {
     });
   } catch (err) {
     console.error("[stations API] Error:", err);
-    return NextResponse.json({ error: "Failed to fetch stations" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch stations" },
+      { status: 500 },
+    );
   }
 }

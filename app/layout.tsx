@@ -13,7 +13,14 @@ const sarabun = Sarabun({
 export const metadata: Metadata = {
   title: UI_TEXT.appName + " — " + UI_TEXT.appTagline,
   description: UI_TEXT.appDescription,
-  keywords: ["น้ำท่วม", "ความเสี่ยงน้ำท่วม", "ระดับน้ำ", "ไทย", "flood risk", "Thailand"],
+  keywords: [
+    "น้ำท่วม",
+    "ความเสี่ยงน้ำท่วม",
+    "ระดับน้ำ",
+    "ไทย",
+    "flood risk",
+    "Thailand",
+  ],
   openGraph: {
     title: UI_TEXT.appName,
     description: UI_TEXT.appTagline,
@@ -30,7 +37,11 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="th" className={sarabun.variable}>
       <body className="text-thai">{children}</body>

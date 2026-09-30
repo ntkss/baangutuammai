@@ -73,7 +73,11 @@ export default function HomePage() {
     };
   }, [activeLat, activeLng]);
 
-  function handleLocationSelect(newLat: number, newLng: number, label?: string) {
+  function handleLocationSelect(
+    newLat: number,
+    newLng: number,
+    label?: string,
+  ) {
     setIsLoading(true);
     setError(null);
     setHomeLocation({
@@ -86,7 +90,11 @@ export default function HomePage() {
 
   return (
     <>
-      <main className="page" id="main-content" style={{ paddingBottom: "80px" }}>
+      <main
+        className="page"
+        id="main-content"
+        style={{ paddingBottom: "80px" }}
+      >
         {/* ── App Header ──────────────────────────────────────── */}
         <header style={{ marginBottom: "16px" }}>
           <h1
@@ -135,7 +143,10 @@ export default function HomePage() {
 
         {/* ── Error state ────────────────────────────────────── */}
         {error && (
-          <div className="notice notice--warning" style={{ marginBottom: "16px" }}>
+          <div
+            className="notice notice--warning"
+            style={{ marginBottom: "16px" }}
+          >
             <span>⚠️</span>
             <span>{error}</span>
           </div>
@@ -221,7 +232,9 @@ export default function HomePage() {
               comparison={data?.historicalComparison ?? null}
               currentLevelM={data?.water.current?.waterLevelM}
               c2Discharge={data?._northernRunoff?.c2NakhonSawan?.dischargeM3s}
-              c13Discharge={data?._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s}
+              c13Discharge={
+                data?._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s
+              }
               reservoirStoragePercent={data?._reservoirBasin?.avgStoragePercent}
             />
           )}
@@ -266,13 +279,17 @@ export default function HomePage() {
                       🏔️ เขื่อนหลักลุ่มน้ำเจ้าพระยา (ชป.)
                     </h2>
                     <div className="data-row">
-                      <span className="data-row__label">ความจุน้ำกักเก็บเฉลี่ย</span>
+                      <span className="data-row__label">
+                        ความจุน้ำกักเก็บเฉลี่ย
+                      </span>
                       <span className="data-row__value">
                         {data._reservoirBasin.avgStoragePercent.toFixed(1)}%
                       </span>
                     </div>
                     <div className="data-row">
-                      <span className="data-row__label">ปริมาณน้ำไหลเข้าเขื่อน</span>
+                      <span className="data-row__label">
+                        ปริมาณน้ำไหลเข้าเขื่อน
+                      </span>
                       <span className="data-row__value">
                         {data._reservoirBasin.totalInflowM3s.toLocaleString()}{" "}
                         ลบ.ม./วินาที
@@ -286,7 +303,9 @@ export default function HomePage() {
                       </span>
                     </div>
                     <div className="data-row">
-                      <span className="data-row__label">จำนวนเขื่อนที่ตรวจวัด</span>
+                      <span className="data-row__label">
+                        จำนวนเขื่อนที่ตรวจวัด
+                      </span>
                       <span className="data-row__value">
                         {data._reservoirBasin.damCount} แห่ง
                       </span>

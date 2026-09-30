@@ -46,10 +46,10 @@ export const useUserPrefs = create<UserPrefsState>()(
     {
       name: "baangutuammai-prefs", // localStorage key
       storage: createJSONStorage(() =>
-        typeof window !== "undefined" ? localStorage : (null as never)
+        typeof window !== "undefined" ? localStorage : (null as never),
       ),
       // Only persist the location data, not the action functions
       partialize: (state) => ({ homeLocation: state.homeLocation }),
-    }
-  )
+    },
+  ),
 );

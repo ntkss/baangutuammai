@@ -11,7 +11,11 @@
  * C.13 Chao Phraya Dam release, and upstream/nearest/downstream corridor.
  */
 
-import type { WaterStation, WaterObservation, FreshnessStatus } from "@/lib/types/domain";
+import type {
+  WaterStation,
+  WaterObservation,
+  FreshnessStatus,
+} from "@/lib/types/domain";
 import { normalizeWaterLevel, normalizeWaterTrend } from "@/lib/risk/engine";
 
 export type ThaiWaterStationRaw = {
@@ -110,7 +114,7 @@ function calculateHaversineKm(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -124,7 +128,10 @@ function calculateHaversineKm(
   return 6371 * c;
 }
 
-function parseKeyStation(s: ThaiWaterStationRaw, distKm?: number): KeyRiverStation {
+function parseKeyStation(
+  s: ThaiWaterStationRaw,
+  distKm?: number,
+): KeyRiverStation {
   const currentLevelM = s.waterlevel_msl ? parseFloat(s.waterlevel_msl) : 0;
   const bankLevelM =
     s.station.min_bank && !isNaN(s.station.min_bank)
@@ -165,7 +172,9 @@ function parseKeyStation(s: ThaiWaterStationRaw, distKm?: number): KeyRiverStati
 const THAIWATER_API_URL =
   "https://api-v3.thaiwater.net/api/v1/thaiwater30/public/waterlevel_load";
 
-export async function fetchRawThaiWaterStations(): Promise<ThaiWaterStationRaw[]> {
+export async function fetchRawThaiWaterStations(): Promise<
+  ThaiWaterStationRaw[]
+> {
   const res = await fetch(THAIWATER_API_URL, {
     next: { revalidate: 300 }, // 5 mins cache
     headers: {
@@ -185,7 +194,7 @@ export async function fetchRawThaiWaterStations(): Promise<ThaiWaterStationRaw[]
 
 export async function fetchRealWaterLevel(
   lat: number,
-  lng: number
+  lng: number,
 ): Promise<RealWaterResult | null> {
   try {
     const stations = await fetchRawThaiWaterStations();
@@ -195,9 +204,14 @@ export async function fetchRealWaterLevel(
 
     // Filter to stations with valid waterlevel_msl and coordinates
     const validStations = stations.filter((s) => {
-      if (!s.waterlevel_msl || s.waterlevel_msl === "-999" || s.waterlevel_msl === "null")
+      if (
+        !s.waterlevel_msl ||
+        s.waterlevel_msl === "-999" ||
+        s.waterlevel_msl === "null"
+      )
         return false;
-      if (!s.station?.tele_station_lat || !s.station?.tele_station_long) return false;
+      if (!s.station?.tele_station_lat || !s.station?.tele_station_long)
+        return false;
       const wl = parseFloat(s.waterlevel_msl);
       return !isNaN(wl);
     });
@@ -209,7 +223,7 @@ export async function fetchRealWaterLevel(
       validStations.find(
         (s) =>
           s.station.tele_station_oldcode === "C.2" ||
-          s.station.tele_station_name.th?.includes("ค่ายจิรประวัติ")
+          s.station.tele_station_name.th?.includes("ค่ายจิรประวัติ"),
       ) ?? null;
     const c2NakhonSawan = rawC2 ? parseKeyStation(rawC2) : null;
 
@@ -218,7 +232,7 @@ export async function fetchRealWaterLevel(
       validStations.find(
         (s) =>
           s.station.tele_station_oldcode === "C.13" ||
-          s.station.tele_station_name.th?.includes("ท้ายเขื่อนเจ้าพระยา")
+          s.station.tele_station_name.th?.includes("ท้ายเขื่อนเจ้าพระยา"),
       ) ?? null;
     const c13ChaoPhrayaDam = rawC13 ? parseKeyStation(rawC13) : null;
 
@@ -228,7 +242,7 @@ export async function fetchRealWaterLevel(
         lat,
         lng,
         s.station.tele_station_lat,
-        s.station.tele_station_long
+        s.station.tele_station_long,
       );
       // Give preference to main river stations if within 25 km
       const isMainRiver =
@@ -270,7 +284,10 @@ export async function fetchRealWaterLevel(
         ? Math.round((currentLevelM - prevLevelM) * 100) / 100
         : 0;
 
-    const waterLevelRisk = normalizeWaterLevel(currentLevelM, effectiveCriticalM);
+    const waterLevelRisk = normalizeWaterLevel(
+      currentLevelM,
+      effectiveCriticalM,
+    );
     const waterTrendRisk = normalizeWaterTrend(rateMetersPerHour, 1);
 
     let freshness: FreshnessStatus = "fresh";
@@ -293,7 +310,9 @@ export async function fetchRealWaterLevel(
 
     const province = s.geocode?.province_name?.th ?? "";
     const district = s.geocode?.amphoe_name?.th ?? "";
-    const locSuffix = province ? ` (${district ? district + ", " : ""}${province})` : "";
+    const locSuffix = province
+      ? ` (${district ? district + ", " : ""}${province})`
+      : "";
 
     const waterStation: WaterStation = {
       id: `thaiwater-${s.station.id}`,
@@ -326,12 +345,15 @@ export async function fetchRealWaterLevel(
       const isChaoPhraya =
         raw.river_name?.includes("เจ้าพระยา") ||
         raw.station.tele_station_oldcode?.startsWith("CPY") ||
-        ["C.2", "C.13", "C.29", "C.12"].includes(raw.station.tele_station_oldcode ?? "");
+        ["C.2", "C.13", "C.29", "C.12"].includes(
+          raw.station.tele_station_oldcode ?? "",
+        );
       return isChaoPhraya;
     });
 
     // If in Chao Phraya corridor, use Chao Phraya stations; otherwise use nearby mapped
-    const corridorPool = mainRiverStations.length >= 3 ? mainRiverStations : mapped;
+    const corridorPool =
+      mainRiverStations.length >= 3 ? mainRiverStations : mapped;
 
     const nearestStationInfo = parseKeyStation(s, selected.distKm);
 
@@ -339,7 +361,8 @@ export async function fetchRealWaterLevel(
     const upstreamCandidates = corridorPool
       .filter(
         (m) =>
-          m.raw.station.id !== s.station.id && m.raw.station.tele_station_lat > lat + 0.01
+          m.raw.station.id !== s.station.id &&
+          m.raw.station.tele_station_lat > lat + 0.01,
       )
       .sort((a, b) => a.distKm - b.distKm);
     const upstreamStation = upstreamCandidates[0]
@@ -350,11 +373,15 @@ export async function fetchRealWaterLevel(
     const downstreamCandidates = corridorPool
       .filter(
         (m) =>
-          m.raw.station.id !== s.station.id && m.raw.station.tele_station_lat < lat - 0.01
+          m.raw.station.id !== s.station.id &&
+          m.raw.station.tele_station_lat < lat - 0.01,
       )
       .sort((a, b) => a.distKm - b.distKm);
     const downstreamStation = downstreamCandidates[0]
-      ? parseKeyStation(downstreamCandidates[0].raw, downstreamCandidates[0].distKm)
+      ? parseKeyStation(
+          downstreamCandidates[0].raw,
+          downstreamCandidates[0].distKm,
+        )
       : null;
 
     const northernRunoff: NorthernRunoffSummary = {

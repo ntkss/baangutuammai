@@ -7,7 +7,11 @@
  * Cache:    600 seconds (10 mins)
  */
 
-import type { RainStation, RainObservation, FreshnessStatus } from "@/lib/types/domain";
+import type {
+  RainStation,
+  RainObservation,
+  FreshnessStatus,
+} from "@/lib/types/domain";
 import { normalizeRainfall } from "@/lib/risk/engine";
 
 export type RainfallResult = {
@@ -34,7 +38,7 @@ type OpenMeteoResponse = {
 
 export async function fetchRealRainfall(
   lat: number,
-  lng: number
+  lng: number,
 ): Promise<RainfallResult | null> {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&hourly=precipitation,rain&past_days=1&forecast_days=1&timezone=Asia%2FBangkok`;
@@ -64,7 +68,7 @@ export async function fetchRealRainfall(
 
     // Current local time in Asia/Bangkok
     const nowBangkok = new Date(
-      new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" }),
     );
 
     // Find the latest hour index that is <= current time

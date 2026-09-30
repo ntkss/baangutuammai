@@ -79,7 +79,9 @@ export default function MapPage() {
             </p>
           </div>
           {isLoading && (
-            <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+            <span
+              style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}
+            >
               กำลังโหลดสถานี...
             </span>
           )}
@@ -118,7 +120,12 @@ export default function MapPage() {
                   boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
                 }}
               />
-              <span style={{ fontSize: "0.72rem", color: "var(--color-text-secondary)" }}>
+              <span
+                style={{
+                  fontSize: "0.72rem",
+                  color: "var(--color-text-secondary)",
+                }}
+              >
                 {item.label}
               </span>
             </div>

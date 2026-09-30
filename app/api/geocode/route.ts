@@ -31,13 +31,14 @@ export async function GET(req: NextRequest) {
   }
 
   const googleApiKey =
-    process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    process.env.GOOGLE_MAPS_API_KEY ||
+    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   // 1. If Google Maps API key is configured, use official Google Geocoding API
   if (googleApiKey) {
     try {
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-        q
+        q,
       )}&components=country:TH&language=th&key=${googleApiKey}`;
 
       const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
@@ -66,7 +67,7 @@ export async function GET(req: NextRequest) {
   // 2. Open Geocoding fallback for Thailand (Nominatim) when Google Key is not yet set
   try {
     const fallbackUrl = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-      q
+      q,
     )}&countrycodes=th&format=json&limit=5&accept-language=th`;
 
     const res = await fetch(fallbackUrl, {
