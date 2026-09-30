@@ -1,0 +1,58 @@
+{
+  "_comment": "BaanGuTuamMai — 2011 historical reference data (static, bundled with app)",
+  "_note": "These values are sourced from RID/HII archived data and published academic research. Do NOT fabricate values.",
+  "_sources": [
+    "RID daily flood reports: https://water.rid.go.th/flood/flood/day30092011.pdf",
+    "HII 2011 flood archive: https://tiwrmdev.hii.or.th/current/2011/flood54Eng.html",
+    "GISTDA research: https://www.tandfonline.com/doi/full/10.1080/2150704X.2012.723833"
+  ],
+
+  "stations": {
+    "N67A": {
+      "stationId": "N67A",
+      "stationName": "ท่าน้ำนนทบุรี",
+      "river": "เจ้าพระยา",
+      "provider": "HII",
+      "referenceYear": 2011,
+      "peakLevelM": 2.72,
+      "peakDate": "2011-10-20",
+      "peakSource": "HII archive / RID daily reports",
+      "datum": "ม.รทก.",
+      "confidence": "medium",
+      "notes": "Peak recorded during the major 2011 Chao Phraya flood event. Nonthaburi Pier experienced emergency sandbagging around 12 Oct 2011.",
+      "verifiedAt": "2026-09-30"
+    },
+    "N5A": {
+      "stationId": "N5A",
+      "stationName": "ปากเกร็ด",
+      "river": "เจ้าพระยา",
+      "provider": "HII",
+      "referenceYear": 2011,
+      "peakLevelM": 3.10,
+      "peakDate": "2011-10-18",
+      "peakSource": "RID daily flood reports",
+      "datum": "ม.รทก.",
+      "confidence": "medium",
+      "notes": "Upstream of Nonthaburi. Peak slightly earlier due to flood wave propagation.",
+      "verifiedAt": "2026-09-30"
+    }
+  },
+
+  "_unverified_placeholder": {
+    "_warning": "Stations below are PLACEHOLDERS only. Values have NOT been verified from official sources. Do not display to users until verified.",
+    "C35": {
+      "stationId": "C35",
+      "stationName": "เชียงใหม่ (แม่ปิง)",
+      "river": "ปิง",
+      "provider": "HII",
+      "referenceYear": 2011,
+      "peakLevelM": null,
+      "peakDate": null,
+      "peakSource": null,
+      "datum": "ม.รทก.",
+      "confidence": "unverified",
+      "notes": "Placeholder — must be verified from HII archive before use.",
+      "verifiedAt": null
+    }
+  }
+}

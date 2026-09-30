@@ -7,8 +7,6 @@ import { NAV_LABELS } from "@/lib/i18n/th";
 const navItems = [
   { href: "/", label: NAV_LABELS.home, icon: "🏠", id: "nav-home" },
   { href: "/map", label: NAV_LABELS.map, icon: "🗺️", id: "nav-map" },
-  { href: "/history", label: NAV_LABELS.history, icon: "📊", id: "nav-history" },
-  { href: "/settings", label: NAV_LABELS.settings, icon: "⚙️", id: "nav-settings" },
 ];
 
 export function BottomNav() {

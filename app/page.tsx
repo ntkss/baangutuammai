@@ -1,11 +1,6 @@
 "use client";
 
-/**
- * หน้าหลัก — บ้านกู้ท่วมไหม?
- * แสดงผลการประเมินความเสี่ยงน้ำท่วมของตำแหน่งบ้านที่เลือก
- */
-
-import { useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { BottomNav } from "@/components/common/BottomNav";
 import {
   RiskStatusCard,
@@ -13,158 +8,110 @@ import {
   DataCardSkeleton,
 } from "@/components/risk/RiskCard";
 import { WaterDataCard, RainDataCard } from "@/components/risk/DataCards";
+import { NorthernRunoffCard } from "@/components/risk/NorthernRunoffCard";
 import { Historical2011Card } from "@/components/history/Historical2011Card";
+import { LocationPicker } from "@/components/location/LocationPicker";
+import { useUserPrefs } from "@/lib/store/userPrefs";
 import { UI_TEXT } from "@/lib/i18n/th";
 import type { DashboardResponse } from "@/lib/types/domain";
+import type { NorthernRunoffSummary } from "@/lib/providers/thaiwater";
 
-// ─── Demo data (placeholder until real API is wired) ─────────────────────
+// Default center: Nonthaburi
+const DEFAULT_LAT = 13.862;
+const DEFAULT_LNG = 100.514;
 
-const DEMO_DATA: DashboardResponse = {
-  location: {
-    id: "demo-nonthaburi",
-    latitude: 13.8621,
-    longitude: 100.5144,
-    groundElevationM: 1.8,
-    label: "นนทบุรี (ตัวอย่าง)",
-  },
-  risk: {
-    locationId: "demo-nonthaburi",
-    generatedAt: new Date().toISOString(),
-    level: "watch",
-    score: 0.38,
-    confidence: "medium",
-    waterLevelRisk: 0.55,
-    waterTrendRisk: 0.40,
-    rainfallRisk: 0.35,
-    upstreamRisk: 0.20,
-    infrastructureRisk: 0.10,
-    tideRisk: 0.05,
-    elevationRisk: 0.30,
-    reasons: [
-      "ระดับน้ำสูงกว่าปกติ",
-      "แนวโน้มระดับน้ำสูงขึ้น",
-      "มีฝนตกปานกลาง",
-    ],
-    recommendedAction: "เฝ้าระวังและตรวจสอบข้อมูลจากหน่วยงานอย่างต่อเนื่อง พิจารณาขนย้ายสิ่งของมีค่าขึ้นที่สูง",
-    distanceToCriticalLevelM: 0.65,
-    estimatedElevationMarginM: 0.42,
-  },
-  water: {
-    station: {
-      id: "hii-N67A",
-      provider: "HII",
-      externalId: "N67A",
-      name: "ท่าน้ำนนทบุรี",
-      latitude: 13.8613,
-      longitude: 100.5136,
-      river: "เจ้าพระยา",
-      basin: "เจ้าพระยา",
-      datum: "ม.รทก.",
-      unit: "m",
-    },
-    current: {
-      stationId: "hii-N67A",
-      observedAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-      fetchedAt: new Date().toISOString(),
-      waterLevelM: 1.43,
-      provider: "HII",
-    },
-    trend6h: 0.12,
-    trend12h: 0.22,
-    trend24h: 0.31,
-    rateMetersPerHour: 0.020,
-    freshness: "fresh",
-  },
-  rain: {
-    station: {
-      id: "hii-rain-NB01",
-      provider: "HII",
-      externalId: "NB01",
-      name: "สถานีฝนนนทบุรี",
-      latitude: 13.860,
-      longitude: 100.512,
-    },
-    total1h: 8.2,
-    total6h: 32.5,
-    total24h: 67.0,
-    freshness: "fresh",
-  },
-  historicalComparison: {
-    stationId: "hii-N67A",
-    stationName: "ท่าน้ำนนทบุรี",
-    referenceYear: 2011,
-    referencePeakLevelM: 2.72,
-    referencePeakDate: "2011-10-20",
-    referencePeakSource: "RID / HII archive",
-    currentLevelM: 1.43,
-    differenceM: 1.29,
-    narrativeSummary:
-      "ในปี 2554 ระดับน้ำที่ท่าน้ำนนทบุรีขึ้นสูงถึง 2.72 ม.รทก. ซึ่งนับเป็นระดับสูงสุดในรอบหลายสิบปี",
-  },
-  confidence: "medium",
-  updatedAt: new Date().toISOString(),
-  dataNotices: ["ข้อมูลนี้เป็นตัวอย่างเพื่อการแสดงผล ยังไม่ได้เชื่อมต่อกับข้อมูลจริง"],
+type ExtendedDashboardResponse = DashboardResponse & {
+  _northernRunoff?: NorthernRunoffSummary | null;
+  _reservoirBasin?: {
+    totalCapacityMcm: number;
+    totalStorageMcm: number;
+    totalInflowM3s: number;
+    totalOutflowM3s: number;
+    avgStoragePercent: number;
+    damCount: number;
+    observedDate: string;
+  } | null;
+  _terrainElevation?: {
+    elevationM: number | null;
+    source: string;
+    note: string;
+  } | null;
 };
 
-// ─── Page component ───────────────────────────────────────────────────────
-
 export default function HomePage() {
+  const { homeLocation, setHomeLocation } = useUserPrefs();
+  const [data, setData] = useState<ExtendedDashboardResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const isLoading = false; // will be replaced by TanStack Query
-  const data = DEMO_DATA;
+
+  const [activeLat, setActiveLat] = useState(homeLocation?.latitude ?? DEFAULT_LAT);
+  const [activeLng, setActiveLng] = useState(homeLocation?.longitude ?? DEFAULT_LNG);
+
+  // Sync if stored home location changes
+  useEffect(() => {
+    if (homeLocation) {
+      setActiveLat(homeLocation.latitude);
+      setActiveLng(homeLocation.longitude);
+    }
+  }, [homeLocation]);
+
+  const fetchDashboard = useCallback((targetLat: number, targetLng: number) => {
+    setIsLoading(true);
+    setError(null);
+
+    fetch(`/api/dashboard?lat=${targetLat}&lng=${targetLng}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json() as Promise<ExtendedDashboardResponse>;
+      })
+      .then((d) => {
+        setData(d);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setError(UI_TEXT.errorLoading);
+        setIsLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchDashboard(activeLat, activeLng);
+  }, [activeLat, activeLng, fetchDashboard]);
+
+  function handleLocationSelect(newLat: number, newLng: number, label?: string) {
+    setActiveLat(newLat);
+    setActiveLng(newLng);
+    setHomeLocation({
+      id: `loc-${newLat.toFixed(4)}-${newLng.toFixed(4)}`,
+      latitude: newLat,
+      longitude: newLng,
+      label,
+    });
+    fetchDashboard(newLat, newLng);
+  }
 
   return (
     <>
-      <main className="page" id="main-content">
-        {/* App header */}
-        <header style={{ marginBottom: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <h1
-                style={{
-                  fontSize: "1.25rem",
-                  fontWeight: 700,
-                  margin: 0,
-                  color: "var(--color-text-primary)",
-                }}
-              >
-                {UI_TEXT.appName}
-              </h1>
-              <p
-                style={{
-                  fontSize: "0.8rem",
-                  color: "var(--color-text-muted)",
-                  margin: "2px 0 0 0",
-                }}
-              >
-                {UI_TEXT.appTagline}
-              </p>
-            </div>
-            {/* Location pill */}
-            {data?.location.label && (
-              <button
-                id="change-location-btn"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  background: "var(--color-surface)",
-                  border: "1px solid var(--color-border)",
-                  borderRadius: "var(--radius-full)",
-                  padding: "6px 12px",
-                  fontSize: "0.78rem",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  color: "var(--color-text-secondary)",
-                }}
-              >
-                📍 {data.location.label}
-              </button>
-            )}
-          </div>
+      <main className="page" id="main-content" style={{ paddingBottom: "80px" }}>
+        {/* ── App Header ──────────────────────────────────────── */}
+        <header style={{ marginBottom: "16px" }}>
+          <h1 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--color-text-primary)" }}>
+            {UI_TEXT.appName}
+          </h1>
+          <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+            {UI_TEXT.appTagline}
+          </p>
         </header>
 
-        {/* Data notice banners */}
+        {/* ── Location Selector (Home location picker) ───────── */}
+        <LocationPicker
+          currentLat={activeLat}
+          currentLng={activeLng}
+          onLocationSelect={handleLocationSelect}
+        />
+
+        {/* ── Data notices ───────────────────────────────────── */}
         {data?.dataNotices && data.dataNotices.length > 0 && (
           <div style={{ marginBottom: "12px" }}>
             {data.dataNotices.map((notice, i) => (
@@ -176,13 +123,19 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Primary risk card */}
-        {isLoading ? (
-          <div style={{ marginBottom: "16px" }}>
-            <RiskCardSkeleton />
+        {/* ── Error state ────────────────────────────────────── */}
+        {error && (
+          <div className="notice notice--warning" style={{ marginBottom: "16px" }}>
+            <span>⚠️</span>
+            <span>{error}</span>
           </div>
-        ) : data ? (
-          <div style={{ marginBottom: "16px" }}>
+        )}
+
+        {/* ── 1. Primary Risk Card ───────────────────────────── */}
+        <div style={{ marginBottom: "16px" }}>
+          {isLoading ? (
+            <RiskCardSkeleton />
+          ) : data ? (
             <RiskStatusCard
               level={data.risk.level}
               reasons={data.risk.reasons}
@@ -190,77 +143,116 @@ export default function HomePage() {
               updatedAt={data.updatedAt}
               recommendedAction={data.risk.recommendedAction}
             />
-          </div>
+          ) : null}
+        </div>
+
+        {/* ── 2. Northern Runoff Focus (นครสวรรค์ C.2 + เขื่อนเจ้าพระยา C.13 + สายน้ำ 3 ตอน) ── */}
+        {isLoading ? (
+          <DataCardSkeleton />
+        ) : data?._northernRunoff ? (
+          <NorthernRunoffCard data={data._northernRunoff} />
         ) : null}
 
-        {/* Elevation margin */}
-        {data?.risk.estimatedElevationMarginM !== undefined && (
+        {/* ── 3. Elevation Margin ────────────────────────────── */}
+        {data?.risk.estimatedElevationMarginM !== undefined &&
+          data.risk.estimatedElevationMarginM !== null && (
           <div className="card" style={{ marginBottom: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "0.875rem", color: "var(--color-text-secondary)" }}>
-                🏠 {UI_TEXT.elevationMargin}
-              </span>
+              <div>
+                <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-primary)" }}>
+                  🏠 {UI_TEXT.elevationMargin}
+                </span>
+                <p style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+                  {UI_TEXT.elevationMarginDisclaimer}
+                </p>
+              </div>
               <span
                 style={{
-                  fontSize: "1rem",
+                  fontSize: "1.1rem",
                   fontWeight: 700,
-                  color:
-                    (data.risk.estimatedElevationMarginM ?? 0) < 0.3
-                      ? "var(--color-high)"
-                      : "var(--color-low)",
+                  color: (data.risk.estimatedElevationMarginM ?? 0) < 0.3
+                    ? "var(--color-high)"
+                    : "var(--color-low)",
                 }}
               >
-                {data.risk.estimatedElevationMarginM !== undefined && data.risk.estimatedElevationMarginM > 0
-                  ? `+${data.risk.estimatedElevationMarginM.toFixed(2)} ม.`
+                {(data.risk.estimatedElevationMarginM ?? 0) > 0
+                  ? `+${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`
                   : `${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`}
               </span>
             </div>
-            <p style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", margin: "6px 0 0 0" }}>
-              {UI_TEXT.elevationMarginDisclaimer}
-            </p>
           </div>
         )}
 
-        {/* Toggle details button */}
-        <button
-          id="toggle-details-btn"
-          className="btn btn--outline"
-          style={{ width: "100%", marginBottom: "16px" }}
-          onClick={() => setShowDetails((v) => !v)}
-        >
-          {showDetails ? "▲ ซ่อนรายละเอียด" : "▼ " + UI_TEXT.viewDetails}
-        </button>
-
-        {/* Details section (progressive disclosure) */}
-        {showDetails && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {isLoading ? (
-              <>
-                <DataCardSkeleton />
-                <DataCardSkeleton />
-              </>
-            ) : data ? (
-              <>
-                <WaterDataCard water={data.water} />
-                <RainDataCard rain={data.rain} />
-              </>
-            ) : null}
-          </div>
-        )}
-
-        {/* 2011 Comparison */}
-        <div style={{ marginTop: "16px", marginBottom: "8px" }}>
+        {/* ── 4. 2011 Historical Comparison ───────────────────── */}
+        <div style={{ marginBottom: "16px" }}>
           {isLoading ? (
             <DataCardSkeleton />
           ) : (
             <Historical2011Card
               comparison={data?.historicalComparison ?? null}
               currentLevelM={data?.water.current?.waterLevelM}
+              c2Discharge={data?._northernRunoff?.c2NakhonSawan?.dischargeM3s}
+              c13Discharge={data?._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s}
+              reservoirStoragePercent={data?._reservoirBasin?.avgStoragePercent}
             />
           )}
         </div>
 
-        {/* App disclaimer */}
+        {/* ── 5. Progressive Disclosure: Toggle Details ───────── */}
+        <button
+          id="toggle-details-btn"
+          className="btn btn--outline"
+          style={{ width: "100%", marginBottom: "16px", padding: "10px" }}
+          onClick={() => setShowDetails((v) => !v)}
+        >
+          {showDetails ? "▲ ซ่อนรายละเอียดระดับน้ำและฝน" : "▼ ดูรายละเอียดระดับน้ำ ฝน และอ่างเก็บน้ำ"}
+        </button>
+
+        {showDetails && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
+            {data ? (
+              <>
+                <WaterDataCard water={data.water} />
+                <RainDataCard rain={data.rain} />
+
+                {/* Reservoir overview card */}
+                {data._reservoirBasin && (
+                  <div className="card">
+                    <h2 style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0 0 10px 0" }}>
+                      🏔️ เขื่อนหลักลุ่มน้ำเจ้าพระยา (ชป.)
+                    </h2>
+                    <div className="data-row">
+                      <span className="data-row__label">ความจุน้ำกักเก็บเฉลี่ย</span>
+                      <span className="data-row__value">
+                        {data._reservoirBasin.avgStoragePercent.toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="data-row">
+                      <span className="data-row__label">ปริมาณน้ำไหลเข้าเขื่อน</span>
+                      <span className="data-row__value">
+                        {data._reservoirBasin.totalInflowM3s.toLocaleString()} ลบ.ม./วินาที
+                      </span>
+                    </div>
+                    <div className="data-row">
+                      <span className="data-row__label">ปริมาณน้ำระบายออก</span>
+                      <span className="data-row__value">
+                        {data._reservoirBasin.totalOutflowM3s.toLocaleString()} ลบ.ม./วินาที
+                      </span>
+                    </div>
+                    <div className="data-row">
+                      <span className="data-row__label">จำนวนเขื่อนที่ตรวจวัด</span>
+                      <span className="data-row__value">
+                        {data._reservoirBasin.damCount} แห่ง
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
+        )}
+
+        {/* ── Disclaimer ─────────────────────────────────────── */}
         <p
           style={{
             fontSize: "0.72rem",

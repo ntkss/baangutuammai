@@ -1,40 +1,51 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/common/BottomNav";
 import { FloodMap, type MapMarker } from "@/components/map/FloodMap";
 import { NAV_LABELS } from "@/lib/i18n/th";
-
-// Demo markers — will be replaced by real station data from /api/stations/nearby
-const DEMO_MARKERS: MapMarker[] = [
-  {
-    id: "hii-N67A",
-    latitude: 13.8613,
-    longitude: 100.5136,
-    color: "#1d5aa8",
-    label: "ท่าน้ำนนทบุรี",
-    popup: `
-      <strong>ท่าน้ำนนทบุรี</strong><br/>
-      ระดับน้ำ: 1.43 ม.รทก.<br/>
-      แนวโน้ม: ▲ กำลังเพิ่มขึ้น<br/>
-      <span style="color:#b45309">เฝ้าระวัง</span>
-    `,
-  },
-  {
-    id: "hii-N68A",
-    latitude: 13.7563,
-    longitude: 100.5018,
-    color: "#2d7d46",
-    label: "สถานีวัดน้ำบางกอกน้อย",
-    popup: `
-      <strong>บางกอกน้อย</strong><br/>
-      ระดับน้ำ: 0.87 ม.รทก.<br/>
-      แนวโน้ม: → ทรงตัว<br/>
-      <span style="color:#2d7d46">ปลอดภัย</span>
-    `,
-  },
-];
+import { useUserPrefs } from "@/lib/store/userPrefs";
 
 export default function MapPage() {
+  const { homeLocation } = useUserPrefs();
+  const [markers, setMarkers] = useState<MapMarker[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const homeLat = homeLocation?.latitude ?? 13.862;
+  const homeLng = homeLocation?.longitude ?? 100.514;
+  const homeLabel = homeLocation?.label ?? "บ้านของฉัน (ท่าน้ำนนทบุรี)";
+
+  useEffect(() => {
+    fetch("/api/stations")
+      .then((r) => r.json())
+      .then((d) => {
+        const rawMarkers: MapMarker[] = d.markers ?? [];
+
+        // Add user home location marker
+        const homeMarker: MapMarker = {
+          id: "user-home",
+          latitude: homeLat,
+          longitude: homeLng,
+          color: "#854d0e", // Gold / amber for home
+          label: homeLabel,
+          popup: `
+            <div style="font-family: sans-serif; font-size: 13px; color: #1e293b;">
+              <strong style="font-size: 14px; color: #854d0e;">🏠 ${homeLabel}</strong><br/>
+              <span style="font-size: 11px; color: #64748b;">ตำแหน่งบ้านของคุณ</span><br/>
+              <span>พิกัด: ${homeLat.toFixed(4)}, ${homeLng.toFixed(4)}</span>
+            </div>
+          `,
+        };
+
+        setMarkers([homeMarker, ...rawMarkers]);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error("Failed to load map markers:", err);
+        setIsLoading(false);
+      });
+  }, [homeLat, homeLng, homeLabel]);
+
   return (
     <>
       <main
@@ -48,14 +59,24 @@ export default function MapPage() {
             background: "var(--color-surface)",
             borderBottom: "1px solid var(--color-border)",
             flexShrink: 0,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
-          <h1 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
-            🗺️ {NAV_LABELS.map}
-          </h1>
-          <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
-            สถานีวัดน้ำ · แตะที่จุดเพื่อดูรายละเอียด
-          </p>
+          <div>
+            <h1 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
+              🗺️ {NAV_LABELS.map}
+            </h1>
+            <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+              สถานีโทรมาตรวัดระดับน้ำจริง สสน./ชป. · แตะหมุดเพื่อดูข้อมูล
+            </p>
+          </div>
+          {isLoading && (
+            <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+              กำลังโหลดสถานี...
+            </span>
+          )}
         </div>
 
         {/* Legend */}
@@ -67,13 +88,15 @@ export default function MapPage() {
             background: "var(--color-surface)",
             borderBottom: "1px solid var(--color-border)",
             flexShrink: 0,
+            flexWrap: "wrap",
           }}
         >
           {[
+            { color: "#854d0e", label: "บ้านของคุณ" },
             { color: "#2d7d46", label: "ปลอดภัย" },
             { color: "#b45309", label: "เฝ้าระวัง" },
             { color: "#c2410c", label: "เสี่ยงสูง" },
-            { color: "#991b1b", label: "อันตราย" },
+            { color: "#b91c1c", label: "ล้นตลิ่ง!" },
           ].map((item) => (
             <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
               <div
@@ -102,9 +125,9 @@ export default function MapPage() {
           }}
         >
           <FloodMap
-            center={[100.52, 13.81]}
+            center={[homeLng, homeLat]}
             zoom={11}
-            markers={DEMO_MARKERS}
+            markers={markers}
             style={{ height: "100%", borderRadius: 0 }}
           />
         </div>
