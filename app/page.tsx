@@ -9,6 +9,7 @@ import {
 } from "@/components/risk/RiskCard";
 import { WaterDataCard, RainDataCard } from "@/components/risk/DataCards";
 import { NorthernRunoffCard } from "@/components/risk/NorthernRunoffCard";
+import { FloodTriggerFactorsCard } from "@/components/risk/FloodTriggerFactorsCard";
 import { Historical2011Card } from "@/components/history/Historical2011Card";
 import { LocationPicker } from "@/components/location/LocationPicker";
 import { useUserPrefs } from "@/lib/store/userPrefs";
@@ -223,7 +224,20 @@ export default function HomePage() {
             </div>
           )}
 
-        {/* ── 4. 2011 Historical Comparison ───────────────────── */}
+        {/* ── 4. Critical Flood Trigger Factors (ปัจจัยชี้ชะตา: สัญญาณน้ำท่วมถึงบ้านคุณ) ── */}
+        {isLoading ? (
+          <DataCardSkeleton />
+        ) : (
+          <FloodTriggerFactorsCard
+            c13Discharge={data?._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s}
+            c2Discharge={data?._northernRunoff?.c2NakhonSawan?.dischargeM3s}
+            rain24hMm={data?.rain.total24h}
+            reservoirPercent={data?._reservoirBasin?.avgStoragePercent}
+            elevationMarginM={data?.risk.estimatedElevationMarginM}
+          />
+        )}
+
+        {/* ── 5. 2011 Historical Comparison ───────────────────── */}
         <div style={{ marginBottom: "16px" }}>
           {isLoading ? (
             <DataCardSkeleton />
