@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/common/BottomNav";
+import { Footer } from "@/components/common/Footer";
 import { FloodTriggerFactorsCard } from "@/components/risk/FloodTriggerFactorsCard";
 import { DataCardSkeleton } from "@/components/risk/RiskCard";
 import { useUserPrefs } from "@/lib/store/userPrefs";
@@ -118,21 +119,6 @@ export default function TriggersPage() {
               </div>
             </div>
           </div>
-
-          <Link
-            href="/"
-            style={{
-              fontSize: "0.8rem",
-              fontWeight: 600,
-              color: "var(--color-accent)",
-              textDecoration: "none",
-              padding: "6px 12px",
-              borderRadius: "20px",
-              background: "var(--color-accent-light)",
-            }}
-          >
-            ← กลับหน้าหลัก
-          </Link>
         </div>
 
         {/* ── Active Location Banner ──────────────────────────── */}
@@ -286,6 +272,8 @@ export default function TriggersPage() {
             </div>
           </div>
         </div>
+
+        <Footer />
       </main>
 
       <BottomNav />

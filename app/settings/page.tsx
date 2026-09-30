@@ -1,4 +1,5 @@
 import { BottomNav } from "@/components/common/BottomNav";
+import { Footer } from "@/components/common/Footer";
 import { NAV_LABELS, UI_TEXT } from "@/lib/i18n/th";
 import type { Metadata } from "next";
 
@@ -119,6 +120,8 @@ export default function SettingsPage() {
             ข้อมูลภูมิประเทศ: HII / แหล่งข้อมูลภาครัฐ
           </p>
         </div>
+
+        <Footer showDisclaimer={false} />
       </main>
       <BottomNav />
     </>

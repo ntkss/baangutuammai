@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BottomNav } from "@/components/common/BottomNav";
+import { Footer } from "@/components/common/Footer";
 import {
   RiskStatusCard,
   RiskCardSkeleton,
@@ -495,18 +496,8 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* ── Disclaimer ─────────────────────────────────────── */}
-        <p
-          style={{
-            fontSize: "0.72rem",
-            color: "var(--color-text-muted)",
-            textAlign: "center",
-            marginTop: "16px",
-            lineHeight: 1.6,
-          }}
-        >
-          {UI_TEXT.disclaimer}
-        </p>
+        {/* ── Footer & Disclaimer ───────────────────────────── */}
+        <Footer />
       </main>
 
       <BottomNav />
