@@ -1,24 +1,13 @@
 "use client";
 
 /**
- * BaanGuTuamMai — Base MapLibre GL JS map component
+ * BaanGuTuamMai — Google Maps Component for Flood Telemetry
  *
- * Wraps MapLibre GL JS as a React client component.
- * Uses OpenStreetMap tiles (free, no API key required for MVP).
- *
- * Props:
- *   center     — initial [lng, lat]
- *   zoom       — initial zoom level
- *   onMapReady — callback when map has loaded
- *   markers    — array of markers to display
- *   className  — optional CSS class on the container div
+ * Uses official Google Maps JavaScript API with native Thailand maps,
+ * custom color-coded flood station markers, and interactive InfoWindows.
  */
 
-import { useEffect, useRef } from "react";
-
-// MapLibre is a client-only library (uses WebGL)
-type MaplibreMap = import("maplibre-gl").Map;
-type Marker = import("maplibre-gl").Marker;
+import { useEffect, useRef, useState } from "react";
 
 export type MapMarker = {
   id: string;
@@ -26,152 +15,210 @@ export type MapMarker = {
   longitude: number;
   color?: string;
   label?: string;
-  popup?: string; // Thai HTML content for popup
+  popup?: string; // HTML content for InfoWindow
 };
 
 interface FloodMapProps {
   center?: [number, number]; // [lng, lat]
   zoom?: number;
   markers?: MapMarker[];
-  onMapReady?: (map: MaplibreMap) => void;
   className?: string;
   style?: React.CSSProperties;
 }
 
 export function FloodMap({
-  center = [100.5018, 13.7563], // Bangkok default
+  center = [100.514, 13.862], // [lng, lat] - Nonthaburi default
   zoom = 11,
   markers = [],
-  onMapReady,
   className,
   style,
 }: FloodMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MaplibreMap | null>(null);
-  const markerRefs = useRef<Map<string, Marker>>(new Map());
+  const mapInstanceRef = useRef<any>(null);
+  const markersRef = useRef<Map<string, any>>(new Map());
+  const activeInfoWindowRef = useRef<any>(null);
 
-  // ─── Init map ─────────────────────────────────────────────────────────
+  const [isApiLoaded, setIsApiLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+
+  // ── 1. Load Google Maps JavaScript API ─────────────────────────────────────
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (typeof window === "undefined") return;
 
-    let map: MaplibreMap;
+    if ((window as any).google?.maps) {
+      setIsApiLoaded(true);
+      return;
+    }
 
-    // Dynamic import — MapLibre must not be bundled on the server
-    import("maplibre-gl").then((maplibre) => {
-      map = new maplibre.Map({
-        container: containerRef.current!,
-        style: {
-          version: 8,
-          sources: {
-            osm: {
-              type: "raster",
-              tiles: [
-                "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                "https://b.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                "https://c.tile.openstreetmap.org/{z}/{x}/{y}.png",
-              ],
-              tileSize: 256,
-              attribution:
-                '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-              maxzoom: 19,
-            },
-          },
-          layers: [
-            {
-              id: "osm",
-              type: "raster",
-              source: "osm",
-            },
-          ],
-        },
-        center,
-        zoom,
-        attributionControl: false,
-      });
+    const scriptId = "google-maps-core-script";
+    const existingScript = document.getElementById(scriptId);
 
-      map.addControl(
-        new maplibre.AttributionControl({ compact: true }),
-        "bottom-left"
-      );
+    if (existingScript) {
+      existingScript.addEventListener("load", () => setIsApiLoaded(true));
+      return;
+    }
 
-      map.addControl(
-        new maplibre.NavigationControl({ showCompass: false }),
-        "top-right"
-      );
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=th&region=TH`;
+    script.async = true;
+    script.defer = true;
 
-      map.on("load", () => {
-        onMapReady?.(map);
-      });
-
-      mapRef.current = map;
-    });
-
-    return () => {
-      mapRef.current?.remove();
-      mapRef.current = null;
+    script.onload = () => {
+      setIsApiLoaded(true);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
-  // ─── Sync markers ─────────────────────────────────────────────────────
+    script.onerror = () => {
+      setLoadError("ไม่สามารถโหลด Google Maps ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต");
+    };
+
+    document.head.appendChild(script);
+  }, [apiKey]);
+
+  // ── 2. Initialize Google Map ──────────────────────────────────────────────
   useEffect(() => {
-    if (!mapRef.current) return;
+    if (!isApiLoaded || !containerRef.current || mapInstanceRef.current) return;
 
-    import("maplibre-gl").then((maplibre) => {
-      const map = mapRef.current!;
-      const currentIds = new Set(markers.map((m) => m.id));
+    const google = (window as any).google;
+    if (!google?.maps) return;
 
-      // Remove old markers
-      for (const [id, marker] of markerRefs.current.entries()) {
-        if (!currentIds.has(id)) {
-          marker.remove();
-          markerRefs.current.delete(id);
-        }
-      }
+    const [lng, lat] = center;
 
-      // Add / update markers
-      for (const m of markers) {
-        if (markerRefs.current.has(m.id)) {
-          // Update position
-          markerRefs.current
-            .get(m.id)!
-            .setLngLat([m.longitude, m.latitude]);
-        } else {
-          // Create element
-          const el = document.createElement("div");
-          el.style.cssText = `
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: ${m.color ?? "#1d5aa8"};
-            border: 2px solid white;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            cursor: pointer;
-          `;
-          if (m.label) el.title = m.label;
-
-          const marker = new maplibre.Marker({ element: el })
-            .setLngLat([m.longitude, m.latitude]);
-
-          if (m.popup) {
-            const popup = new maplibre.Popup({
-              offset: 12,
-              closeButton: false,
-              className: "flood-map-popup",
-            }).setHTML(`
-              <div style="font-family: Sarabun, sans-serif; font-size: 13px; padding: 4px 2px; line-height: 1.5;">
-                ${m.popup}
-              </div>
-            `);
-            marker.setPopup(popup);
-          }
-
-          marker.addTo(map);
-          markerRefs.current.set(m.id, marker);
-        }
-      }
+    const map = new google.maps.Map(containerRef.current, {
+      center: { lat, lng },
+      zoom,
+      mapTypeId: "roadmap",
+      mapTypeControl: true,
+      mapTypeControlOptions: {
+        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+        position: google.maps.ControlPosition.TOP_LEFT,
+      },
+      streetViewControl: false,
+      fullscreenControl: true,
+      zoomControl: true,
+      styles: [
+        {
+          featureType: "water",
+          elementType: "geometry",
+          stylers: [{ color: "#93c5fd" }], // Highlight water bodies in soft flood blue
+        },
+      ],
     });
-  }, [markers]);
+
+    mapInstanceRef.current = map;
+  }, [isApiLoaded, center, zoom]);
+
+  // ── 3. Sync Center when coordinates change ────────────────────────────────
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const [lng, lat] = center;
+    mapInstanceRef.current.setCenter({ lat, lng });
+  }, [center]);
+
+  // ── 4. Render Markers ─────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isApiLoaded || !mapInstanceRef.current) return;
+
+    const google = (window as any).google;
+    if (!google?.maps) return;
+
+    const map = mapInstanceRef.current;
+    const currentMarkerIds = new Set(markers.map((m) => m.id));
+
+    // Remove old markers that are no longer in props
+    for (const [id, marker] of markersRef.current.entries()) {
+      if (!currentMarkerIds.has(id)) {
+        marker.setMap(null);
+        markersRef.current.delete(id);
+      }
+    }
+
+    // Add or update markers
+    for (const m of markers) {
+      if (markersRef.current.has(m.id)) {
+        const existing = markersRef.current.get(m.id);
+        existing.setPosition({ lat: m.latitude, lng: m.longitude });
+      } else {
+        const isHome = m.id === "user-home";
+
+        // Create custom SVG Pin Icon
+        let icon: any;
+
+        if (isHome) {
+          // Home Icon (Gold star / pin)
+          icon = {
+            path: "M 0,-15 A 15,15 0 1,0 0,15 A 15,15 0 1,0 0,-15 Z",
+            fillColor: "#eab308",
+            fillOpacity: 1,
+            strokeColor: "#854d0e",
+            strokeWeight: 3,
+            scale: 0.9,
+          };
+        } else {
+          // Circular telemetry marker
+          icon = {
+            path: google.maps.SymbolPath.CIRCLE,
+            fillColor: m.color || "#1d5aa8",
+            fillOpacity: 0.9,
+            strokeColor: "#ffffff",
+            strokeWeight: 2,
+            scale: 6.5,
+          };
+        }
+
+        const marker = new google.maps.Marker({
+          position: { lat: m.latitude, lng: m.longitude },
+          map,
+          title: m.label || "",
+          icon,
+          zIndex: isHome ? 9999 : 100,
+        });
+
+        if (m.popup) {
+          const infoWindow = new google.maps.InfoWindow({
+            content: m.popup,
+          });
+
+          marker.addListener("click", () => {
+            if (activeInfoWindowRef.current) {
+              activeInfoWindowRef.current.close();
+            }
+            infoWindow.open({
+              anchor: marker,
+              map,
+              shouldFocus: false,
+            });
+            activeInfoWindowRef.current = infoWindow;
+          });
+        }
+
+        markersRef.current.set(m.id, marker);
+      }
+    }
+  }, [isApiLoaded, markers]);
+
+  if (loadError) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--color-surface)",
+          color: "var(--color-severe)",
+          padding: "20px",
+          textAlign: "center",
+          fontSize: "0.9rem",
+        }}
+      >
+        ⚠️ {loadError}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -180,12 +227,34 @@ export function FloodMap({
       style={{
         width: "100%",
         height: "100%",
-        minHeight: 300,
+        minHeight: 350,
         borderRadius: "var(--radius-lg)",
         overflow: "hidden",
+        position: "relative",
+        background: "#e2e8f0",
         ...style,
       }}
       aria-label="แผนที่แสดงสถานีวัดน้ำและระดับน้ำ"
-    />
+    >
+      {!isApiLoaded && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(241, 245, 249, 0.9)",
+            color: "var(--color-text-secondary)",
+            fontSize: "0.85rem",
+            gap: "8px",
+            zIndex: 10,
+          }}
+        >
+          <span>🗺️ กำลังโหลดแผนที่ Google Maps...</span>
+        </div>
+      )}
+    </div>
   );
 }
