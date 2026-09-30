@@ -31,8 +31,7 @@ export async function GET(req: NextRequest) {
   }
 
   const googleApiKey =
-    process.env.GOOGLE_MAPS_API_KEY ||
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   // 1. If Google Maps API key is configured, use official Google Geocoding API
   if (googleApiKey) {
@@ -43,7 +42,10 @@ export async function GET(req: NextRequest) {
 
       const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
       if (res.ok) {
-        const json = (await res.json()) as { status: string; results?: GoogleGeocodeResultItem[] };
+        const json = (await res.json()) as {
+          status: string;
+          results?: GoogleGeocodeResultItem[];
+        };
         if (json.status === "OK" && Array.isArray(json.results)) {
           const results = json.results.map((r: GoogleGeocodeResultItem) => ({
             id: r.place_id,

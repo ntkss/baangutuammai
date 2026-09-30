@@ -41,7 +41,7 @@ export type WaterStation = {
 export type WaterObservation = {
   stationId: string;
   observedAt: string; // ISO-8601 UTC
-  fetchedAt: string;  // ISO-8601 UTC
+  fetchedAt: string; // ISO-8601 UTC
   waterLevelM?: number;
   dischargeM3s?: number;
   quality?: string;
@@ -176,7 +176,7 @@ export type RiskAssessment = {
 export type HistoricalObservation = {
   id: string;
   stationId: string;
-  date: string;           // YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   waterLevelM?: number;
   rainfallMm?: number;
   knownFloodStatus?: string;
@@ -201,11 +201,7 @@ export type HistoricalComparison = {
 // ---------------------------------------------------------------------------
 
 export type DataSourceStatus =
-  | "verified"
-  | "partially_verified"
-  | "research_only"
-  | "unverified"
-  | "deprecated";
+  "verified" | "partially_verified" | "research_only" | "unverified" | "deprecated";
 
 export type DataSource = {
   id: string;
@@ -246,7 +242,7 @@ export type DashboardResponse = {
   water: {
     station: WaterStation;
     current: WaterObservation | null;
-    trend6h: number | null;   // metres change
+    trend6h: number | null; // metres change
     trend12h: number | null;
     trend24h: number | null;
     rateMetersPerHour: number | null;

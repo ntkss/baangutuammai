@@ -7,32 +7,69 @@ interface NorthernRunoffCardProps {
 }
 
 function getDischargeStatus(dischargeM3s: number | null, type: "c2" | "c13") {
-  if (dischargeM3s === null) return { label: "ไม่มีข้อมูล", color: "var(--color-text-muted)", bg: "rgba(100,116,139,0.1)" };
-  
+  if (dischargeM3s === null)
+    return {
+      label: "ไม่มีข้อมูล",
+      color: "var(--color-text-muted)",
+      bg: "rgba(100,116,139,0.1)",
+    };
+
   if (type === "c13") {
     // Chao Phraya Dam thresholds (m3/s)
     if (dischargeM3s < 1500) {
-      return { label: "ระดับปกติ (รับน้ำได้)", color: "var(--color-low)", bg: "rgba(45,125,70,0.12)" };
+      return {
+        label: "ระดับปกติ (รับน้ำได้)",
+        color: "var(--color-low)",
+        bg: "rgba(45,125,70,0.12)",
+      };
     }
     if (dischargeM3s <= 2000) {
-      return { label: "เฝ้าระวังพื้นที่ลุ่มต่ำนอกคัน", color: "var(--color-watch)", bg: "rgba(180,83,9,0.12)" };
+      return {
+        label: "เฝ้าระวังพื้นที่ลุ่มต่ำนอกคัน",
+        color: "var(--color-watch)",
+        bg: "rgba(180,83,9,0.12)",
+      };
     }
     if (dischargeM3s <= 2500) {
-      return { label: "วิกฤต! น้ำเริ่มกระทบนนทบุรี-ปทุมฯ", color: "var(--color-high)", bg: "rgba(194,65,12,0.12)" };
+      return {
+        label: "วิกฤต! น้ำเริ่มกระทบนนทบุรี-ปทุมฯ",
+        color: "var(--color-high)",
+        bg: "rgba(194,65,12,0.12)",
+      };
     }
-    return { label: "วิกฤตรุนแรง! เสี่ยงท่วมเป็นวงกว้าง", color: "var(--color-severe)", bg: "rgba(185,28,28,0.15)" };
+    return {
+      label: "วิกฤตรุนแรง! เสี่ยงท่วมเป็นวงกว้าง",
+      color: "var(--color-severe)",
+      bg: "rgba(185,28,28,0.15)",
+    };
   } else {
     // C.2 Nakhon Sawan thresholds (m3/s)
     if (dischargeM3s < 1500) {
-      return { label: "มวลน้ำปกติ", color: "var(--color-low)", bg: "rgba(45,125,70,0.12)" };
+      return {
+        label: "มวลน้ำปกติ",
+        color: "var(--color-low)",
+        bg: "rgba(45,125,70,0.12)",
+      };
     }
     if (dischargeM3s <= 2000) {
-      return { label: "มวลน้ำปานกลาง", color: "var(--color-watch)", bg: "rgba(180,83,9,0.12)" };
+      return {
+        label: "มวลน้ำปานกลาง",
+        color: "var(--color-watch)",
+        bg: "rgba(180,83,9,0.12)",
+      };
     }
     if (dischargeM3s <= 2500) {
-      return { label: "มวลน้ำเหนือมาก (เฝ้าระวัง)", color: "var(--color-high)", bg: "rgba(194,65,12,0.12)" };
+      return {
+        label: "มวลน้ำเหนือมาก (เฝ้าระวัง)",
+        color: "var(--color-high)",
+        bg: "rgba(194,65,12,0.12)",
+      };
     }
-    return { label: "มวลน้ำเหนือก้อนใหญ่มาก!", color: "var(--color-severe)", bg: "rgba(185,28,28,0.15)" };
+    return {
+      label: "มวลน้ำเหนือก้อนใหญ่มาก!",
+      color: "var(--color-severe)",
+      bg: "rgba(185,28,28,0.15)",
+    };
   }
 }
 
@@ -46,13 +83,33 @@ export function NorthernRunoffCard({ data }: NorthernRunoffCardProps) {
   return (
     <div className="card" style={{ marginBottom: "16px" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          marginBottom: "14px",
+        }}
+      >
         <span style={{ fontSize: "1.2rem" }}>🌊</span>
         <div>
-          <h2 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0, color: "var(--color-text-primary)" }}>
+          <h2
+            style={{
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              margin: 0,
+              color: "var(--color-text-primary)",
+            }}
+          >
             สถานการณ์น้ำเหนือมุ่งสู่ภาคกลาง
           </h2>
-          <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--color-text-muted)",
+              margin: "2px 0 0 0",
+            }}
+          >
             ติดตามจุดชี้ขาดสำคัญ: นครสวรรค์ · เขื่อนเจ้าพระยา · ลำน้ำรอบบ้าน
           </p>
         </div>
@@ -76,14 +133,34 @@ export function NorthernRunoffCard({ data }: NorthernRunoffCardProps) {
             padding: "10px",
           }}
         >
-          <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: "4px" }}>
+          <div
+            style={{
+              fontSize: "0.72rem",
+              color: "var(--color-text-muted)",
+              marginBottom: "4px",
+            }}
+          >
             📍 น้ำไหลผ่านนครสวรรค์ (C.2)
           </div>
-          <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-primary)" }}>
-            {c2NakhonSawan?.dischargeM3s ? c2NakhonSawan.dischargeM3s.toLocaleString() : "—"}{" "}
+          <div
+            style={{
+              fontSize: "1.1rem",
+              fontWeight: 700,
+              color: "var(--color-text-primary)",
+            }}
+          >
+            {c2NakhonSawan?.dischargeM3s
+              ? c2NakhonSawan.dischargeM3s.toLocaleString()
+              : "—"}{" "}
             <span style={{ fontSize: "0.7rem", fontWeight: 400 }}>ลบ.ม./วินาที</span>
           </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--color-text-secondary)", marginTop: "2px" }}>
+          <div
+            style={{
+              fontSize: "0.72rem",
+              color: "var(--color-text-secondary)",
+              marginTop: "2px",
+            }}
+          >
             ระดับน้ำ: {c2NakhonSawan?.waterLevelM.toFixed(2)} ม.รทก.
           </div>
           <div
@@ -111,14 +188,34 @@ export function NorthernRunoffCard({ data }: NorthernRunoffCardProps) {
             padding: "10px",
           }}
         >
-          <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginBottom: "4px" }}>
+          <div
+            style={{
+              fontSize: "0.72rem",
+              color: "var(--color-text-muted)",
+              marginBottom: "4px",
+            }}
+          >
             🚪 ระบายน้ำเขื่อนเจ้าพระยา (C.13)
           </div>
-          <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "var(--color-text-primary)" }}>
-            {c13ChaoPhrayaDam?.dischargeM3s ? c13ChaoPhrayaDam.dischargeM3s.toLocaleString() : "—"}{" "}
+          <div
+            style={{
+              fontSize: "1.1rem",
+              fontWeight: 700,
+              color: "var(--color-text-primary)",
+            }}
+          >
+            {c13ChaoPhrayaDam?.dischargeM3s
+              ? c13ChaoPhrayaDam.dischargeM3s.toLocaleString()
+              : "—"}{" "}
             <span style={{ fontSize: "0.7rem", fontWeight: 400 }}>ลบ.ม./วินาที</span>
           </div>
-          <div style={{ fontSize: "0.72rem", color: "var(--color-text-secondary)", marginTop: "2px" }}>
+          <div
+            style={{
+              fontSize: "0.72rem",
+              color: "var(--color-text-secondary)",
+              marginTop: "2px",
+            }}
+          >
             ท้ายเขื่อน: {c13ChaoPhrayaDam?.waterLevelM.toFixed(2)} ม.รทก.
           </div>
           <div
@@ -216,7 +313,9 @@ function StationCorridorRow({
           color: "var(--color-text-muted)",
         }}
       >
-        <span>{icon} {tag}: ไม่มีสถานีในระยะตรวจวัด</span>
+        <span>
+          {icon} {tag}: ไม่มีสถานีในระยะตรวจวัด
+        </span>
       </div>
     );
   }
@@ -230,15 +329,15 @@ function StationCorridorRow({
         justifyContent: "space-between",
         alignItems: "center",
         padding: "8px 10px",
-        background: isHighlighted
-          ? "rgba(29, 90, 168, 0.08)"
-          : "var(--color-surface)",
+        background: isHighlighted ? "rgba(29, 90, 168, 0.08)" : "var(--color-surface)",
         border: `1px solid ${isHighlighted ? "rgba(29, 90, 168, 0.3)" : "var(--color-border)"}`,
         borderRadius: "6px",
       }}
     >
       <div style={{ flex: 1, minWidth: 0, paddingRight: "8px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+        <div
+          style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}
+        >
           <span style={{ fontSize: "0.8rem" }}>{icon}</span>
           <span
             style={{
@@ -278,9 +377,21 @@ function StationCorridorRow({
       </div>
 
       <div style={{ textAlign: "right", flexShrink: 0 }}>
-        <div style={{ fontSize: "0.88rem", fontWeight: 700, color: "var(--color-text-primary)" }}>
+        <div
+          style={{
+            fontSize: "0.88rem",
+            fontWeight: 700,
+            color: "var(--color-text-primary)",
+          }}
+        >
           {station.waterLevelM.toFixed(2)}{" "}
-          <span style={{ fontSize: "0.7rem", fontWeight: 400, color: "var(--color-text-muted)" }}>
+          <span
+            style={{
+              fontSize: "0.7rem",
+              fontWeight: 400,
+              color: "var(--color-text-muted)",
+            }}
+          >
             ม.รทก.
           </span>
         </div>

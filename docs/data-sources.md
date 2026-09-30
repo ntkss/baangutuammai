@@ -6,14 +6,14 @@
 
 ## สถานะ Source Verification
 
-| รหัส | ชื่อ | หน่วยงาน | ประเภท | สถานะ |
-|---|---|---|---|---|
-| `hii-water-level` | HII Water Level | HII | water_level | partially_verified |
-| `hii-rainfall` | HII Rainfall | HII | rainfall | partially_verified |
-| `dwr-rainfall` | DWR Rainfall (EWS) | DWR | rainfall | partially_verified |
-| `rid-reservoir` | RID Reservoir API | RID | reservoir | partially_verified |
-| `hii-terrain` | HII Terrain/DEM | HII | elevation | research_only |
-| `thaiwater-standard` | ThaiWater Standard API | HII | water_level | research_only |
+| รหัส                 | ชื่อ                   | หน่วยงาน | ประเภท      | สถานะ              |
+| -------------------- | ---------------------- | -------- | ----------- | ------------------ |
+| `hii-water-level`    | HII Water Level        | HII      | water_level | partially_verified |
+| `hii-rainfall`       | HII Rainfall           | HII      | rainfall    | partially_verified |
+| `dwr-rainfall`       | DWR Rainfall (EWS)     | DWR      | rainfall    | partially_verified |
+| `rid-reservoir`      | RID Reservoir API      | RID      | reservoir   | partially_verified |
+| `hii-terrain`        | HII Terrain/DEM        | HII      | elevation   | research_only      |
+| `thaiwater-standard` | ThaiWater Standard API | HII      | water_level | research_only      |
 
 ---
 
@@ -105,8 +105,8 @@
 
 All providers may return placeholder values for missing data. Normalize to `null` before storing.
 
-| Provider | Missing value codes |
-|---|---|
-| HII | `-999`, `999999`, `9999`, `-` |
-| RID | TBD |
-| DWR | TBD |
+| Provider | Missing value codes           |
+| -------- | ----------------------------- |
+| HII      | `-999`, `999999`, `9999`, `-` |
+| RID      | TBD                           |
+| DWR      | TBD                           |

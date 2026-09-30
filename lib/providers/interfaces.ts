@@ -27,11 +27,7 @@ export interface WaterLevelProvider {
   getStations(): Promise<WaterStation[]>;
 
   /** Fetch observations for a station in the given UTC time range */
-  getObservations(
-    stationId: string,
-    from: Date,
-    to: Date
-  ): Promise<WaterObservation[]>;
+  getObservations(stationId: string, from: Date, to: Date): Promise<WaterObservation[]>;
 
   /** Fetch only the most recent observation for a station */
   getLatestObservation(stationId: string): Promise<WaterObservation | null>;
@@ -46,11 +42,7 @@ export interface RainfallProvider {
 
   getStations(): Promise<RainStation[]>;
 
-  getObservations(
-    stationId: string,
-    from: Date,
-    to: Date
-  ): Promise<RainObservation[]>;
+  getObservations(stationId: string, from: Date, to: Date): Promise<RainObservation[]>;
 
   getLatestObservation(stationId: string): Promise<RainObservation | null>;
 }
@@ -82,9 +74,7 @@ export interface InfrastructureProvider {
 
   getAssets(): Promise<InfrastructureAsset[]>;
 
-  getLatestObservation(
-    assetId: string
-  ): Promise<InfrastructureObservation | null>;
+  getLatestObservation(assetId: string): Promise<InfrastructureObservation | null>;
 }
 
 // ---------------------------------------------------------------------------

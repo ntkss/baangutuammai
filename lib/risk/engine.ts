@@ -16,7 +16,7 @@ import { RISK_REASONS, RECOMMENDED_ACTIONS } from "@/lib/i18n/th";
 // ---------------------------------------------------------------------------
 
 export type RiskWeights = {
-  waterLevel: number;     // 0–1 fraction
+  waterLevel: number; // 0–1 fraction
   waterTrend: number;
   rainfall: number;
   upstream: number;
@@ -30,12 +30,12 @@ export type RiskWeights = {
  * Sum must equal 1.0
  */
 export const DEFAULT_RISK_WEIGHTS: RiskWeights = {
-  waterLevel: 0.30,
-  waterTrend: 0.20,
+  waterLevel: 0.3,
+  waterTrend: 0.2,
   rainfall: 0.15,
-  upstream: 0.10,
-  elevation: 0.10,
-  infrastructure: 0.10,
+  upstream: 0.1,
+  elevation: 0.1,
+  infrastructure: 0.1,
   tide: 0.05,
 };
 
@@ -112,7 +112,7 @@ export function normalizeRainfall(rainfallMm: number, windowHours: number): numb
  *                  Negative = water is above floor (at risk)
  */
 export function normalizeElevationMargin(marginM: number): number {
-  if (marginM <= 0) return 1.0;   // floor at or below estimated water
+  if (marginM <= 0) return 1.0; // floor at or below estimated water
   if (marginM >= 2.0) return 0.0; // 2 m above water: low risk
   return clamp01(1 - marginM / 2.0);
 }
@@ -141,12 +141,12 @@ export function computeRiskScore(
 ): number {
   return clamp01(
     inputs.waterLevelRisk * weights.waterLevel +
-    inputs.waterTrendRisk * weights.waterTrend +
-    inputs.rainfallRisk * weights.rainfall +
-    inputs.upstreamRisk * weights.upstream +
-    inputs.elevationRisk * weights.elevation +
-    inputs.infrastructureRisk * weights.infrastructure +
-    inputs.tideRisk * weights.tide
+      inputs.waterTrendRisk * weights.waterTrend +
+      inputs.rainfallRisk * weights.rainfall +
+      inputs.upstreamRisk * weights.upstream +
+      inputs.elevationRisk * weights.elevation +
+      inputs.infrastructureRisk * weights.infrastructure +
+      inputs.tideRisk * weights.tide
   );
 }
 
@@ -166,7 +166,7 @@ export function computeRiskScore(
  */
 export function scoreToLevel(score: number): RiskLevel {
   if (score >= 0.75) return "severe";
-  if (score >= 0.50) return "high";
+  if (score >= 0.5) return "high";
   if (score >= 0.25) return "watch";
   return "low";
 }
@@ -185,7 +185,7 @@ export function generateReasons(inputs: RiskInputs): string[] {
 
   if (inputs.waterLevelRisk >= 0.75) {
     reasons.push(RISK_REASONS.waterLevelCritical);
-  } else if (inputs.waterLevelRisk >= 0.50) {
+  } else if (inputs.waterLevelRisk >= 0.5) {
     reasons.push(RISK_REASONS.waterLevelElevated);
   } else if (inputs.waterLevelRisk >= 0.25) {
     reasons.push(RISK_REASONS.waterLevelRising);
@@ -193,33 +193,33 @@ export function generateReasons(inputs: RiskInputs): string[] {
 
   if (inputs.waterTrendRisk >= 0.75) {
     reasons.push(RISK_REASONS.waterTrendRapid);
-  } else if (inputs.waterTrendRisk >= 0.50) {
+  } else if (inputs.waterTrendRisk >= 0.5) {
     reasons.push(RISK_REASONS.waterTrendIncreasing);
   }
 
   if (inputs.rainfallRisk >= 0.75) {
     reasons.push(RISK_REASONS.rainfallVeryHeavy);
-  } else if (inputs.rainfallRisk >= 0.50) {
+  } else if (inputs.rainfallRisk >= 0.5) {
     reasons.push(RISK_REASONS.rainfallHeavy);
   } else if (inputs.rainfallRisk >= 0.25) {
     reasons.push(RISK_REASONS.rainfallModerate);
   }
 
-  if (inputs.upstreamRisk >= 0.50) {
+  if (inputs.upstreamRisk >= 0.5) {
     reasons.push(RISK_REASONS.upstreamElevated);
   }
 
   if (inputs.elevationRisk >= 0.75) {
     reasons.push(RISK_REASONS.elevationLowMargin);
-  } else if (inputs.elevationRisk <= 0.10) {
+  } else if (inputs.elevationRisk <= 0.1) {
     reasons.push(RISK_REASONS.elevationGoodMargin);
   }
 
-  if (inputs.infrastructureRisk >= 0.50) {
+  if (inputs.infrastructureRisk >= 0.5) {
     reasons.push(RISK_REASONS.drainageLimited);
   }
 
-  if (inputs.tideRisk >= 0.50) {
+  if (inputs.tideRisk >= 0.5) {
     reasons.push(RISK_REASONS.tidalEffect);
   }
 
@@ -257,10 +257,7 @@ export type ConfidenceInputs = {
  * Derive data confidence from available signals and their freshness.
  */
 export function computeConfidence(inputs: ConfidenceInputs): ConfidenceLevel {
-  if (
-    !inputs.hasCurrentWaterLevel ||
-    inputs.waterObservationAgeMinutes > 120
-  ) {
+  if (!inputs.hasCurrentWaterLevel || inputs.waterObservationAgeMinutes > 120) {
     return "limited";
   }
 
@@ -269,7 +266,13 @@ export function computeConfidence(inputs: ConfidenceInputs): ConfidenceLevel {
   const isNearby = inputs.stationDistanceKm <= 15;
   const hasEnoughSignals = inputs.numberOfSignals >= 2;
 
-  if (isWaterFresh && isRainFresh && isNearby && hasEnoughSignals && inputs.hasElevation) {
+  if (
+    isWaterFresh &&
+    isRainFresh &&
+    isNearby &&
+    hasEnoughSignals &&
+    inputs.hasElevation
+  ) {
     return "high";
   }
 
@@ -311,9 +314,7 @@ export function calculateWaterLevelTrend(
 function median(values: number[]): number {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 !== 0
-    ? sorted[mid]
-    : (sorted[mid - 1] + sorted[mid]) / 2;
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 // ---------------------------------------------------------------------------

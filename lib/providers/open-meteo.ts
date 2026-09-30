@@ -51,7 +51,11 @@ export async function fetchRealRainfall(
     }
 
     const data: OpenMeteoResponse = await res.json();
-    if (!data.hourly || !Array.isArray(data.hourly.time) || !Array.isArray(data.hourly.precipitation)) {
+    if (
+      !data.hourly ||
+      !Array.isArray(data.hourly.time) ||
+      !Array.isArray(data.hourly.precipitation)
+    ) {
       return null;
     }
 
@@ -94,7 +98,9 @@ export async function fetchRealRainfall(
     const total6hRound = Math.round(total6h * 10) / 10;
     const total24hRound = Math.round(total24h * 10) / 10;
 
-    const observedAtTime = times[currentIndex] ? `${times[currentIndex]}:00+07:00` : new Date().toISOString();
+    const observedAtTime = times[currentIndex]
+      ? `${times[currentIndex]}:00+07:00`
+      : new Date().toISOString();
 
     const station: RainStation = {
       id: `meteo-${lat.toFixed(3)}-${lng.toFixed(3)}`,

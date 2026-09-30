@@ -11,11 +11,7 @@
  * C.13 Chao Phraya Dam release, and upstream/nearest/downstream corridor.
  */
 
-import type {
-  WaterStation,
-  WaterObservation,
-  FreshnessStatus,
-} from "@/lib/types/domain";
+import type { WaterStation, WaterObservation, FreshnessStatus } from "@/lib/types/domain";
 import { normalizeWaterLevel, normalizeWaterTrend } from "@/lib/risk/engine";
 
 export type ThaiWaterStationRaw = {
@@ -134,15 +130,15 @@ function parseKeyStation(s: ThaiWaterStationRaw, distKm?: number): KeyRiverStati
     s.station.min_bank && !isNaN(s.station.min_bank)
       ? s.station.min_bank
       : s.station.critical_level_msl && !isNaN(s.station.critical_level_msl)
-      ? s.station.critical_level_msl
-      : null;
+        ? s.station.critical_level_msl
+        : null;
 
   const diffBankM =
     s.diff_wl_bank && !isNaN(parseFloat(s.diff_wl_bank))
       ? parseFloat(s.diff_wl_bank)
       : bankLevelM !== null
-      ? bankLevelM - currentLevelM
-      : null;
+        ? bankLevelM - currentLevelM
+        : null;
 
   return {
     stationCode: s.station.tele_station_oldcode || String(s.station.id),
@@ -199,7 +195,8 @@ export async function fetchRealWaterLevel(
 
     // Filter to stations with valid waterlevel_msl and coordinates
     const validStations = stations.filter((s) => {
-      if (!s.waterlevel_msl || s.waterlevel_msl === "-999" || s.waterlevel_msl === "null") return false;
+      if (!s.waterlevel_msl || s.waterlevel_msl === "-999" || s.waterlevel_msl === "null")
+        return false;
       if (!s.station?.tele_station_lat || !s.station?.tele_station_long) return false;
       const wl = parseFloat(s.waterlevel_msl);
       return !isNaN(wl);
@@ -256,17 +253,17 @@ export async function fetchRealWaterLevel(
       s.station.min_bank && !isNaN(s.station.min_bank)
         ? s.station.min_bank
         : s.station.critical_level_msl && !isNaN(s.station.critical_level_msl)
-        ? s.station.critical_level_msl
-        : null;
+          ? s.station.critical_level_msl
+          : null;
 
-    const effectiveCriticalM = bankLevelM ?? (currentLevelM + 1.0);
+    const effectiveCriticalM = bankLevelM ?? currentLevelM + 1.0;
 
     const diffBankM =
       s.diff_wl_bank && !isNaN(parseFloat(s.diff_wl_bank))
         ? parseFloat(s.diff_wl_bank)
         : bankLevelM !== null
-        ? bankLevelM - currentLevelM
-        : null;
+          ? bankLevelM - currentLevelM
+          : null;
 
     const rateMetersPerHour =
       prevLevelM !== null && !isNaN(prevLevelM)
@@ -342,8 +339,7 @@ export async function fetchRealWaterLevel(
     const upstreamCandidates = corridorPool
       .filter(
         (m) =>
-          m.raw.station.id !== s.station.id &&
-          m.raw.station.tele_station_lat > lat + 0.01
+          m.raw.station.id !== s.station.id && m.raw.station.tele_station_lat > lat + 0.01
       )
       .sort((a, b) => a.distKm - b.distKm);
     const upstreamStation = upstreamCandidates[0]
@@ -354,8 +350,7 @@ export async function fetchRealWaterLevel(
     const downstreamCandidates = corridorPool
       .filter(
         (m) =>
-          m.raw.station.id !== s.station.id &&
-          m.raw.station.tele_station_lat < lat - 0.01
+          m.raw.station.id !== s.station.id && m.raw.station.tele_station_lat < lat - 0.01
       )
       .sort((a, b) => a.distKm - b.distKm);
     const downstreamStation = downstreamCandidates[0]

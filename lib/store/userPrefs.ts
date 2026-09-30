@@ -32,8 +32,7 @@ export const useUserPrefs = create<UserPrefsState>()(
     (set) => ({
       homeLocation: null,
 
-      setHomeLocation: (location) =>
-        set({ homeLocation: location }),
+      setHomeLocation: (location) => set({ homeLocation: location }),
 
       setFloorElevation: (metres) =>
         set((state) => ({
@@ -45,7 +44,7 @@ export const useUserPrefs = create<UserPrefsState>()(
       clearHomeLocation: () => set({ homeLocation: null }),
     }),
     {
-      name: "baangutuammai-prefs",   // localStorage key
+      name: "baangutuammai-prefs", // localStorage key
       storage: createJSONStorage(() =>
         typeof window !== "undefined" ? localStorage : (null as never)
       ),

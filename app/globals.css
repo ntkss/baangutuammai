@@ -42,11 +42,15 @@
   /* Shadows */
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06);
   --shadow-md: 0 4px 16px 0 rgb(0 0 0 / 0.08);
-  --shadow-lg: 0 8px 32px 0 rgb(0 0 0 / 0.10);
+  --shadow-lg: 0 8px 32px 0 rgb(0 0 0 / 0.1);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 html {
   font-size: 16px;
@@ -82,10 +86,26 @@ body {
   letter-spacing: 0.01em;
 }
 
-.risk-badge--low    { background: var(--color-low-bg);    color: var(--color-low);    border: 1px solid var(--color-low-border); }
-.risk-badge--watch  { background: var(--color-watch-bg);  color: var(--color-watch);  border: 1px solid var(--color-watch-border); }
-.risk-badge--high   { background: var(--color-high-bg);   color: var(--color-high);   border: 1px solid var(--color-high-border); }
-.risk-badge--severe { background: var(--color-severe-bg); color: var(--color-severe); border: 1px solid var(--color-severe-border); }
+.risk-badge--low {
+  background: var(--color-low-bg);
+  color: var(--color-low);
+  border: 1px solid var(--color-low-border);
+}
+.risk-badge--watch {
+  background: var(--color-watch-bg);
+  color: var(--color-watch);
+  border: 1px solid var(--color-watch-border);
+}
+.risk-badge--high {
+  background: var(--color-high-bg);
+  color: var(--color-high);
+  border: 1px solid var(--color-high-border);
+}
+.risk-badge--severe {
+  background: var(--color-severe-bg);
+  color: var(--color-severe);
+  border: 1px solid var(--color-severe-border);
+}
 
 /* ─── Risk icon circle ───────────────────────────────────────────────────── */
 .risk-icon {
@@ -99,14 +119,32 @@ body {
   margin: 0 auto;
 }
 
-.risk-icon--low    { background: var(--color-low-bg);    box-shadow: 0 0 0 8px var(--color-low-border); }
-.risk-icon--watch  { background: var(--color-watch-bg);  box-shadow: 0 0 0 8px var(--color-watch-border); }
-.risk-icon--high   { background: var(--color-high-bg);   box-shadow: 0 0 0 8px var(--color-high-border); }
-.risk-icon--severe { background: var(--color-severe-bg); box-shadow: 0 0 0 8px var(--color-severe-border); animation: pulse-severe 2s infinite; }
+.risk-icon--low {
+  background: var(--color-low-bg);
+  box-shadow: 0 0 0 8px var(--color-low-border);
+}
+.risk-icon--watch {
+  background: var(--color-watch-bg);
+  box-shadow: 0 0 0 8px var(--color-watch-border);
+}
+.risk-icon--high {
+  background: var(--color-high-bg);
+  box-shadow: 0 0 0 8px var(--color-high-border);
+}
+.risk-icon--severe {
+  background: var(--color-severe-bg);
+  box-shadow: 0 0 0 8px var(--color-severe-border);
+  animation: pulse-severe 2s infinite;
+}
 
 @keyframes pulse-severe {
-  0%, 100% { box-shadow: 0 0 0 8px var(--color-severe-border); }
-  50%       { box-shadow: 0 0 0 14px rgb(252 165 165 / 0.4); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 8px var(--color-severe-border);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgb(252 165 165 / 0.4);
+  }
 }
 
 /* ─── Card ───────────────────────────────────────────────────────────────── */
@@ -173,7 +211,9 @@ body {
   text-decoration: none;
   padding: 4px 16px;
   border-radius: var(--radius-sm);
-  transition: color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    background 0.15s;
   cursor: pointer;
   background: none;
   border: none;
@@ -208,9 +248,21 @@ body {
   border: 1px solid;
 }
 
-.confidence-chip--high    { color: var(--color-low);    background: var(--color-low-bg);    border-color: var(--color-low-border); }
-.confidence-chip--medium  { color: var(--color-watch);  background: var(--color-watch-bg);  border-color: var(--color-watch-border); }
-.confidence-chip--limited { color: var(--color-high);   background: var(--color-high-bg);   border-color: var(--color-high-border); }
+.confidence-chip--high {
+  color: var(--color-low);
+  background: var(--color-low-bg);
+  border-color: var(--color-low-border);
+}
+.confidence-chip--medium {
+  color: var(--color-watch);
+  background: var(--color-watch-bg);
+  border-color: var(--color-watch-border);
+}
+.confidence-chip--limited {
+  color: var(--color-high);
+  background: var(--color-high-bg);
+  border-color: var(--color-high-border);
+}
 
 /* ─── Data row ───────────────────────────────────────────────────────────── */
 .data-row {
@@ -221,9 +273,18 @@ body {
   border-bottom: 1px solid var(--color-border);
 }
 
-.data-row:last-child { border-bottom: none; }
-.data-row__label { font-size: 0.875rem; color: var(--color-text-secondary); }
-.data-row__value { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
+.data-row:last-child {
+  border-bottom: none;
+}
+.data-row__label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.data-row__value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
 
 /* ─── Button ─────────────────────────────────────────────────────────────── */
 .btn {
@@ -238,28 +299,54 @@ body {
   padding: 10px 22px;
   cursor: pointer;
   border: none;
-  transition: opacity 0.15s, transform 0.1s;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
 }
 
-.btn:active { transform: scale(0.97); }
+.btn:active {
+  transform: scale(0.97);
+}
 
-.btn--primary { background: var(--color-accent); color: white; }
-.btn--outline { background: transparent; color: var(--color-accent); border: 1.5px solid var(--color-accent); }
-.btn--ghost   { background: transparent; color: var(--color-text-secondary); }
+.btn--primary {
+  background: var(--color-accent);
+  color: white;
+}
+.btn--outline {
+  background: transparent;
+  color: var(--color-accent);
+  border: 1.5px solid var(--color-accent);
+}
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
 
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 /* ─── Skeleton loader ────────────────────────────────────────────────────── */
 .skeleton {
-  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-border) 50%, var(--color-surface-2) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 25%,
+    var(--color-border) 50%,
+    var(--color-surface-2) 75%
+  );
   background-size: 200% 100%;
   animation: skeleton-shine 1.4s ease infinite;
   border-radius: var(--radius-sm);
 }
 
 @keyframes skeleton-shine {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* ─── Notice banner ──────────────────────────────────────────────────────── */
@@ -273,8 +360,14 @@ body {
   line-height: 1.5;
 }
 
-.notice--info    { background: var(--color-accent-light); color: var(--color-accent); }
-.notice--warning { background: var(--color-watch-bg); color: var(--color-watch); }
+.notice--info {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+}
+.notice--warning {
+  background: var(--color-watch-bg);
+  color: var(--color-watch);
+}
 
 /* ─── Misc helpers ───────────────────────────────────────────────────────── */
 .divider {

@@ -8,12 +8,14 @@ interface WaterDataCardProps {
 }
 
 export function WaterDataCard({ water }: WaterDataCardProps) {
-  const { station, current, trend6h, trend12h, trend24h, rateMetersPerHour, freshness } = water;
+  const { station, current, trend6h, trend12h, trend24h, rateMetersPerHour, freshness } =
+    water;
 
   function trendLabel(changeM: number | null): string {
     if (changeM === null) return UI_TEXT.dataNotAvailable;
     if (Math.abs(changeM) < 0.01) return UI_TEXT.stableTrend;
-    const dir = changeM > 0 ? `▲ +${changeM.toFixed(2)} ม.` : `▼ ${changeM.toFixed(2)} ม.`;
+    const dir =
+      changeM > 0 ? `▲ +${changeM.toFixed(2)} ม.` : `▼ ${changeM.toFixed(2)} ม.`;
     return dir;
   }
 
@@ -27,8 +29,22 @@ export function WaterDataCard({ water }: WaterDataCardProps) {
   return (
     <div className="card">
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-        <h2 style={{ fontSize: "0.9rem", fontWeight: 600, margin: 0, color: "var(--color-text-primary)" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: "12px",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "0.9rem",
+            fontWeight: 600,
+            margin: 0,
+            color: "var(--color-text-primary)",
+          }}
+        >
           💧 {UI_TEXT.waterLevel}
         </h2>
         <span
@@ -42,7 +58,13 @@ export function WaterDataCard({ water }: WaterDataCardProps) {
       </div>
 
       {/* Station info */}
-      <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0 0 12px 0" }}>
+      <p
+        style={{
+          fontSize: "0.78rem",
+          color: "var(--color-text-muted)",
+          margin: "0 0 12px 0",
+        }}
+      >
         {UI_TEXT.nearestStation}: {station.name}
         {station.river ? ` (แม่น้ำ${station.river})` : ""}
       </p>
@@ -104,13 +126,29 @@ export function RainDataCard({ rain }: RainDataCardProps) {
   const { station, total1h, total6h, total24h, freshness } = rain;
 
   function mmStr(val: number | null) {
-    return val !== null ? `${val.toFixed(1)} ${UI_TEXT.millimeters}` : UI_TEXT.dataNotAvailable;
+    return val !== null
+      ? `${val.toFixed(1)} ${UI_TEXT.millimeters}`
+      : UI_TEXT.dataNotAvailable;
   }
 
   return (
     <div className="card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
-        <h2 style={{ fontSize: "0.9rem", fontWeight: 600, margin: 0, color: "var(--color-text-primary)" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: "12px",
+        }}
+      >
+        <h2
+          style={{
+            fontSize: "0.9rem",
+            fontWeight: 600,
+            margin: 0,
+            color: "var(--color-text-primary)",
+          }}
+        >
           🌧️ {UI_TEXT.rainfall}
         </h2>
         <span
@@ -124,7 +162,13 @@ export function RainDataCard({ rain }: RainDataCardProps) {
       </div>
 
       {station && (
-        <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: "0 0 12px 0" }}>
+        <p
+          style={{
+            fontSize: "0.78rem",
+            color: "var(--color-text-muted)",
+            margin: "0 0 12px 0",
+          }}
+        >
           {UI_TEXT.nearestStation}: {station.name}
         </p>
       )}

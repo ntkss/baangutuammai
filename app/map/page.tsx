@@ -68,7 +68,13 @@ export default function MapPage() {
             <h1 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>
               🗺️ {NAV_LABELS.map}
             </h1>
-            <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+            <p
+              style={{
+                fontSize: "0.75rem",
+                color: "var(--color-text-muted)",
+                margin: "2px 0 0 0",
+              }}
+            >
               สถานีโทรมาตรวัดระดับน้ำจริง สสน./ชป. · แตะหมุดเพื่อดูข้อมูล
             </p>
           </div>
@@ -98,7 +104,10 @@ export default function MapPage() {
             { color: "#c2410c", label: "เสี่ยงสูง" },
             { color: "#b91c1c", label: "ล้นตลิ่ง!" },
           ].map((item) => (
-            <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <div
+              key={item.label}
+              style={{ display: "flex", alignItems: "center", gap: "4px" }}
+            >
               <div
                 style={{
                   width: 10,

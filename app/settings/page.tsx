@@ -22,19 +22,28 @@ export default function SettingsPage() {
           </h2>
           <div className="data-row">
             <span className="data-row__label">{UI_TEXT.myHome}</span>
-            <span className="data-row__value" style={{ color: "var(--color-text-muted)" }}>
+            <span
+              className="data-row__value"
+              style={{ color: "var(--color-text-muted)" }}
+            >
               ยังไม่ได้ตั้งค่า
             </span>
           </div>
           <div className="data-row">
             <span className="data-row__label">{UI_TEXT.estimatedElevation}</span>
-            <span className="data-row__value" style={{ color: "var(--color-text-muted)" }}>
+            <span
+              className="data-row__value"
+              style={{ color: "var(--color-text-muted)" }}
+            >
               —
             </span>
           </div>
           <div className="data-row">
             <span className="data-row__label">{UI_TEXT.floorElevation}</span>
-            <span className="data-row__value" style={{ color: "var(--color-text-muted)" }}>
+            <span
+              className="data-row__value"
+              style={{ color: "var(--color-text-muted)" }}
+            >
               —
             </span>
           </div>
@@ -52,7 +61,13 @@ export default function SettingsPage() {
           <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 6px 0" }}>
             🔔 {UI_TEXT.notificationsTitle}
           </h2>
-          <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", margin: "0 0 12px 0" }}>
+          <p
+            style={{
+              fontSize: "0.82rem",
+              color: "var(--color-text-muted)",
+              margin: "0 0 12px 0",
+            }}
+          >
             {UI_TEXT.notificationsDesc}
           </p>
           <div
@@ -75,10 +90,20 @@ export default function SettingsPage() {
           <h2 style={{ fontSize: "1rem", fontWeight: 600, margin: "0 0 8px 0" }}>
             📡 {UI_TEXT.dataSource}
           </h2>
-          <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", margin: 0, lineHeight: 1.7 }}>
-            ข้อมูลระดับน้ำ: สถาบันสารสนเทศทรัพยากรน้ำ (HII / ThaiWater)<br />
-            ข้อมูลฝน: HII / กรมทรัพยากรน้ำ (DWR)<br />
-            ข้อมูลอ่างเก็บน้ำ: กรมชลประทาน (RID)<br />
+          <p
+            style={{
+              fontSize: "0.78rem",
+              color: "var(--color-text-muted)",
+              margin: 0,
+              lineHeight: 1.7,
+            }}
+          >
+            ข้อมูลระดับน้ำ: สถาบันสารสนเทศทรัพยากรน้ำ (HII / ThaiWater)
+            <br />
+            ข้อมูลฝน: HII / กรมทรัพยากรน้ำ (DWR)
+            <br />
+            ข้อมูลอ่างเก็บน้ำ: กรมชลประทาน (RID)
+            <br />
             ข้อมูลภูมิประเทศ: HII / แหล่งข้อมูลภาครัฐ
           </p>
         </div>

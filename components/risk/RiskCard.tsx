@@ -156,8 +156,7 @@ export function ConfidenceChip({ level }: { level: ConfidenceLevel }) {
       className={`confidence-chip confidence-chip--${level}`}
       title={CONFIDENCE_DESCRIPTION[level]}
     >
-      {level === "high" ? "✓" : level === "medium" ? "~" : "!"}{" "}
-      {CONFIDENCE_LABEL[level]}
+      {level === "high" ? "✓" : level === "medium" ? "~" : "!"} {CONFIDENCE_LABEL[level]}
     </span>
   );
 }
@@ -167,10 +166,22 @@ export function ConfidenceChip({ level }: { level: ConfidenceLevel }) {
 export function RiskCardSkeleton() {
   return (
     <div className="card card--elevated" style={{ textAlign: "center" }}>
-      <div className="skeleton" style={{ width: 88, height: 88, borderRadius: "50%", margin: "0 auto 16px" }} />
-      <div className="skeleton" style={{ height: 32, width: "50%", margin: "0 auto 12px" }} />
-      <div className="skeleton" style={{ height: 16, width: "80%", margin: "0 auto 8px" }} />
-      <div className="skeleton" style={{ height: 16, width: "65%", margin: "0 auto 20px" }} />
+      <div
+        className="skeleton"
+        style={{ width: 88, height: 88, borderRadius: "50%", margin: "0 auto 16px" }}
+      />
+      <div
+        className="skeleton"
+        style={{ height: 32, width: "50%", margin: "0 auto 12px" }}
+      />
+      <div
+        className="skeleton"
+        style={{ height: 16, width: "80%", margin: "0 auto 8px" }}
+      />
+      <div
+        className="skeleton"
+        style={{ height: 16, width: "65%", margin: "0 auto 20px" }}
+      />
       <div className="skeleton" style={{ height: 12, width: "40%", margin: "0 auto" }} />
     </div>
   );
@@ -191,9 +202,13 @@ export function DataCardSkeleton() {
 
 function getLevelColor(level: RiskLevel): string {
   switch (level) {
-    case "low":    return "var(--color-low)";
-    case "watch":  return "var(--color-watch)";
-    case "high":   return "var(--color-high)";
-    case "severe": return "var(--color-severe)";
+    case "low":
+      return "var(--color-low)";
+    case "watch":
+      return "var(--color-watch)";
+    case "high":
+      return "var(--color-high)";
+    case "severe":
+      return "var(--color-severe)";
   }
 }

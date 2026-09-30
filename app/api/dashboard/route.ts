@@ -17,10 +17,7 @@ import {
   fetchRidReservoirs,
   calcUpstreamRiskFromReservoirs,
 } from "@/lib/providers/rid-reservoir";
-import {
-  fetchTerrainElevation,
-  calcElevationRisk,
-} from "@/lib/providers/open-elevation";
+import { fetchTerrainElevation, calcElevationRisk } from "@/lib/providers/open-elevation";
 import { fetchRealWaterLevel } from "@/lib/providers/thaiwater";
 import { fetchRealRainfall } from "@/lib/providers/open-meteo";
 import type {
@@ -38,35 +35,31 @@ export async function GET(req: NextRequest) {
   const lng = parseFloat(searchParams.get("lng") ?? "");
 
   if (isNaN(lat) || isNaN(lng)) {
-    return NextResponse.json(
-      { error: "lat และ lng ต้องเป็นตัวเลข" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "lat และ lng ต้องเป็นตัวเลข" }, { status: 400 });
   }
 
   const now = new Date().toISOString();
   const dataNotices: string[] = [];
 
   // ── Parallel fetch of all 4 live telemetry sources ───────────────────────
-  const [elevationResult, ridResult, waterResult, rainResult] =
-    await Promise.all([
-      fetchTerrainElevation(lat, lng).catch((err) => {
-        console.error("[dashboard] Elevation fetch failed:", err);
-        return null;
-      }),
-      fetchRidReservoirs().catch((err) => {
-        console.error("[dashboard] RID fetch failed:", err);
-        return null;
-      }),
-      fetchRealWaterLevel(lat, lng).catch((err) => {
-        console.error("[dashboard] ThaiWater fetch failed:", err);
-        return null;
-      }),
-      fetchRealRainfall(lat, lng).catch((err) => {
-        console.error("[dashboard] Open-Meteo fetch failed:", err);
-        return null;
-      }),
-    ]);
+  const [elevationResult, ridResult, waterResult, rainResult] = await Promise.all([
+    fetchTerrainElevation(lat, lng).catch((err) => {
+      console.error("[dashboard] Elevation fetch failed:", err);
+      return null;
+    }),
+    fetchRidReservoirs().catch((err) => {
+      console.error("[dashboard] RID fetch failed:", err);
+      return null;
+    }),
+    fetchRealWaterLevel(lat, lng).catch((err) => {
+      console.error("[dashboard] ThaiWater fetch failed:", err);
+      return null;
+    }),
+    fetchRealRainfall(lat, lng).catch((err) => {
+      console.error("[dashboard] Open-Meteo fetch failed:", err);
+      return null;
+    }),
+  ]);
 
   // ── 1. Terrain elevation ────────────────────────────────────────────────
   const terrainElevM = elevationResult?.terrainElevationM ?? null;
@@ -133,15 +126,15 @@ export async function GET(req: NextRequest) {
       upstreamRisk,
       elevationRisk,
       infrastructureRisk: 0, // P2
-      tideRisk: 0,           // P2
+      tideRisk: 0, // P2
     },
     confidence,
     estimatedElevationMarginM:
       terrainElevM !== null && waterResult?.current.waterLevelM
         ? terrainElevM - waterResult.current.waterLevelM
         : terrainElevM !== null
-        ? terrainElevM - 1.5
-        : undefined,
+          ? terrainElevM - 1.5
+          : undefined,
   });
 
   // ── 8. 2011 historical comparison ────────────────────────────────────────

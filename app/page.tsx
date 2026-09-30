@@ -89,10 +89,23 @@ export default function HomePage() {
       <main className="page" id="main-content" style={{ paddingBottom: "80px" }}>
         {/* ── App Header ──────────────────────────────────────── */}
         <header style={{ marginBottom: "16px" }}>
-          <h1 style={{ fontSize: "1.3rem", fontWeight: 800, margin: 0, color: "var(--color-text-primary)" }}>
+          <h1
+            style={{
+              fontSize: "1.3rem",
+              fontWeight: 800,
+              margin: 0,
+              color: "var(--color-text-primary)",
+            }}
+          >
             {UI_TEXT.appName}
           </h1>
-          <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+          <p
+            style={{
+              fontSize: "0.82rem",
+              color: "var(--color-text-muted)",
+              margin: "2px 0 0 0",
+            }}
+          >
             {UI_TEXT.appTagline}
           </p>
         </header>
@@ -108,7 +121,11 @@ export default function HomePage() {
         {data?.dataNotices && data.dataNotices.length > 0 && (
           <div style={{ marginBottom: "12px" }}>
             {data.dataNotices.map((notice, i) => (
-              <div key={i} className="notice notice--info" style={{ marginBottom: "6px" }}>
+              <div
+                key={i}
+                className="notice notice--info"
+                style={{ marginBottom: "6px" }}
+              >
                 <span>ℹ️</span>
                 <span>{notice}</span>
               </div>
@@ -149,32 +166,51 @@ export default function HomePage() {
         {/* ── 3. Elevation Margin ────────────────────────────── */}
         {data?.risk.estimatedElevationMarginM !== undefined &&
           data.risk.estimatedElevationMarginM !== null && (
-          <div className="card" style={{ marginBottom: "16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-primary)" }}>
-                  🏠 {UI_TEXT.elevationMargin}
-                </span>
-                <p style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
-                  {UI_TEXT.elevationMarginDisclaimer}
-                </p>
-              </div>
-              <span
+            <div className="card" style={{ marginBottom: "16px" }}>
+              <div
                 style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 700,
-                  color: (data.risk.estimatedElevationMarginM ?? 0) < 0.3
-                    ? "var(--color-high)"
-                    : "var(--color-low)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                 }}
               >
-                {(data.risk.estimatedElevationMarginM ?? 0) > 0
-                  ? `+${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`
-                  : `${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`}
-              </span>
+                <div>
+                  <span
+                    style={{
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      color: "var(--color-text-primary)",
+                    }}
+                  >
+                    🏠 {UI_TEXT.elevationMargin}
+                  </span>
+                  <p
+                    style={{
+                      fontSize: "0.72rem",
+                      color: "var(--color-text-muted)",
+                      margin: "2px 0 0 0",
+                    }}
+                  >
+                    {UI_TEXT.elevationMarginDisclaimer}
+                  </p>
+                </div>
+                <span
+                  style={{
+                    fontSize: "1.1rem",
+                    fontWeight: 700,
+                    color:
+                      (data.risk.estimatedElevationMarginM ?? 0) < 0.3
+                        ? "var(--color-high)"
+                        : "var(--color-low)",
+                  }}
+                >
+                  {(data.risk.estimatedElevationMarginM ?? 0) > 0
+                    ? `+${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`
+                    : `${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`}
+                </span>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* ── 4. 2011 Historical Comparison ───────────────────── */}
         <div style={{ marginBottom: "16px" }}>
@@ -198,11 +234,20 @@ export default function HomePage() {
           style={{ width: "100%", marginBottom: "16px", padding: "10px" }}
           onClick={() => setShowDetails((v) => !v)}
         >
-          {showDetails ? "▲ ซ่อนรายละเอียดระดับน้ำและฝน" : "▼ ดูรายละเอียดระดับน้ำ ฝน และอ่างเก็บน้ำ"}
+          {showDetails
+            ? "▲ ซ่อนรายละเอียดระดับน้ำและฝน"
+            : "▼ ดูรายละเอียดระดับน้ำ ฝน และอ่างเก็บน้ำ"}
         </button>
 
         {showDetails && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "16px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              marginBottom: "16px",
+            }}
+          >
             {data ? (
               <>
                 <WaterDataCard water={data.water} />
@@ -211,7 +256,13 @@ export default function HomePage() {
                 {/* Reservoir overview card */}
                 {data._reservoirBasin && (
                   <div className="card">
-                    <h2 style={{ fontSize: "0.9rem", fontWeight: 600, margin: "0 0 10px 0" }}>
+                    <h2
+                      style={{
+                        fontSize: "0.9rem",
+                        fontWeight: 600,
+                        margin: "0 0 10px 0",
+                      }}
+                    >
                       🏔️ เขื่อนหลักลุ่มน้ำเจ้าพระยา (ชป.)
                     </h2>
                     <div className="data-row">
@@ -223,13 +274,15 @@ export default function HomePage() {
                     <div className="data-row">
                       <span className="data-row__label">ปริมาณน้ำไหลเข้าเขื่อน</span>
                       <span className="data-row__value">
-                        {data._reservoirBasin.totalInflowM3s.toLocaleString()} ลบ.ม./วินาที
+                        {data._reservoirBasin.totalInflowM3s.toLocaleString()}{" "}
+                        ลบ.ม./วินาที
                       </span>
                     </div>
                     <div className="data-row">
                       <span className="data-row__label">ปริมาณน้ำระบายออก</span>
                       <span className="data-row__value">
-                        {data._reservoirBasin.totalOutflowM3s.toLocaleString()} ลบ.ม./วินาที
+                        {data._reservoirBasin.totalOutflowM3s.toLocaleString()}{" "}
+                        ลบ.ม./วินาที
                       </span>
                     </div>
                     <div className="data-row">

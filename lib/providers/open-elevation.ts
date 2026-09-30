@@ -54,7 +54,7 @@ export async function fetchTerrainElevation(
 
     const res = await fetch(url, {
       next: { revalidate: 86400 }, // Cache 24h — terrain doesn't change
-      headers: { "Accept": "application/json" },
+      headers: { Accept: "application/json" },
       signal: AbortSignal.timeout(8000), // 8s timeout
     });
 
@@ -106,12 +106,12 @@ export function calcElevationRisk(params: {
 
   if (elevM === null || elevM === undefined) return 0.3; // unknown = moderate
 
-  if (elevM < 0)    return 1.0;   // below sea level
-  if (elevM < 0.5)  return 0.9;
-  if (elevM < 1.0)  return 0.75;
-  if (elevM < 1.5)  return 0.6;
-  if (elevM < 2.0)  return 0.45;
-  if (elevM < 3.0)  return 0.30;
-  if (elevM < 5.0)  return 0.15;
+  if (elevM < 0) return 1.0; // below sea level
+  if (elevM < 0.5) return 0.9;
+  if (elevM < 1.0) return 0.75;
+  if (elevM < 1.5) return 0.6;
+  if (elevM < 2.0) return 0.45;
+  if (elevM < 3.0) return 0.3;
+  if (elevM < 5.0) return 0.15;
   return 0.05;
 }

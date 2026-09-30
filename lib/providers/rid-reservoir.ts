@@ -36,7 +36,7 @@ type RidRegion = {
 
 type RidResponse = {
   document: string;
-  date: string;    // "YYYY-MM-DD"
+  date: string; // "YYYY-MM-DD"
   total: number;
   data: RidRegion[];
 };
@@ -83,7 +83,7 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
 
   const res = await fetch(RID_API_URL, {
     next: { revalidate: 3600 }, // Cache 1 hour (daily data)
-    headers: { "Accept": "application/json" },
+    headers: { Accept: "application/json" },
   });
 
   if (!res.ok) {
@@ -120,7 +120,8 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
     const totalStorage = cpDams.reduce((s, d) => s + (d.volume ?? 0), 0);
     const totalInflow = cpDams.reduce((s, d) => s + (d.inflow ?? 0), 0);
     const totalOutflow = cpDams.reduce((s, d) => s + (d.outflow ?? 0), 0);
-    const avgPct = cpDams.reduce((s, d) => s + (d.percent_storage ?? 0), 0) / cpDams.length;
+    const avgPct =
+      cpDams.reduce((s, d) => s + (d.percent_storage ?? 0), 0) / cpDams.length;
 
     chaoPrayaBasin = {
       totalCapacityMcm: Math.round(totalCapacity * 100) / 100,
@@ -152,9 +153,13 @@ export function calcUpstreamRiskFromReservoirs(
   const storageRisk = Math.min(1, basin.avgStoragePercent / 100);
   // High outflow relative to capacity is more meaningful than storage alone
   // (high outflow = water is being released downstream)
-  const outflowFactor = basin.totalCapacityMcm > 0
-    ? Math.min(1, (basin.totalOutflowM3s * 86400 / 1_000_000) / (basin.totalCapacityMcm * 0.05))
-    : 0;
+  const outflowFactor =
+    basin.totalCapacityMcm > 0
+      ? Math.min(
+          1,
+          (basin.totalOutflowM3s * 86400) / 1_000_000 / (basin.totalCapacityMcm * 0.05)
+        )
+      : 0;
 
   // Weighted combination: storage 40% + outflow 60%
   return storageRisk * 0.4 + outflowFactor * 0.6;

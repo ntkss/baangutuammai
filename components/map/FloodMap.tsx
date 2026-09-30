@@ -27,7 +27,10 @@ interface FloodMapProps {
 }
 
 type GoogleMapsAPI = {
-  Map: new (el: HTMLElement, opts: unknown) => {
+  Map: new (
+    el: HTMLElement,
+    opts: unknown
+  ) => {
     setCenter: (pos: { lat: number; lng: number }) => void;
   };
   Marker: new (opts: unknown) => {
@@ -65,9 +68,23 @@ export function FloodMap({
   style,
 }: FloodMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<{ setCenter: (pos: { lat: number; lng: number }) => void } | null>(null);
-  const markersRef = useRef<Map<string, { setMap: (map: unknown) => void; setPosition: (pos: { lat: number; lng: number }) => void }>>(new Map());
-  const activeInfoWindowRef = useRef<{ setContent: (c: string) => void; open: (opts: { map: unknown; anchor?: unknown; shouldFocus?: boolean }) => void; close: () => void } | null>(null);
+  const mapInstanceRef = useRef<{
+    setCenter: (pos: { lat: number; lng: number }) => void;
+  } | null>(null);
+  const markersRef = useRef<
+    Map<
+      string,
+      {
+        setMap: (map: unknown) => void;
+        setPosition: (pos: { lat: number; lng: number }) => void;
+      }
+    >
+  >(new Map());
+  const activeInfoWindowRef = useRef<{
+    setContent: (c: string) => void;
+    open: (opts: { map: unknown; anchor?: unknown; shouldFocus?: boolean }) => void;
+    close: () => void;
+  } | null>(null);
 
   const [isApiLoaded, setIsApiLoaded] = useState(() => {
     if (typeof window !== "undefined") {

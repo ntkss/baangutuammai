@@ -40,7 +40,8 @@ export function LocationPicker({
   const googleInputRef = useRef<HTMLInputElement>(null);
   const [googleLoaded, setGoogleLoaded] = useState(() => {
     if (typeof window !== "undefined") {
-      const g = (window as unknown as { google?: { maps?: { places?: unknown } } }).google;
+      const g = (window as unknown as { google?: { maps?: { places?: unknown } } })
+        .google;
       return Boolean(g?.maps?.places);
     }
     return false;
@@ -49,24 +50,27 @@ export function LocationPicker({
   // Check if Google Maps JS API key is set
   const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
-  const handleSelect = useCallback((lat: number, lng: number, label?: string) => {
-    const roundedLat = Math.round(lat * 10000) / 10000;
-    const roundedLng = Math.round(lng * 10000) / 10000;
+  const handleSelect = useCallback(
+    (lat: number, lng: number, label?: string) => {
+      const roundedLat = Math.round(lat * 10000) / 10000;
+      const roundedLng = Math.round(lng * 10000) / 10000;
 
-    setHomeLocation({
-      id: `loc-${roundedLat.toFixed(4)}-${roundedLng.toFixed(4)}`,
-      latitude: roundedLat,
-      longitude: roundedLng,
-      label,
-    });
-    setManualLat(String(roundedLat));
-    setManualLng(String(roundedLng));
-    onLocationSelect(roundedLat, roundedLng, label);
-    setIsOpen(false);
-    setGeoError(null);
-    setSearchQuery("");
-    setSearchResults([]);
-  }, [onLocationSelect, setHomeLocation]);
+      setHomeLocation({
+        id: `loc-${roundedLat.toFixed(4)}-${roundedLng.toFixed(4)}`,
+        latitude: roundedLat,
+        longitude: roundedLng,
+        label,
+      });
+      setManualLat(String(roundedLat));
+      setManualLng(String(roundedLng));
+      onLocationSelect(roundedLat, roundedLng, label);
+      setIsOpen(false);
+      setGeoError(null);
+      setSearchQuery("");
+      setSearchResults([]);
+    },
+    [onLocationSelect, setHomeLocation]
+  );
 
   // ── Load Google Maps JavaScript API if API Key is available ───────────────
   useEffect(() => {
@@ -144,7 +148,8 @@ export function LocationPicker({
 
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
-        const label = place.name || place.formatted_address || "ตำแหน่งที่เลือกจาก Google Maps";
+        const label =
+          place.name || place.formatted_address || "ตำแหน่งที่เลือกจาก Google Maps";
 
         handleSelect(lat, lng, label);
       });
@@ -220,7 +225,8 @@ export function LocationPicker({
   }
 
   const displayLabel =
-    homeLocation?.label || `พิกัดบ้าน: ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
+    homeLocation?.label ||
+    `พิกัดบ้าน: ${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
 
   return (
     <div style={{ marginBottom: "16px" }}>
@@ -311,7 +317,9 @@ export function LocationPicker({
             }}
           >
             <span>{isLocating ? "⏳" : "🎯"}</span>
-            <span>{isLocating ? "กำลังดึงพิกัด GPS..." : "ใช้ตำแหน่งปัจจุบันของฉัน (GPS)"}</span>
+            <span>
+              {isLocating ? "กำลังดึงพิกัด GPS..." : "ใช้ตำแหน่งปัจจุบันของฉัน (GPS)"}
+            </span>
           </button>
 
           {geoError && (
@@ -394,7 +402,9 @@ export function LocationPicker({
                 {searchResults.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => handleSelect(item.lat, item.lng, item.name || item.label)}
+                    onClick={() =>
+                      handleSelect(item.lat, item.lng, item.name || item.label)
+                    }
                     style={{
                       width: "100%",
                       textAlign: "left",
@@ -439,7 +449,8 @@ export function LocationPicker({
                   margin: "4px 0 0 0",
                 }}
               >
-                * สามารถระบุ <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> ใน <code>.env.local</code> เพื่อเปิดใช้ Google Places Autocomplete ได้โดยตรง
+                * สามารถระบุ <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> ใน{" "}
+                <code>.env.local</code> เพื่อเปิดใช้ Google Places Autocomplete ได้โดยตรง
               </p>
             )}
           </div>

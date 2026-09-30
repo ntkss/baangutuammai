@@ -41,7 +41,11 @@ export function Historical2011Card({
   const c2Status =
     activeC2 >= 4000 ? "ท่วม" : activeC2 >= 2500 ? "เฝ้าระวัง" : "ยังไม่ท่วม";
   const damStatus =
-    activeDamStorage >= 95 ? "วิกฤต" : activeDamStorage >= 80 ? "เฝ้าระวัง" : "ยังไม่ท่วม";
+    activeDamStorage >= 95
+      ? "วิกฤต"
+      : activeDamStorage >= 80
+        ? "เฝ้าระวัง"
+        : "ยังไม่ท่วม";
   const levelStatus =
     diffLevel <= 0 ? "ท่วม" : diffLevel < 0.2 ? "เฝ้าระวัง" : "ยังไม่ท่วม";
 
@@ -108,12 +112,32 @@ export function Historical2011Card({
   return (
     <div className="card">
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "12px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: "12px",
+        }}
+      >
         <div>
-          <h2 style={{ fontSize: "0.95rem", fontWeight: 700, margin: 0, color: "var(--color-text-primary)" }}>
+          <h2
+            style={{
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              margin: 0,
+              color: "var(--color-text-primary)",
+            }}
+          >
             📋 เช็กลิสต์เทียบกับมหาอุทกภัยปี 2554
           </h2>
-          <p style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+          <p
+            style={{
+              fontSize: "0.75rem",
+              color: "var(--color-text-muted)",
+              margin: "2px 0 0 0",
+            }}
+          >
             เทียบ 4 ตัวชี้วัดวิกฤตหลัก: ปี 2554 vs สภาพปัจจุบัน (ปี 2569)
           </p>
         </div>
@@ -149,7 +173,14 @@ export function Historical2011Card({
               }}
             >
               {/* Title */}
-              <div style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-primary)", marginBottom: "6px" }}>
+              <div
+                style={{
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  marginBottom: "6px",
+                }}
+              >
                 {item.title}
               </div>
 
@@ -165,11 +196,23 @@ export function Historical2011Card({
                 }}
               >
                 {/* Year 2554 */}
-                <div style={{ background: "rgba(0,0,0,0.02)", padding: "6px 8px", borderRadius: "6px" }}>
+                <div
+                  style={{
+                    background: "rgba(0,0,0,0.02)",
+                    padding: "6px 8px",
+                    borderRadius: "6px",
+                  }}
+                >
                   <div style={{ color: "var(--color-text-muted)", fontSize: "0.68rem" }}>
                     🔴 ปี 2554 (มหาอุทกภัย)
                   </div>
-                  <div style={{ fontWeight: 600, color: "var(--color-text-primary)", margin: "2px 0" }}>
+                  <div
+                    style={{
+                      fontWeight: 600,
+                      color: "var(--color-text-primary)",
+                      margin: "2px 0",
+                    }}
+                  >
                     {item.year2554Text}
                   </div>
                   <span
@@ -185,11 +228,24 @@ export function Historical2011Card({
                 </div>
 
                 {/* Year 2569 / Current */}
-                <div style={{ background: "rgba(45, 125, 70, 0.04)", padding: "6px 8px", borderRadius: "6px", border: "1px solid rgba(45, 125, 70, 0.15)" }}>
+                <div
+                  style={{
+                    background: "rgba(45, 125, 70, 0.04)",
+                    padding: "6px 8px",
+                    borderRadius: "6px",
+                    border: "1px solid rgba(45, 125, 70, 0.15)",
+                  }}
+                >
                   <div style={{ color: "var(--color-text-muted)", fontSize: "0.68rem" }}>
                     🟢 ปัจจุบัน (ปี 2569)
                   </div>
-                  <div style={{ fontWeight: 700, color: "var(--color-text-primary)", margin: "2px 0" }}>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      color: "var(--color-text-primary)",
+                      margin: "2px 0",
+                    }}
+                  >
                     {item.currentYearText}
                   </div>
                   <span
@@ -206,7 +262,16 @@ export function Historical2011Card({
               </div>
 
               {/* Difference Note */}
-              <div style={{ fontSize: "0.72rem", color: "var(--color-text-secondary)", marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "var(--color-text-secondary)",
+                  marginTop: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
                 <span>💡</span>
                 <span>{item.diffNote}</span>
               </div>
@@ -228,7 +293,8 @@ export function Historical2011Card({
           lineHeight: 1.5,
         }}
       >
-        <strong>สรุป:</strong> ตัวชี้วัดสำคัญทั้ง 4 ด้านยังห่างจากสถิติวิกฤตปี 2554 พอสมควร ทั้งนี้ควรติดตามช่วงเวลาที่น้ำทะเลหนุนสูงร่วมกับฝนตกหนักในพื้นที่
+        <strong>สรุป:</strong> ตัวชี้วัดสำคัญทั้ง 4 ด้านยังห่างจากสถิติวิกฤตปี 2554
+        พอสมควร ทั้งนี้ควรติดตามช่วงเวลาที่น้ำทะเลหนุนสูงร่วมกับฝนตกหนักในพื้นที่
       </div>
     </div>
   );

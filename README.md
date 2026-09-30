@@ -61,12 +61,12 @@ docs/
 
 ## แหล่งข้อมูล
 
-| ข้อมูล | แหล่ง |
-|---|---|
-| ระดับน้ำ | HII / ThaiWater (data.go.th) |
-| ปริมาณฝน | HII / กรมทรัพยากรน้ำ |
-| อ่างเก็บน้ำ | กรมชลประทาน (RID) |
-| ภูมิประเทศ | HII Terrain / LiDAR |
+| ข้อมูล      | แหล่ง                        |
+| ----------- | ---------------------------- |
+| ระดับน้ำ    | HII / ThaiWater (data.go.th) |
+| ปริมาณฝน    | HII / กรมทรัพยากรน้ำ         |
+| อ่างเก็บน้ำ | กรมชลประทาน (RID)            |
+| ภูมิประเทศ  | HII Terrain / LiDAR          |
 
 ## ข้อสำคัญ
 
@@ -75,4 +75,4 @@ docs/
 
 ---
 
-*ดู [IMPLEMENTATION_PLAN.md](.agent/IMPLEMENTATION_PLAN.md) และ [DATA_SOURCE_RESEARCH.md](.agent/DATA_SOURCE_RESEARCH.md) สำหรับรายละเอียดทางเทคนิค*
+_ดู [IMPLEMENTATION_PLAN.md](.agent/IMPLEMENTATION_PLAN.md) และ [DATA_SOURCE_RESEARCH.md](.agent/DATA_SOURCE_RESEARCH.md) สำหรับรายละเอียดทางเทคนิค_
