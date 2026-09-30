@@ -1,48 +1,53 @@
 @import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
-/* ─── Design tokens ─────────────────────────────────────────────────────── */
+/* ─── Design tokens (Modern, Minimal & Clean) ───────────────────────────── */
 :root {
-  /* Palette */
-  --color-bg: #f5f5f0;
+  /* Palette - Modern Clean Slate */
+  --color-bg: #f8fafc;
   --color-surface: #ffffff;
-  --color-surface-2: #f0f0ea;
-  --color-border: #e2e2da;
-  --color-text-primary: #1a1a18;
-  --color-text-secondary: #5a5a52;
-  --color-text-muted: #9a9a90;
+  --color-surface-2: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-subtle: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
 
-  /* Risk semantic colors */
-  --color-low: #2d7d46;
-  --color-low-bg: #edf7f0;
-  --color-low-border: #b7dfc4;
+  /* Risk semantic colors - Vibrant modern HSL */
+  --color-low: #059669;
+  --color-low-bg: #ecfdf5;
+  --color-low-border: #a7f3d0;
 
-  --color-watch: #b45309;
-  --color-watch-bg: #fef8ec;
-  --color-watch-border: #fcd97a;
+  --color-watch: #d97706;
+  --color-watch-bg: #fffbeb;
+  --color-watch-border: #fde68a;
 
-  --color-high: #c2410c;
-  --color-high-bg: #fff4ee;
-  --color-high-border: #fbb89a;
+  --color-high: #ea580c;
+  --color-high-bg: #fff7ed;
+  --color-high-border: #fed7aa;
 
-  --color-severe: #991b1b;
+  --color-severe: #dc2626;
   --color-severe-bg: #fef2f2;
-  --color-severe-border: #fca5a5;
+  --color-severe-border: #fecaca;
 
-  /* Accent */
-  --color-accent: #1d5aa8;
-  --color-accent-light: #eff4fc;
+  /* Accent - Royal Flood Blue */
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-light: #eff6ff;
 
   /* Spacing / radius */
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 20px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06);
-  --shadow-md: 0 4px 16px 0 rgb(0 0 0 / 0.08);
-  --shadow-lg: 0 8px 32px 0 rgb(0 0 0 / 0.1);
+  /* Shadows - Soft modern multi-layer */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md:
+    0 4px 20px -2px rgb(15 23 42 / 0.06), 0 2px 6px -1px rgb(15 23 42 / 0.03);
+  --shadow-lg:
+    0 10px 30px -4px rgb(15 23 42 / 0.08), 0 4px 10px -2px rgb(15 23 42 / 0.04);
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────── */
@@ -61,11 +66,17 @@ html {
 body {
   background: var(--color-bg);
   color: var(--color-text-primary);
-  font-family: "Sarabun", "IBM Plex Sans Thai", system-ui, sans-serif;
+  font-family:
+    "Sarabun",
+    "IBM Plex Sans Thai",
+    system-ui,
+    -apple-system,
+    sans-serif;
   font-weight: 400;
   line-height: 1.6;
   min-height: 100%;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ─── Typography helpers ─────────────────────────────────────────────────── */
@@ -151,13 +162,16 @@ body {
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: 20px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card--elevated {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
 
 /* ─── Trend bar (2011 comparison) ────────────────────────────────────────── */
@@ -186,45 +200,52 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
-/* ─── Navigation bar ─────────────────────────────────────────────────────── */
+/* ─── Navigation bar (Modern blur dock) ─────────────────────────────────── */
 .nav-bar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
   display: flex;
   justify-content: space-around;
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  padding: 8px 16px max(10px, env(safe-area-inset-bottom));
   z-index: 50;
+  box-shadow: 0 -4px 20px 0 rgba(15, 23, 42, 0.04);
 }
 
 .nav-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  font-size: 0.7rem;
-  font-weight: 500;
+  gap: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--color-text-muted);
   text-decoration: none;
-  padding: 4px 16px;
-  border-radius: var(--radius-sm);
-  transition:
-    color 0.15s,
-    background 0.15s;
+  padding: 6px 16px;
+  border-radius: var(--radius-md);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   background: none;
   border: none;
 }
 
+.nav-item:hover {
+  color: var(--color-text-primary);
+  background: rgba(241, 245, 249, 0.6);
+}
+
 .nav-item--active {
   color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 
 .nav-item__icon {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   line-height: 1;
 }
 

@@ -6,6 +6,12 @@ import { NAV_LABELS } from "@/lib/i18n/th";
 
 const navItems = [
   { href: "/", label: NAV_LABELS.home, icon: "🏠", id: "nav-home" },
+  {
+    href: "/triggers",
+    label: NAV_LABELS.triggers,
+    icon: "⚡",
+    id: "nav-triggers",
+  },
   { href: "/map", label: NAV_LABELS.map, icon: "🗺️", id: "nav-map" },
 ];
 

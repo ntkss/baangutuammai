@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { BottomNav } from "@/components/common/BottomNav";
 import {
   RiskStatusCard,
@@ -9,7 +10,6 @@ import {
 } from "@/components/risk/RiskCard";
 import { WaterDataCard, RainDataCard } from "@/components/risk/DataCards";
 import { NorthernRunoffCard } from "@/components/risk/NorthernRunoffCard";
-import { FloodTriggerFactorsCard } from "@/components/risk/FloodTriggerFactorsCard";
 import { Historical2011Card } from "@/components/history/Historical2011Card";
 import { LocationPicker } from "@/components/location/LocationPicker";
 import { useUserPrefs } from "@/lib/store/userPrefs";
@@ -96,27 +96,54 @@ export default function HomePage() {
         id="main-content"
         style={{ paddingBottom: "80px" }}
       >
-        {/* ── App Header ──────────────────────────────────────── */}
-        <header style={{ marginBottom: "16px" }}>
-          <h1
-            style={{
-              fontSize: "1.3rem",
-              fontWeight: 800,
-              margin: 0,
-              color: "var(--color-text-primary)",
-            }}
-          >
-            {UI_TEXT.appName}
-          </h1>
-          <p
-            style={{
-              fontSize: "0.82rem",
-              color: "var(--color-text-muted)",
-              margin: "2px 0 0 0",
-            }}
-          >
-            {UI_TEXT.appTagline}
-          </p>
+        {/* ── App Header (Modern, Sleek & Clean) ──────────────── */}
+        <header
+          style={{
+            marginBottom: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span
+                style={{
+                  width: "32px",
+                  height: "32px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #2563eb, #38bdf8)",
+                  fontSize: "1.1rem",
+                  boxShadow: "0 2px 8px rgba(37, 99, 235, 0.25)",
+                }}
+              >
+                🌊
+              </span>
+              <h1
+                style={{
+                  fontSize: "1.35rem",
+                  fontWeight: 800,
+                  margin: 0,
+                  color: "var(--color-text-primary)",
+                  letterSpacing: "-0.02em",
+                }}
+              >
+                {UI_TEXT.appName}
+              </h1>
+            </div>
+            <p
+              style={{
+                fontSize: "0.78rem",
+                color: "var(--color-text-muted)",
+                margin: "4px 0 0 0",
+              }}
+            >
+              {UI_TEXT.appTagline}
+            </p>
+          </div>
         </header>
 
         {/* ── Location Selector (Home location picker) ───────── */}
@@ -224,18 +251,89 @@ export default function HomePage() {
             </div>
           )}
 
-        {/* ── 4. Critical Flood Trigger Factors (ปัจจัยชี้ชะตา: สัญญาณน้ำท่วมถึงบ้านคุณ) ── */}
-        {isLoading ? (
-          <DataCardSkeleton />
-        ) : (
-          <FloodTriggerFactorsCard
-            c13Discharge={data?._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s}
-            c2Discharge={data?._northernRunoff?.c2NakhonSawan?.dischargeM3s}
-            rain24hMm={data?.rain.total24h}
-            reservoirPercent={data?._reservoirBasin?.avgStoragePercent}
-            elevationMarginM={data?.risk.estimatedElevationMarginM}
-          />
-        )}
+        {/* ── 4. Teaser Link to Critical Triggers Page (สัญญาณวิกฤต) ── */}
+        <Link
+          href="/triggers"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background:
+              "linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(254, 242, 242, 0.8))",
+            border: "1px solid rgba(191, 219, 254, 0.8)",
+            borderRadius: "16px",
+            padding: "14px 16px",
+            marginBottom: "16px",
+            textDecoration: "none",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span
+              style={{
+                fontSize: "1.4rem",
+                width: "42px",
+                height: "42px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "12px",
+                background: "#ffffff",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                flexShrink: 0,
+              }}
+            >
+              ⚡
+            </span>
+            <div>
+              <div
+                style={{
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span>5 สัญญาณวิกฤตน้ำท่วมบ้าน</span>
+                <span
+                  style={{
+                    fontSize: "0.65rem",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    background: "rgba(220, 38, 38, 0.1)",
+                    color: "var(--color-severe)",
+                    fontWeight: 700,
+                  }}
+                >
+                  จุดชี้ชะตา
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "var(--color-text-secondary)",
+                  marginTop: "2px",
+                }}
+              >
+                เช็กเงื่อนไข: เขื่อนปล่อยน้ำ + ฝนซ้ำ + น้ำหนุน
+              </div>
+            </div>
+          </div>
+
+          <span
+            style={{
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              color: "var(--color-accent)",
+              whiteSpace: "nowrap",
+              paddingLeft: "8px",
+            }}
+          >
+            ดูเงื่อนไข →
+          </span>
+        </Link>
 
         {/* ── 5. 2011 Historical Comparison ───────────────────── */}
         <div style={{ marginBottom: "16px" }}>
