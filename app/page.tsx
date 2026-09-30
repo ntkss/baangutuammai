@@ -10,7 +10,6 @@ import {
 } from "@/components/risk/RiskCard";
 import { WaterDataCard, RainDataCard } from "@/components/risk/DataCards";
 import { NorthernRunoffCard } from "@/components/risk/NorthernRunoffCard";
-import { Historical2011Card } from "@/components/history/Historical2011Card";
 import { LocationPicker } from "@/components/location/LocationPicker";
 import { useUserPrefs } from "@/lib/store/userPrefs";
 import { UI_TEXT } from "@/lib/i18n/th";
@@ -335,22 +334,89 @@ export default function HomePage() {
           </span>
         </Link>
 
-        {/* ── 5. 2011 Historical Comparison ───────────────────── */}
-        <div style={{ marginBottom: "16px" }}>
-          {isLoading ? (
-            <DataCardSkeleton />
-          ) : (
-            <Historical2011Card
-              comparison={data?.historicalComparison ?? null}
-              currentLevelM={data?.water.current?.waterLevelM}
-              c2Discharge={data?._northernRunoff?.c2NakhonSawan?.dischargeM3s}
-              c13Discharge={
-                data?._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s
-              }
-              reservoirStoragePercent={data?._reservoirBasin?.avgStoragePercent}
-            />
-          )}
-        </div>
+        {/* ── 5. Teaser Link to 2554 Comparison Page (ปี 2554) ── */}
+        <Link
+          href="/2554"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            background:
+              "linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(239, 246, 255, 0.8))",
+            border: "1px solid rgba(153, 246, 228, 0.7)",
+            borderRadius: "16px",
+            padding: "14px 16px",
+            marginBottom: "16px",
+            textDecoration: "none",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span
+              style={{
+                fontSize: "1.4rem",
+                width: "42px",
+                height: "42px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "12px",
+                background: "#ffffff",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                flexShrink: 0,
+              }}
+            >
+              📊
+            </span>
+            <div>
+              <div
+                style={{
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <span>เทียบกับมหาอุทกภัยปี 2554</span>
+                <span
+                  style={{
+                    fontSize: "0.65rem",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    background: "rgba(13, 148, 136, 0.1)",
+                    color: "var(--color-low)",
+                    fontWeight: 700,
+                  }}
+                >
+                  เช็กลิสต์
+                </span>
+              </div>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  color: "var(--color-text-secondary)",
+                  marginTop: "2px",
+                }}
+              >
+                เทียบปริมาณน้ำ C.13, C.2 และ 4 เขื่อนใหญ่กับปี 54
+              </div>
+            </div>
+          </div>
+
+          <span
+            style={{
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              color: "var(--color-accent)",
+              whiteSpace: "nowrap",
+              paddingLeft: "8px",
+            }}
+          >
+            เปรียบเทียบ →
+          </span>
+        </Link>
 
         {/* ── 5. Progressive Disclosure: Toggle Details ───────── */}
         <button

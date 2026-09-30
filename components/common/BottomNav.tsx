@@ -12,6 +12,12 @@ const navItems = [
     icon: "⚡",
     id: "nav-triggers",
   },
+  {
+    href: "/2554",
+    label: NAV_LABELS.history2554,
+    icon: "📊",
+    id: "nav-2554",
+  },
   { href: "/map", label: NAV_LABELS.map, icon: "🗺️", id: "nav-map" },
 ];
 

@@ -107,6 +107,7 @@ export const HISTORICAL_2011 = {
 export const NAV_LABELS = {
   home: "หน้าหลัก",
   triggers: "สัญญาณวิกฤต",
+  history2554: "ปี 2554",
   map: "แผนที่",
   history: "ประวัติ",
   settings: "ตั้งค่า",

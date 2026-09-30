@@ -308,7 +308,7 @@ export function LocationPicker({
             flexShrink: 0,
           }}
         >
-          {isOpen ? "ปิด" : "เปลี่ยนตำแหน่งบ้าน"}
+          {isOpen ? "ปิด" : "เปลี่ยน"}
         </button>
       </div>
 
