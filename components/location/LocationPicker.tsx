@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useUserPrefs } from "@/lib/store/userPrefs";
 
 interface LocationPickerProps {
@@ -38,22 +38,52 @@ export function LocationPicker({
 
   // Google Maps JS Autocomplete ref
   const googleInputRef = useRef<HTMLInputElement>(null);
-  const [googleLoaded, setGoogleLoaded] = useState(false);
+  const [googleLoaded, setGoogleLoaded] = useState(() => {
+    if (typeof window !== "undefined") {
+      const g = (window as unknown as { google?: { maps?: { places?: unknown } } }).google;
+      return Boolean(g?.maps?.places);
+    }
+    return false;
+  });
 
   // Check if Google Maps JS API key is set
   const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
+  const handleSelect = useCallback((lat: number, lng: number, label?: string) => {
+    const roundedLat = Math.round(lat * 10000) / 10000;
+    const roundedLng = Math.round(lng * 10000) / 10000;
+
+    setHomeLocation({
+      id: `loc-${roundedLat.toFixed(4)}-${roundedLng.toFixed(4)}`,
+      latitude: roundedLat,
+      longitude: roundedLng,
+      label,
+    });
+    setManualLat(String(roundedLat));
+    setManualLng(String(roundedLng));
+    onLocationSelect(roundedLat, roundedLng, label);
+    setIsOpen(false);
+    setGeoError(null);
+    setSearchQuery("");
+    setSearchResults([]);
+  }, [onLocationSelect, setHomeLocation]);
+
   // ── Load Google Maps JavaScript API if API Key is available ───────────────
   useEffect(() => {
-    if (!googleApiKey || typeof window === "undefined") return;
+    if (!googleApiKey || typeof window === "undefined" || googleLoaded) return;
 
-    if ((window as any).google?.maps?.places) {
-      setGoogleLoaded(true);
+    const g = (window as unknown as { google?: { maps?: { places?: unknown } } }).google;
+    if (g?.maps?.places) {
+      queueMicrotask(() => setGoogleLoaded(true));
       return;
     }
 
     const scriptId = "google-maps-places-script";
-    if (document.getElementById(scriptId)) return;
+    const existing = document.getElementById(scriptId);
+    if (existing) {
+      existing.addEventListener("load", () => setGoogleLoaded(true));
+      return;
+    }
 
     const script = document.createElement("script");
     script.id = scriptId;
@@ -62,16 +92,42 @@ export function LocationPicker({
     script.defer = true;
     script.onload = () => setGoogleLoaded(true);
     document.head.appendChild(script);
-  }, [googleApiKey]);
+  }, [googleApiKey, googleLoaded]);
 
   // ── Attach Google Places Autocomplete widget ──────────────────────────────
   useEffect(() => {
-    if (!googleLoaded || !googleInputRef.current || !(window as any).google?.maps?.places) {
+    type GoogleWindow = {
+      google?: {
+        maps?: {
+          places?: {
+            Autocomplete: new (
+              el: HTMLInputElement,
+              opts: Record<string, unknown>
+            ) => {
+              addListener: (event: string, handler: () => void) => void;
+              getPlace: () => {
+                name?: string;
+                formatted_address?: string;
+                geometry?: {
+                  location?: {
+                    lat: () => number;
+                    lng: () => number;
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+
+    const gWin = window as unknown as GoogleWindow;
+    if (!googleLoaded || !googleInputRef.current || !gWin.google?.maps?.places) {
       return;
     }
 
     try {
-      const autocomplete = new (window as any).google.maps.places.Autocomplete(
+      const autocomplete = new gWin.google.maps.places.Autocomplete(
         googleInputRef.current,
         {
           componentRestrictions: { country: "th" },
@@ -95,19 +151,22 @@ export function LocationPicker({
     } catch (err) {
       console.error("Google Autocomplete attach failed:", err);
     }
-  }, [googleLoaded, isOpen]);
+  }, [googleLoaded, isOpen, handleSelect]);
 
   // ── Fallback Address Search via /api/geocode (debounced) ─────────────────
   useEffect(() => {
     if (googleLoaded) return; // If Google widget is active, it handles suggestions directly
-    if (!searchQuery.trim() || searchQuery.length < 2) {
-      setSearchResults([]);
-      return;
+    const trimmed = searchQuery.trim();
+    if (!trimmed || trimmed.length < 2) {
+      const timer = setTimeout(() => {
+        setSearchResults([]);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
     const timer = setTimeout(() => {
       setIsSearching(true);
-      fetch(`/api/geocode?q=${encodeURIComponent(searchQuery)}`)
+      fetch(`/api/geocode?q=${encodeURIComponent(trimmed)}`)
         .then((r) => r.json())
         .then((data) => {
           setIsSearching(false);
@@ -121,25 +180,6 @@ export function LocationPicker({
 
     return () => clearTimeout(timer);
   }, [searchQuery, googleLoaded]);
-
-  function handleSelect(lat: number, lng: number, label?: string) {
-    const roundedLat = Math.round(lat * 10000) / 10000;
-    const roundedLng = Math.round(lng * 10000) / 10000;
-
-    setHomeLocation({
-      id: `loc-${roundedLat.toFixed(4)}-${roundedLng.toFixed(4)}`,
-      latitude: roundedLat,
-      longitude: roundedLng,
-      label,
-    });
-    setManualLat(String(roundedLat));
-    setManualLng(String(roundedLng));
-    onLocationSelect(roundedLat, roundedLng, label);
-    setIsOpen(false);
-    setGeoError(null);
-    setSearchQuery("");
-    setSearchResults([]);
-  }
 
   function handleUseGps() {
     if (!navigator.geolocation) {

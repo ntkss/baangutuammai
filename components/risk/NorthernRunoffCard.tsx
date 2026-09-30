@@ -255,6 +255,11 @@ function StationCorridorRow({
               ({station.distanceKm} กม.)
             </span>
           )}
+          {hint && (
+            <span style={{ fontSize: "0.68rem", color: "var(--color-text-muted)" }}>
+              • {hint}
+            </span>
+          )}
         </div>
         <div
           style={{

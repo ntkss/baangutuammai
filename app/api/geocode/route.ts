@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+interface GoogleGeocodeResultItem {
+  place_id: string;
+  formatted_address: string;
+  address_components?: Array<{ long_name: string }>;
+  geometry: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+}
+
+interface NominatimResultItem {
+  place_id: number | string;
+  display_name: string;
+  name?: string;
+  lat: string;
+  lon: string;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const q = searchParams.get("q")?.trim() ?? "";
@@ -23,9 +43,9 @@ export async function GET(req: NextRequest) {
 
       const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
       if (res.ok) {
-        const json = await res.json();
+        const json = (await res.json()) as { status: string; results?: GoogleGeocodeResultItem[] };
         if (json.status === "OK" && Array.isArray(json.results)) {
-          const results = json.results.map((r: any) => ({
+          const results = json.results.map((r: GoogleGeocodeResultItem) => ({
             id: r.place_id,
             label: r.formatted_address,
             name: r.address_components?.[0]?.long_name || r.formatted_address,
@@ -55,9 +75,9 @@ export async function GET(req: NextRequest) {
     });
 
     if (res.ok) {
-      const items = await res.json();
+      const items = (await res.json()) as NominatimResultItem[];
       if (Array.isArray(items)) {
-        const results = items.map((item: any) => ({
+        const results = items.map((item: NominatimResultItem) => ({
           id: String(item.place_id),
           label: item.display_name,
           name: item.name || item.display_name.split(",")[0],

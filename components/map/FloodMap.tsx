@@ -26,6 +26,37 @@ interface FloodMapProps {
   style?: React.CSSProperties;
 }
 
+type GoogleMapsAPI = {
+  Map: new (el: HTMLElement, opts: unknown) => {
+    setCenter: (pos: { lat: number; lng: number }) => void;
+  };
+  Marker: new (opts: unknown) => {
+    setMap: (map: unknown) => void;
+    setPosition: (pos: { lat: number; lng: number }) => void;
+    addListener: (event: string, handler: () => void) => void;
+  };
+  InfoWindow: new (opts?: unknown) => {
+    setContent: (content: string) => void;
+    open: (opts: { map: unknown; anchor?: unknown; shouldFocus?: boolean }) => void;
+    close: () => void;
+  };
+  MapTypeControlStyle: {
+    HORIZONTAL_BAR: unknown;
+  };
+  ControlPosition: {
+    TOP_LEFT: unknown;
+  };
+  SymbolPath: {
+    CIRCLE: unknown;
+  };
+};
+
+type GoogleWindow = {
+  google?: {
+    maps?: GoogleMapsAPI;
+  };
+};
+
 export function FloodMap({
   center = [100.514, 13.862], // [lng, lat] - Nonthaburi default
   zoom = 11,
@@ -34,21 +65,28 @@ export function FloodMap({
   style,
 }: FloodMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markersRef = useRef<Map<string, any>>(new Map());
-  const activeInfoWindowRef = useRef<any>(null);
+  const mapInstanceRef = useRef<{ setCenter: (pos: { lat: number; lng: number }) => void } | null>(null);
+  const markersRef = useRef<Map<string, { setMap: (map: unknown) => void; setPosition: (pos: { lat: number; lng: number }) => void }>>(new Map());
+  const activeInfoWindowRef = useRef<{ setContent: (c: string) => void; open: (opts: { map: unknown; anchor?: unknown; shouldFocus?: boolean }) => void; close: () => void } | null>(null);
 
-  const [isApiLoaded, setIsApiLoaded] = useState(false);
+  const [isApiLoaded, setIsApiLoaded] = useState(() => {
+    if (typeof window !== "undefined") {
+      const g = (window as unknown as GoogleWindow).google;
+      return Boolean(g?.maps);
+    }
+    return false;
+  });
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
 
   // ── 1. Load Google Maps JavaScript API ─────────────────────────────────────
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || isApiLoaded) return;
 
-    if ((window as any).google?.maps) {
-      setIsApiLoaded(true);
+    const g = (window as unknown as GoogleWindow).google;
+    if (g?.maps) {
+      queueMicrotask(() => setIsApiLoaded(true));
       return;
     }
 
@@ -75,13 +113,13 @@ export function FloodMap({
     };
 
     document.head.appendChild(script);
-  }, [apiKey]);
+  }, [apiKey, isApiLoaded]);
 
   // ── 2. Initialize Google Map ──────────────────────────────────────────────
   useEffect(() => {
     if (!isApiLoaded || !containerRef.current || mapInstanceRef.current) return;
 
-    const google = (window as any).google;
+    const google = (window as unknown as GoogleWindow).google;
     if (!google?.maps) return;
 
     const [lng, lat] = center;
@@ -121,7 +159,7 @@ export function FloodMap({
   useEffect(() => {
     if (!isApiLoaded || !mapInstanceRef.current) return;
 
-    const google = (window as any).google;
+    const google = (window as unknown as GoogleWindow).google;
     if (!google?.maps) return;
 
     const map = mapInstanceRef.current;
@@ -139,12 +177,12 @@ export function FloodMap({
     for (const m of markers) {
       if (markersRef.current.has(m.id)) {
         const existing = markersRef.current.get(m.id);
-        existing.setPosition({ lat: m.latitude, lng: m.longitude });
+        existing?.setPosition({ lat: m.latitude, lng: m.longitude });
       } else {
         const isHome = m.id === "user-home";
 
         // Create custom SVG Pin Icon
-        let icon: any;
+        let icon: unknown;
 
         if (isHome) {
           // Home Icon (Gold star / pin)

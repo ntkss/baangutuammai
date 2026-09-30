@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/common/BottomNav";
 import {
   RiskStatusCard,
@@ -45,50 +45,43 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  const [activeLat, setActiveLat] = useState(homeLocation?.latitude ?? DEFAULT_LAT);
-  const [activeLng, setActiveLng] = useState(homeLocation?.longitude ?? DEFAULT_LNG);
+  const activeLat = homeLocation?.latitude ?? DEFAULT_LAT;
+  const activeLng = homeLocation?.longitude ?? DEFAULT_LNG;
 
-  // Sync if stored home location changes
   useEffect(() => {
-    if (homeLocation) {
-      setActiveLat(homeLocation.latitude);
-      setActiveLng(homeLocation.longitude);
-    }
-  }, [homeLocation]);
-
-  const fetchDashboard = useCallback((targetLat: number, targetLng: number) => {
-    setIsLoading(true);
-    setError(null);
-
-    fetch(`/api/dashboard?lat=${targetLat}&lng=${targetLng}`)
+    let ignore = false;
+    fetch(`/api/dashboard?lat=${activeLat}&lng=${activeLng}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json() as Promise<ExtendedDashboardResponse>;
       })
       .then((d) => {
-        setData(d);
-        setIsLoading(false);
+        if (!ignore) {
+          setData(d);
+          setIsLoading(false);
+        }
       })
       .catch(() => {
-        setError(UI_TEXT.errorLoading);
-        setIsLoading(false);
+        if (!ignore) {
+          setError(UI_TEXT.errorLoading);
+          setIsLoading(false);
+        }
       });
-  }, []);
 
-  useEffect(() => {
-    fetchDashboard(activeLat, activeLng);
-  }, [activeLat, activeLng, fetchDashboard]);
+    return () => {
+      ignore = true;
+    };
+  }, [activeLat, activeLng]);
 
   function handleLocationSelect(newLat: number, newLng: number, label?: string) {
-    setActiveLat(newLat);
-    setActiveLng(newLng);
+    setIsLoading(true);
+    setError(null);
     setHomeLocation({
       id: `loc-${newLat.toFixed(4)}-${newLng.toFixed(4)}`,
       latitude: newLat,
       longitude: newLng,
       label,
     });
-    fetchDashboard(newLat, newLng);
   }
 
   return (
