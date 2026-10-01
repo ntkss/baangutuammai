@@ -119,7 +119,9 @@ export function FloodMap({
   // ── 1. Listen for Google Maps Authentication Errors (gm_authFailure) ──────
   useEffect(() => {
     const unsubscribe = onGoogleMapsAuthError(() => {
-      console.warn("[FloodMap] Google Maps authentication failed. Activating OpenStreetMap fallback.");
+      console.warn(
+        "[FloodMap] Google Maps authentication failed. Activating OpenStreetMap fallback.",
+      );
       setUseFallback(true);
     });
     return unsubscribe;
@@ -127,7 +129,8 @@ export function FloodMap({
 
   // ── 2. Load Google Maps JavaScript API via shared loader ──────────────────
   useEffect(() => {
-    if (typeof window === "undefined" || isApiLoaded || useFallback || !apiKey) return;
+    if (typeof window === "undefined" || isApiLoaded || useFallback || !apiKey)
+      return;
 
     let active = true;
 
@@ -136,7 +139,9 @@ export function FloodMap({
       if (success) {
         setIsApiLoaded(true);
       } else {
-        console.warn("[FloodMap] Google Maps failed to initialize. Switching to OpenStreetMap fallback.");
+        console.warn(
+          "[FloodMap] Google Maps failed to initialize. Switching to OpenStreetMap fallback.",
+        );
         setUseFallback(true);
       }
     });
@@ -148,7 +153,13 @@ export function FloodMap({
 
   // ── 3. Initialize Google Map if loaded ────────────────────────────────────
   useEffect(() => {
-    if (!isApiLoaded || useFallback || !containerRef.current || mapInstanceRef.current) return;
+    if (
+      !isApiLoaded ||
+      useFallback ||
+      !containerRef.current ||
+      mapInstanceRef.current
+    )
+      return;
 
     const google = (window as unknown as GoogleWindow).google;
     if (!google?.maps) return;

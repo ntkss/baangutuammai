@@ -60,7 +60,9 @@ export function LocationPicker({
   // ── Listen for Google Maps Authentication Errors (gm_authFailure) ──────
   useEffect(() => {
     const unsubscribe = onGoogleMapsAuthError(() => {
-      console.warn("[LocationPicker] Google Maps auth failure detected. Switching to fallback search.");
+      console.warn(
+        "[LocationPicker] Google Maps auth failure detected. Switching to fallback search.",
+      );
       setGoogleLoaded(false);
     });
     return unsubscribe;
@@ -90,7 +92,13 @@ export function LocationPicker({
 
   // ── Load Google Maps JavaScript API via shared loader ─────────────────────
   useEffect(() => {
-    if (!googleApiKey || typeof window === "undefined" || googleLoaded || hasGoogleMapsAuthFailed()) return;
+    if (
+      !googleApiKey ||
+      typeof window === "undefined" ||
+      googleLoaded ||
+      hasGoogleMapsAuthFailed()
+    )
+      return;
 
     let active = true;
 
@@ -494,7 +502,8 @@ export function LocationPicker({
                   margin: "4px 0 0 0",
                 }}
               >
-                ⚡ กำลังใช้งานระบบค้นหาพิกัดสำรอง (พิมพ์ชื่อตำบล, อำเภอ หรือสถานที่ แล้วเลือกจากรายการ)
+                ⚡ กำลังใช้งานระบบค้นหาพิกัดสำรอง (พิมพ์ชื่อตำบล, อำเภอ
+                หรือสถานที่ แล้วเลือกจากรายการ)
               </p>
             )}
           </div>

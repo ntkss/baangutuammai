@@ -154,8 +154,10 @@ export function MapLibreFallback({
             el.title = m.label;
           }
 
-          const marker = new maplibre.Marker({ element: el })
-            .setLngLat([m.longitude, m.latitude]);
+          const marker = new maplibre.Marker({ element: el }).setLngLat([
+            m.longitude,
+            m.latitude,
+          ]);
 
           if (m.popup) {
             const popup = new maplibre.Popup({

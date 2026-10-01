@@ -11,32 +11,42 @@ let loadPromise: Promise<boolean> | null = null;
 
 // Initialize global gm_authFailure hook if in browser
 if (typeof window !== "undefined") {
-  const existingGmAuthFailure = (window as unknown as { gm_authFailure?: () => void }).gm_authFailure;
-  
-  (window as unknown as { gm_authFailure?: () => void }).gm_authFailure = () => {
-    console.warn("[GoogleMapsLoader] gm_authFailure triggered. Google Maps authentication failed.");
-    isAuthFailed = true;
-    if (existingGmAuthFailure) {
-      try {
-        existingGmAuthFailure();
-      } catch (err) {
-        console.error(err);
+  const existingGmAuthFailure = (
+    window as unknown as { gm_authFailure?: () => void }
+  ).gm_authFailure;
+
+  (window as unknown as { gm_authFailure?: () => void }).gm_authFailure =
+    () => {
+      console.warn(
+        "[GoogleMapsLoader] gm_authFailure triggered. Google Maps authentication failed.",
+      );
+      isAuthFailed = true;
+      if (existingGmAuthFailure) {
+        try {
+          existingGmAuthFailure();
+        } catch (err) {
+          console.error(err);
+        }
       }
-    }
-    for (const callback of authFailureListeners) {
-      try {
-        callback();
-      } catch (e) {
-        console.error("[GoogleMapsLoader] Error in auth failure listener:", e);
+      for (const callback of authFailureListeners) {
+        try {
+          callback();
+        } catch (e) {
+          console.error(
+            "[GoogleMapsLoader] Error in auth failure listener:",
+            e,
+          );
+        }
       }
-    }
-  };
+    };
 }
 
 /**
  * Register a callback when Google Maps authentication fails (e.g. RefererNotAllowed, BillingNotEnabled)
  */
-export function onGoogleMapsAuthError(callback: AuthFailureCallback): () => void {
+export function onGoogleMapsAuthError(
+  callback: AuthFailureCallback,
+): () => void {
   authFailureListeners.add(callback);
   if (isAuthFailed) {
     // Notify immediately if already failed
@@ -97,17 +107,23 @@ export function loadGoogleMaps(apiKey?: string): Promise<boolean> {
 
   loadPromise = new Promise<boolean>((resolve) => {
     // Check if script element already exists
-    const existing = document.getElementById(SCRIPT_ID) as HTMLScriptElement | null;
+    const existing = document.getElementById(
+      SCRIPT_ID,
+    ) as HTMLScriptElement | null;
     if (existing) {
       if ((window as unknown as { google?: { maps?: unknown } }).google?.maps) {
         resolve(true);
         return;
       }
       existing.addEventListener("load", () => resolve(true), { once: true });
-      existing.addEventListener("error", () => {
-        isAuthFailed = true;
-        resolve(false);
-      }, { once: true });
+      existing.addEventListener(
+        "error",
+        () => {
+          isAuthFailed = true;
+          resolve(false);
+        },
+        { once: true },
+      );
       return;
     }
 
@@ -127,7 +143,9 @@ export function loadGoogleMaps(apiKey?: string): Promise<boolean> {
       clearTimeout(timeoutTimer);
       // Wait a microtick to ensure google.maps is defined
       setTimeout(() => {
-        const hasMaps = Boolean((window as unknown as { google?: { maps?: unknown } }).google?.maps);
+        const hasMaps = Boolean(
+          (window as unknown as { google?: { maps?: unknown } }).google?.maps,
+        );
         resolve(hasMaps && !isAuthFailed);
       }, 50);
     };

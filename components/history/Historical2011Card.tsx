@@ -15,7 +15,8 @@ type ChecklistItem = {
   year2554Text: string;
   year2554Status: "ท่วม" | "วิกฤต";
   currentYearText: string;
-  currentYearStatus: "ยังไม่ท่วม" | "เฝ้าระวัง" | "ท่วม" | "วิกฤต" | "ไม่มีข้อมูล";
+  currentYearStatus:
+    "ยังไม่ท่วม" | "เฝ้าระวัง" | "ท่วม" | "วิกฤต" | "ไม่มีข้อมูล";
   diffNote: string;
 };
 
@@ -203,14 +204,22 @@ export function Historical2011Card({
             borderRadius: "6px",
             fontSize: "0.72rem",
             fontWeight: 700,
-            background: checklist.some((i) => i.currentYearStatus === "ท่วม" || i.currentYearStatus === "วิกฤต")
+            background: checklist.some(
+              (i) =>
+                i.currentYearStatus === "ท่วม" ||
+                i.currentYearStatus === "วิกฤต",
+            )
               ? "rgba(185, 28, 28, 0.12)"
               : checklist.some((i) => i.currentYearStatus === "เฝ้าระวัง")
                 ? "rgba(180, 83, 9, 0.12)"
                 : checklist.every((i) => i.currentYearStatus === "ไม่มีข้อมูล")
                   ? "rgba(148, 163, 184, 0.15)"
                   : "rgba(45, 125, 70, 0.12)",
-            color: checklist.some((i) => i.currentYearStatus === "ท่วม" || i.currentYearStatus === "วิกฤต")
+            color: checklist.some(
+              (i) =>
+                i.currentYearStatus === "ท่วม" ||
+                i.currentYearStatus === "วิกฤต",
+            )
               ? "var(--color-severe)"
               : checklist.some((i) => i.currentYearStatus === "เฝ้าระวัง")
                 ? "var(--color-watch)"
@@ -220,7 +229,10 @@ export function Historical2011Card({
             whiteSpace: "nowrap",
           }}
         >
-          {checklist.some((i) => i.currentYearStatus === "ท่วม" || i.currentYearStatus === "วิกฤต")
+          {checklist.some(
+            (i) =>
+              i.currentYearStatus === "ท่วม" || i.currentYearStatus === "วิกฤต",
+          )
             ? "🚨 มีสัญญาณวิกฤต"
             : checklist.some((i) => i.currentYearStatus === "เฝ้าระวัง")
               ? "⚠️ มีจุดเฝ้าระวัง"

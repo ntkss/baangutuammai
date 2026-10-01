@@ -146,7 +146,10 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
     // Current water volume in reporting dams only
     const totalVolume = reportingDams.reduce((s, d) => s + (d.volume ?? 0), 0);
     const totalInflow = reportingDams.reduce((s, d) => s + (d.inflow ?? 0), 0);
-    const totalOutflow = reportingDams.reduce((s, d) => s + (d.outflow ?? 0), 0);
+    const totalOutflow = reportingDams.reduce(
+      (s, d) => s + (d.outflow ?? 0),
+      0,
+    );
 
     // True basin storage percentage of reporting dams: (Total current volume / Total normal capacity) * 100
     const weightedPct =

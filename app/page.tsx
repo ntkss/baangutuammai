@@ -603,9 +603,7 @@ export default function HomePage() {
                             ⚠️ รอรายงานตรวจวัดประจำวันจาก{" "}
                             {data._reservoirBasin.missingDams.length} เขื่อน:
                           </div>
-                          <div
-                            style={{ color: "var(--color-text-secondary)" }}
-                          >
+                          <div style={{ color: "var(--color-text-secondary)" }}>
                             {data._reservoirBasin.missingDams
                               .map((d) => d.name)
                               .join(", ")}
@@ -617,8 +615,7 @@ export default function HomePage() {
                               marginTop: "4px",
                             }}
                           >
-                            *
-                            ระบบคำนวณสถิติจากเขื่อนที่มีการตรวจวัดจริงเท่านั้น
+                            * ระบบคำนวณสถิติจากเขื่อนที่มีการตรวจวัดจริงเท่านั้น
                             จะไม่นำค่าประมาณการหรือค่าสมมุติมาคิด
                           </div>
                         </div>
