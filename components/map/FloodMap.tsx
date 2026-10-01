@@ -2,12 +2,16 @@
 
 /**
  * BaanGuTuamMai — Google Maps Component for Flood Telemetry
- *
- * Uses official Google Maps JavaScript API with native Thailand maps,
- * custom color-coded flood station markers, and interactive InfoWindows.
+ * with automatic OpenStreetMap (MapLibre) Fallback
  */
 
 import { useEffect, useRef, useState } from "react";
+import {
+  loadGoogleMaps,
+  onGoogleMapsAuthError,
+  hasGoogleMapsAuthFailed,
+} from "@/lib/maps/googleMapsLoader";
+import { MapLibreFallback } from "./MapLibreFallback";
 
 export type MapMarker = {
   id: string;
@@ -15,7 +19,7 @@ export type MapMarker = {
   longitude: number;
   color?: string;
   label?: string;
-  popup?: string; // HTML content for InfoWindow
+  popup?: string; // HTML content for InfoWindow / Popup
 };
 
 interface FloodMapProps {
@@ -94,97 +98,102 @@ export function FloodMap({
     close: () => void;
   } | null>(null);
 
-  const [isApiLoaded, setIsApiLoaded] = useState(() => {
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+
+  const [useFallback, setUseFallback] = useState<boolean>(() => {
+    if (!apiKey) return true;
     if (typeof window !== "undefined") {
-      const g = (window as unknown as GoogleWindow).google;
-      return Boolean(g?.maps);
+      return hasGoogleMapsAuthFailed();
     }
     return false;
   });
-  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
-
-  // ── 1. Load Google Maps JavaScript API ─────────────────────────────────────
-  useEffect(() => {
-    if (typeof window === "undefined" || isApiLoaded) return;
-
-    const g = (window as unknown as GoogleWindow).google;
-    if (g?.maps) {
-      queueMicrotask(() => setIsApiLoaded(true));
-      return;
+  const [isApiLoaded, setIsApiLoaded] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const g = (window as unknown as GoogleWindow).google;
+      return Boolean(g?.maps) && !hasGoogleMapsAuthFailed();
     }
+    return false;
+  });
 
-    const scriptId = "google-maps-core-script";
-    const existingScript = document.getElementById(scriptId);
-
-    if (existingScript) {
-      existingScript.addEventListener("load", () => setIsApiLoaded(true));
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.id = scriptId;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&language=th&region=TH`;
-    script.async = true;
-    script.defer = true;
-
-    script.onload = () => {
-      setIsApiLoaded(true);
-    };
-
-    script.onerror = () => {
-      setLoadError(
-        "ไม่สามารถโหลด Google Maps ได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ต",
-      );
-    };
-
-    document.head.appendChild(script);
-  }, [apiKey, isApiLoaded]);
-
-  // ── 2. Initialize Google Map ──────────────────────────────────────────────
+  // ── 1. Listen for Google Maps Authentication Errors (gm_authFailure) ──────
   useEffect(() => {
-    if (!isApiLoaded || !containerRef.current || mapInstanceRef.current) return;
+    const unsubscribe = onGoogleMapsAuthError(() => {
+      console.warn("[FloodMap] Google Maps authentication failed. Activating OpenStreetMap fallback.");
+      setUseFallback(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  // ── 2. Load Google Maps JavaScript API via shared loader ──────────────────
+  useEffect(() => {
+    if (typeof window === "undefined" || isApiLoaded || useFallback || !apiKey) return;
+
+    let active = true;
+
+    loadGoogleMaps(apiKey).then((success) => {
+      if (!active) return;
+      if (success) {
+        setIsApiLoaded(true);
+      } else {
+        console.warn("[FloodMap] Google Maps failed to initialize. Switching to OpenStreetMap fallback.");
+        setUseFallback(true);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [apiKey, isApiLoaded, useFallback]);
+
+  // ── 3. Initialize Google Map if loaded ────────────────────────────────────
+  useEffect(() => {
+    if (!isApiLoaded || useFallback || !containerRef.current || mapInstanceRef.current) return;
 
     const google = (window as unknown as GoogleWindow).google;
     if (!google?.maps) return;
 
-    const [lng, lat] = center;
+    try {
+      const [lng, lat] = center;
 
-    const map = new google.maps.Map(containerRef.current, {
-      center: { lat, lng },
-      zoom,
-      mapTypeId: "roadmap",
-      mapTypeControl: true,
-      mapTypeControlOptions: {
-        style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
-        position: google.maps.ControlPosition.TOP_LEFT,
-      },
-      streetViewControl: false,
-      fullscreenControl: true,
-      zoomControl: true,
-      styles: [
-        {
-          featureType: "water",
-          elementType: "geometry",
-          stylers: [{ color: "#93c5fd" }], // Highlight water bodies in soft flood blue
+      const map = new google.maps.Map(containerRef.current, {
+        center: { lat, lng },
+        zoom,
+        mapTypeId: "roadmap",
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          style: google.maps.MapTypeControlStyle.HORIZONTAL_BAR,
+          position: google.maps.ControlPosition.TOP_LEFT,
         },
-      ],
-    });
+        streetViewControl: false,
+        fullscreenControl: true,
+        zoomControl: true,
+        styles: [
+          {
+            featureType: "water",
+            elementType: "geometry",
+            stylers: [{ color: "#93c5fd" }],
+          },
+        ],
+      });
 
-    mapInstanceRef.current = map;
-  }, [isApiLoaded, center, zoom]);
+      mapInstanceRef.current = map;
+    } catch (err) {
+      console.error("[FloodMap] Error initializing Google Map:", err);
+      queueMicrotask(() => setUseFallback(true));
+    }
+  }, [isApiLoaded, useFallback, center, zoom]);
 
-  // ── 3. Sync Center when coordinates change ────────────────────────────────
+  // ── 4. Sync Center when coordinates change ────────────────────────────────
   useEffect(() => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || useFallback) return;
     const [lng, lat] = center;
     mapInstanceRef.current.setCenter({ lat, lng });
-  }, [center]);
+  }, [center, useFallback]);
 
-  // ── 4. Render Markers ─────────────────────────────────────────────────────
+  // ── 5. Render Markers on Google Map ───────────────────────────────────────
   useEffect(() => {
-    if (!isApiLoaded || !mapInstanceRef.current) return;
+    if (!isApiLoaded || useFallback || !mapInstanceRef.current) return;
 
     const google = (window as unknown as GoogleWindow).google;
     if (!google?.maps) return;
@@ -192,7 +201,7 @@ export function FloodMap({
     const map = mapInstanceRef.current;
     const currentMarkerIds = new Set(markers.map((m) => m.id));
 
-    // Remove old markers that are no longer in props
+    // Remove old markers
     for (const [id, marker] of markersRef.current.entries()) {
       if (!currentMarkerIds.has(id)) {
         marker.setMap(null);
@@ -208,11 +217,9 @@ export function FloodMap({
       } else {
         const isHome = m.id === "user-home";
 
-        // Create custom SVG Pin Icon
         let icon: unknown;
 
         if (isHome) {
-          // Home Icon (Gold star / pin)
           icon = {
             path: "M 0,-15 A 15,15 0 1,0 0,15 A 15,15 0 1,0 0,-15 Z",
             fillColor: "#eab308",
@@ -222,7 +229,6 @@ export function FloodMap({
             scale: 0.9,
           };
         } else {
-          // Circular telemetry marker
           icon = {
             path: google.maps.SymbolPath.CIRCLE,
             fillColor: m.color || "#1d5aa8",
@@ -262,29 +268,53 @@ export function FloodMap({
         markersRef.current.set(m.id, marker);
       }
     }
-  }, [isApiLoaded, markers]);
+  }, [isApiLoaded, useFallback, markers]);
 
-  if (loadError) {
+  // ── 6. Fallback Render: OpenStreetMap via MapLibre GL ─────────────────────
+  if (useFallback) {
     return (
       <div
+        className={className}
         style={{
           width: "100%",
           height: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "var(--color-surface)",
-          color: "var(--color-severe)",
-          padding: "20px",
-          textAlign: "center",
-          fontSize: "0.9rem",
+          minHeight: 350,
+          position: "relative",
+          ...style,
         }}
       >
-        ⚠️ {loadError}
+        <MapLibreFallback
+          center={center}
+          zoom={zoom}
+          markers={markers}
+          style={{ width: "100%", height: "100%" }}
+        />
+        {/* Subtle fallback notification pill */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "8px",
+            right: "8px",
+            background: "rgba(15, 23, 42, 0.75)",
+            backdropFilter: "blur(4px)",
+            color: "#f8fafc",
+            padding: "3px 8px",
+            borderRadius: "6px",
+            fontSize: "0.68rem",
+            zIndex: 10,
+            pointerEvents: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          <span>🌐 แผนที่สำรอง (OpenStreetMap)</span>
+        </div>
       </div>
     );
   }
 
+  // ── 7. Primary Render: Google Maps ────────────────────────────────────────
   return (
     <div
       ref={containerRef}
@@ -317,7 +347,7 @@ export function FloodMap({
             zIndex: 10,
           }}
         >
-          <span>🗺️ กำลังโหลดแผนที่ Google Maps...</span>
+          <span>🗺️ กำลังโหลดแผนที่...</span>
         </div>
       )}
     </div>

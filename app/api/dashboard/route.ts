@@ -80,6 +80,17 @@ export async function GET(req: NextRequest) {
   let upstreamRisk = 0;
   if (ridResult) {
     upstreamRisk = calcUpstreamRiskFromReservoirs(ridResult.chaoPrayaBasin);
+    if (
+      ridResult.chaoPrayaBasin?.missingDams &&
+      ridResult.chaoPrayaBasin.missingDams.length > 0
+    ) {
+      const missingNames = ridResult.chaoPrayaBasin.missingDams
+        .map((d) => d.name)
+        .join(", ");
+      dataNotices.push(
+        `ข้อมูลเขื่อนประจำวัน (${ridResult.chaoPrayaBasin.observedDate}) มีรายงาน ${ridResult.chaoPrayaBasin.damCount} จาก ${ridResult.chaoPrayaBasin.totalDamsInBasin} แห่ง (รอรายงานตรวจวัดล่าสุดจาก: ${missingNames})`,
+      );
+    }
   } else {
     dataNotices.push("ข้อมูลอ่างเก็บน้ำขนาดใหญ่ (ชป.) ขณะนี้ไม่พร้อมใช้งาน");
   }

@@ -30,6 +30,20 @@ type ExtendedDashboardResponse = DashboardResponse & {
     totalOutflowM3s: number;
     avgStoragePercent: number;
     damCount: number;
+    totalDamsInBasin?: number;
+    reportingDams?: Array<{
+      id: string;
+      name: string;
+      volume: number;
+      capacity: number;
+      percent_storage: number | null;
+      inflow: number | null;
+      outflow: number | null;
+    }>;
+    missingDams?: Array<{
+      id: string;
+      name: string;
+    }>;
     observedDate: string;
   } | null;
   _terrainElevation?: {
@@ -448,18 +462,41 @@ export default function HomePage() {
                 {/* Reservoir overview card */}
                 {data._reservoirBasin && (
                   <div className="card">
-                    <h2
+                    <div
                       style={{
-                        fontSize: "0.9rem",
-                        fontWeight: 600,
-                        margin: "0 0 10px 0",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "baseline",
+                        marginBottom: "10px",
                       }}
                     >
-                      🏔️ เขื่อนหลักลุ่มน้ำเจ้าพระยา (ชป.)
-                    </h2>
+                      <h2
+                        style={{
+                          fontSize: "0.9rem",
+                          fontWeight: 600,
+                          margin: 0,
+                        }}
+                      >
+                        🏔️ เขื่อนหลักลุ่มน้ำเจ้าพระยา (ชป.)
+                      </h2>
+                      {data._reservoirBasin.observedDate && (
+                        <span
+                          style={{
+                            fontSize: "0.72rem",
+                            color: "var(--color-text-muted)",
+                          }}
+                        >
+                          ข้อมูล ณ {data._reservoirBasin.observedDate}
+                        </span>
+                      )}
+                    </div>
                     <div className="data-row">
                       <span className="data-row__label">
                         ความจุน้ำกักเก็บเฉลี่ย
+                        {data._reservoirBasin.missingDams &&
+                        data._reservoirBasin.missingDams.length > 0
+                          ? " (เฉพาะเขื่อนที่รายงาน)"
+                          : ""}
                       </span>
                       <span className="data-row__value">
                         {data._reservoirBasin.avgStoragePercent.toFixed(1)}%
@@ -483,12 +520,109 @@ export default function HomePage() {
                     </div>
                     <div className="data-row">
                       <span className="data-row__label">
-                        จำนวนเขื่อนที่ตรวจวัด
+                        จำนวนเขื่อนที่มีรายงาน
                       </span>
                       <span className="data-row__value">
-                        {data._reservoirBasin.damCount} แห่ง
+                        {data._reservoirBasin.damCount} จาก{" "}
+                        {data._reservoirBasin.totalDamsInBasin ?? 9} แห่ง
                       </span>
                     </div>
+
+                    {/* Reporting dams list */}
+                    {data._reservoirBasin.reportingDams &&
+                      data._reservoirBasin.reportingDams.length > 0 && (
+                        <div
+                          style={{
+                            marginTop: "10px",
+                            borderTop: "1px dashed var(--color-border)",
+                            paddingTop: "8px",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontSize: "0.72rem",
+                              fontWeight: 600,
+                              color: "var(--color-text-secondary)",
+                              marginBottom: "4px",
+                            }}
+                          >
+                            📊 ปริมาณน้ำเขื่อนที่ตรวจวัดจริงวันนี้:
+                          </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "3px",
+                            }}
+                          >
+                            {data._reservoirBasin.reportingDams.map((d) => (
+                              <div
+                                key={d.id}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  fontSize: "0.72rem",
+                                  color: "var(--color-text-primary)",
+                                }}
+                              >
+                                <span>• {d.name}</span>
+                                <span style={{ fontWeight: 600 }}>
+                                  {d.percent_storage !== null
+                                    ? `${d.percent_storage.toFixed(1)}%`
+                                    : "-"}{" "}
+                                  ({d.volume.toLocaleString()} /{" "}
+                                  {d.capacity.toLocaleString()} ล้าน ลบ.ม.)
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                    {/* Missing dams alert box */}
+                    {data._reservoirBasin.missingDams &&
+                      data._reservoirBasin.missingDams.length > 0 && (
+                        <div
+                          style={{
+                            marginTop: "12px",
+                            padding: "10px 12px",
+                            background: "var(--color-surface-2)",
+                            border: "1px solid var(--color-border)",
+                            borderRadius: "8px",
+                            fontSize: "0.72rem",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              color: "var(--color-watch)",
+                              marginBottom: "3px",
+                            }}
+                          >
+                            ⚠️ รอรายงานตรวจวัดประจำวันจาก{" "}
+                            {data._reservoirBasin.missingDams.length} เขื่อน:
+                          </div>
+                          <div
+                            style={{ color: "var(--color-text-secondary)" }}
+                          >
+                            {data._reservoirBasin.missingDams
+                              .map((d) => d.name)
+                              .join(", ")}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: "0.66rem",
+                              color: "var(--color-text-muted)",
+                              marginTop: "4px",
+                            }}
+                          >
+                            *
+                            ระบบคำนวณสถิติจากเขื่อนที่มีการตรวจวัดจริงเท่านั้น
+                            จะไม่นำค่าประมาณการหรือค่าสมมุติมาคิด
+                          </div>
+                        </div>
+                      )}
                   </div>
                 )}
               </>

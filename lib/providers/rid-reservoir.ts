@@ -69,6 +69,20 @@ export type RidReservoirResult = {
     totalOutflowM3s: number;
     avgStoragePercent: number;
     damCount: number;
+    totalDamsInBasin: number;
+    reportingDams: Array<{
+      id: string;
+      name: string;
+      volume: number;
+      capacity: number;
+      percent_storage: number | null;
+      inflow: number | null;
+      outflow: number | null;
+    }>;
+    missingDams: Array<{
+      id: string;
+      name: string;
+    }>;
     observedDate: string;
   } | null;
   fetchedAt: string;
@@ -77,6 +91,7 @@ export type RidReservoirResult = {
 /**
  * Fetch current reservoir data from RID public API.
  * Filters to Chao Phraya basin dams for risk calculation.
+ * Strictly calculates from actual reporting dams without fallbacks or fake defaults.
  */
 export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
   const fetchedAt = new Date().toISOString();
@@ -92,7 +107,6 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
 
   const json: RidResponse = await res.json();
 
-  // Flatten all dams
   const allDams: (RidDam & { region: string })[] = json.data.flatMap((r) =>
     r.dam.map((d) => ({ ...d, region: r.region })),
   );
@@ -110,26 +124,55 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
     provider: "RID",
   }));
 
-  // Compute Chao Phraya basin summary
+  // Filter Chao Phraya basin dams
   const cpDams = allDams.filter((d) => CHAO_PHRAYA_DAM_IDS.has(d.id));
+
+  // Separate dams strictly into reporting and missing
+  const reportingDams = cpDams.filter(
+    (d) => d.volume !== null && d.volume !== undefined,
+  );
+  const missingDams = cpDams.filter(
+    (d) => d.volume === null || d.volume === undefined,
+  );
 
   let chaoPrayaBasin: RidReservoirResult["chaoPrayaBasin"] = null;
 
-  if (cpDams.length > 0) {
-    const totalCapacity = cpDams.reduce((s, d) => s + (d.capacity ?? 0), 0);
-    const totalStorage = cpDams.reduce((s, d) => s + (d.volume ?? 0), 0);
-    const totalInflow = cpDams.reduce((s, d) => s + (d.inflow ?? 0), 0);
-    const totalOutflow = cpDams.reduce((s, d) => s + (d.outflow ?? 0), 0);
-    const avgPct =
-      cpDams.reduce((s, d) => s + (d.percent_storage ?? 0), 0) / cpDams.length;
+  if (reportingDams.length > 0) {
+    // Normal storage capacity of reporting dams only
+    const totalStorageCap = reportingDams.reduce(
+      (s, d) => s + (d.storage ?? d.capacity ?? 0),
+      0,
+    );
+    // Current water volume in reporting dams only
+    const totalVolume = reportingDams.reduce((s, d) => s + (d.volume ?? 0), 0);
+    const totalInflow = reportingDams.reduce((s, d) => s + (d.inflow ?? 0), 0);
+    const totalOutflow = reportingDams.reduce((s, d) => s + (d.outflow ?? 0), 0);
+
+    // True basin storage percentage of reporting dams: (Total current volume / Total normal capacity) * 100
+    const weightedPct =
+      totalStorageCap > 0 ? (totalVolume / totalStorageCap) * 100 : 0;
 
     chaoPrayaBasin = {
-      totalCapacityMcm: Math.round(totalCapacity * 100) / 100,
-      totalStorageMcm: Math.round(totalStorage * 100) / 100,
+      totalCapacityMcm: Math.round(totalStorageCap * 100) / 100,
+      totalStorageMcm: Math.round(totalVolume * 100) / 100,
       totalInflowM3s: Math.round(totalInflow * 100) / 100,
       totalOutflowM3s: Math.round(totalOutflow * 100) / 100,
-      avgStoragePercent: Math.round(avgPct * 10) / 10,
-      damCount: cpDams.length,
+      avgStoragePercent: Math.round(weightedPct * 10) / 10,
+      damCount: reportingDams.length,
+      totalDamsInBasin: cpDams.length,
+      reportingDams: reportingDams.map((d) => ({
+        id: d.id,
+        name: d.name,
+        volume: d.volume ?? 0,
+        capacity: d.storage ?? d.capacity ?? 0,
+        percent_storage: d.percent_storage ?? null,
+        inflow: d.inflow ?? null,
+        outflow: d.outflow ?? null,
+      })),
+      missingDams: missingDams.map((d) => ({
+        id: d.id,
+        name: d.name,
+      })),
       observedDate: json.date,
     };
   }

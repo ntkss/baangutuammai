@@ -15,7 +15,7 @@ type ChecklistItem = {
   year2554Text: string;
   year2554Status: "ท่วม" | "วิกฤต";
   currentYearText: string;
-  currentYearStatus: "ยังไม่ท่วม" | "เฝ้าระวัง" | "ท่วม" | "วิกฤต";
+  currentYearStatus: "ยังไม่ท่วม" | "เฝ้าระวัง" | "ท่วม" | "วิกฤต" | "ไม่มีข้อมูล";
   diffNote: string;
 };
 
@@ -26,68 +26,124 @@ export function Historical2011Card({
   c13Discharge,
   reservoirStoragePercent,
 }: Historical2011CardProps) {
-  const currentLevel = currentLevelM ?? comparison?.currentLevelM ?? 2.35;
+  const currentLevel = currentLevelM ?? comparison?.currentLevelM ?? null;
   const peak2554 = comparison?.referencePeakLevelM ?? 2.72;
-  const diffLevel = Math.round((peak2554 - currentLevel) * 100) / 100;
+  const diffLevel =
+    currentLevel !== null
+      ? Math.round((peak2554 - currentLevel) * 100) / 100
+      : null;
 
-  // Active metrics with real-time values or standard verified 2011 baseline
-  const activeC13 = c13Discharge ?? 2200;
-  const activeC2 = c2Discharge ?? 2528;
-  const activeDamStorage = reservoirStoragePercent ?? 76.2;
+  // Active metrics with real-time values strictly (NO fake defaults)
+  const activeC13 = c13Discharge ?? null;
+  const activeC2 = c2Discharge ?? null;
+  const activeDamStorage = reservoirStoragePercent ?? null;
 
   // Check statuses
   const c13Status =
-    activeC13 >= 3000 ? "ท่วม" : activeC13 >= 2000 ? "เฝ้าระวัง" : "ยังไม่ท่วม";
+    activeC13 === null
+      ? "ไม่มีข้อมูล"
+      : activeC13 >= 3000
+        ? "ท่วม"
+        : activeC13 >= 2000
+          ? "เฝ้าระวัง"
+          : "ยังไม่ท่วม";
+
   const c2Status =
-    activeC2 >= 4000 ? "ท่วม" : activeC2 >= 2500 ? "เฝ้าระวัง" : "ยังไม่ท่วม";
+    activeC2 === null
+      ? "ไม่มีข้อมูล"
+      : activeC2 >= 4000
+        ? "ท่วม"
+        : activeC2 >= 2500
+          ? "เฝ้าระวัง"
+          : "ยังไม่ท่วม";
+
   const damStatus =
-    activeDamStorage >= 95
-      ? "วิกฤต"
-      : activeDamStorage >= 80
-        ? "เฝ้าระวัง"
-        : "ยังไม่ท่วม";
+    activeDamStorage === null
+      ? "ไม่มีข้อมูล"
+      : activeDamStorage >= 95
+        ? "วิกฤต"
+        : activeDamStorage >= 80
+          ? "เฝ้าระวัง"
+          : "ยังไม่ท่วม";
+
   const levelStatus =
-    diffLevel <= 0 ? "ท่วม" : diffLevel < 0.2 ? "เฝ้าระวัง" : "ยังไม่ท่วม";
+    currentLevel === null || diffLevel === null
+      ? "ไม่มีข้อมูล"
+      : diffLevel <= 0
+        ? "ท่วม"
+        : diffLevel < 0.2
+          ? "เฝ้าระวัง"
+          : "ยังไม่ท่วม";
 
   const checklist: ChecklistItem[] = [
     {
       title: "การระบายน้ำเขื่อนเจ้าพระยา (C.13)",
       year2554Text: "3,650 ลบ.ม./วินาที",
       year2554Status: "ท่วม",
-      currentYearText: `${activeC13.toLocaleString()} ลบ.ม./วินาที`,
+      currentYearText:
+        activeC13 !== null
+          ? `${activeC13.toLocaleString()} ลบ.ม./วินาที`
+          : "ไม่มีข้อมูลตรวจวัด",
       currentYearStatus: c13Status,
-      diffNote: `ต่ำกว่าปี 54 อยู่ ${(3650 - activeC13).toLocaleString()} ลบ.ม./วินาที`,
+      diffNote:
+        activeC13 !== null
+          ? `ต่ำกว่าปี 54 อยู่ ${(3650 - activeC13).toLocaleString()} ลบ.ม./วินาที`
+          : "ยังไม่มีรายงานข้อมูลอัตราการระบายน้ำล่าสุดจากสถานี C.13",
     },
     {
       title: "น้ำไหลผ่านนครสวรรค์ (C.2)",
       year2554Text: "4,686 ลบ.ม./วินาที",
       year2554Status: "ท่วม",
-      currentYearText: `${activeC2.toLocaleString()} ลบ.ม./วินาที`,
+      currentYearText:
+        activeC2 !== null
+          ? `${activeC2.toLocaleString()} ลบ.ม./วินาที`
+          : "ไม่มีข้อมูลตรวจวัด",
       currentYearStatus: c2Status,
-      diffNote: `คิดเป็น ~${Math.round((activeC2 / 4686) * 100)}% ของมวลน้ำปี 54`,
+      diffNote:
+        activeC2 !== null
+          ? `คิดเป็น ~${Math.round((activeC2 / 4686) * 100)}% ของมวลน้ำปี 54`
+          : "ยังไม่มีรายงานข้อมูลอัตราการไหลผ่านล่าสุดจากสถานี C.2",
     },
     {
       title: "น้ำกักเก็บใน 4 เขื่อนหลักลุ่มเจ้าพระยา",
       year2554Text: "เกิน 100% (เขื่อนล้น)",
       year2554Status: "วิกฤต",
-      currentYearText: `${activeDamStorage.toFixed(1)}% ของความจุ`,
+      currentYearText:
+        activeDamStorage !== null
+          ? `${activeDamStorage.toFixed(1)}% ของความจุ (เฉพาะเขื่อนที่รายงาน)`
+          : "ไม่มีข้อมูลตรวจวัด",
       currentYearStatus: damStatus,
-      diffNote: `ยังเหลือพื้นที่รับน้ำได้อีก ${(100 - activeDamStorage).toFixed(1)}%`,
+      diffNote:
+        activeDamStorage !== null
+          ? `ยังเหลือพื้นที่รับน้ำได้อีก ${(100 - activeDamStorage).toFixed(1)}% (เฉพาะเขื่อนที่รายงาน)`
+          : "ยังไม่มีรายงานข้อมูลปริมาตรน้ำกักเก็บล่าสุดจากเขื่อนในลุ่มน้ำ",
     },
     {
       title: "ระดับน้ำแม่น้ำเจ้าพระยา (ท่าน้ำนนทบุรี)",
       year2554Text: `${peak2554.toFixed(2)} ม.รทก. (ยอดสูงสุด)`,
       year2554Status: "ท่วม",
-      currentYearText: `${currentLevel.toFixed(2)} ม.รทก.`,
+      currentYearText:
+        currentLevel !== null
+          ? `${currentLevel.toFixed(2)} ม.รทก.`
+          : "ไม่มีข้อมูลตรวจวัด",
       currentYearStatus: levelStatus,
       diffNote:
-        diffLevel > 0
-          ? `ต่ำกว่ายอดสูงสุดปี 54 อยู่ ${diffLevel.toFixed(2)} เมตร`
-          : `สูงกว่ายอดสูงสุดปี 54 อยู่ ${Math.abs(diffLevel).toFixed(2)} เมตร`,
+        diffLevel !== null
+          ? diffLevel > 0
+            ? `ต่ำกว่ายอดสูงสุดปี 54 อยู่ ${diffLevel.toFixed(2)} เมตร`
+            : `สูงกว่ายอดสูงสุดปี 54 อยู่ ${Math.abs(diffLevel).toFixed(2)} เมตร`
+          : "ยังไม่มีข้อมูลระดับน้ำสถานีใกล้เคียงในขณะนี้",
     },
   ];
 
   function getBadgeStyle(status: string) {
+    if (status === "ไม่มีข้อมูล") {
+      return {
+        bg: "rgba(148, 163, 184, 0.15)",
+        color: "var(--color-text-muted)",
+        icon: "⚪",
+      };
+    }
     if (status === "ท่วม" || status === "วิกฤต") {
       return {
         bg: "rgba(185, 28, 28, 0.12)",
@@ -147,12 +203,30 @@ export function Historical2011Card({
             borderRadius: "6px",
             fontSize: "0.72rem",
             fontWeight: 700,
-            background: "rgba(45, 125, 70, 0.12)",
-            color: "var(--color-low)",
+            background: checklist.some((i) => i.currentYearStatus === "ท่วม" || i.currentYearStatus === "วิกฤต")
+              ? "rgba(185, 28, 28, 0.12)"
+              : checklist.some((i) => i.currentYearStatus === "เฝ้าระวัง")
+                ? "rgba(180, 83, 9, 0.12)"
+                : checklist.every((i) => i.currentYearStatus === "ไม่มีข้อมูล")
+                  ? "rgba(148, 163, 184, 0.15)"
+                  : "rgba(45, 125, 70, 0.12)",
+            color: checklist.some((i) => i.currentYearStatus === "ท่วม" || i.currentYearStatus === "วิกฤต")
+              ? "var(--color-severe)"
+              : checklist.some((i) => i.currentYearStatus === "เฝ้าระวัง")
+                ? "var(--color-watch)"
+                : checklist.every((i) => i.currentYearStatus === "ไม่มีข้อมูล")
+                  ? "var(--color-text-muted)"
+                  : "var(--color-low)",
             whiteSpace: "nowrap",
           }}
         >
-          ✓ ยังไม่วิกฤตเท่าปี 54
+          {checklist.some((i) => i.currentYearStatus === "ท่วม" || i.currentYearStatus === "วิกฤต")
+            ? "🚨 มีสัญญาณวิกฤต"
+            : checklist.some((i) => i.currentYearStatus === "เฝ้าระวัง")
+              ? "⚠️ มีจุดเฝ้าระวัง"
+              : checklist.every((i) => i.currentYearStatus === "ไม่มีข้อมูล")
+                ? "⚪ รอข้อมูลตรวจวัด"
+                : "✓ ยังไม่วิกฤตเท่าปี 54"}
         </div>
       </div>
 

@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useUserPrefs } from "@/lib/store/userPrefs";
+import {
+  loadGoogleMaps,
+  onGoogleMapsAuthError,
+  hasGoogleMapsAuthFailed,
+} from "@/lib/maps/googleMapsLoader";
 
 interface LocationPickerProps {
   currentLat: number;
@@ -40,6 +45,7 @@ export function LocationPicker({
   const googleInputRef = useRef<HTMLInputElement>(null);
   const [googleLoaded, setGoogleLoaded] = useState(() => {
     if (typeof window !== "undefined") {
+      if (hasGoogleMapsAuthFailed()) return false;
       const g = (
         window as unknown as { google?: { maps?: { places?: unknown } } }
       ).google;
@@ -50,6 +56,15 @@ export function LocationPicker({
 
   // Check if Google Maps JS API key is set
   const googleApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+
+  // ── Listen for Google Maps Authentication Errors (gm_authFailure) ──────
+  useEffect(() => {
+    const unsubscribe = onGoogleMapsAuthError(() => {
+      console.warn("[LocationPicker] Google Maps auth failure detected. Switching to fallback search.");
+      setGoogleLoaded(false);
+    });
+    return unsubscribe;
+  }, []);
 
   const handleSelect = useCallback(
     (lat: number, lng: number, label?: string) => {
@@ -73,32 +88,29 @@ export function LocationPicker({
     [onLocationSelect, setHomeLocation],
   );
 
-  // ── Load Google Maps JavaScript API if API Key is available ───────────────
+  // ── Load Google Maps JavaScript API via shared loader ─────────────────────
   useEffect(() => {
-    if (!googleApiKey || typeof window === "undefined" || googleLoaded) return;
+    if (!googleApiKey || typeof window === "undefined" || googleLoaded || hasGoogleMapsAuthFailed()) return;
 
-    const g = (
-      window as unknown as { google?: { maps?: { places?: unknown } } }
-    ).google;
-    if (g?.maps?.places) {
-      queueMicrotask(() => setGoogleLoaded(true));
-      return;
-    }
+    let active = true;
 
-    const scriptId = "google-maps-places-script";
-    const existing = document.getElementById(scriptId);
-    if (existing) {
-      existing.addEventListener("load", () => setGoogleLoaded(true));
-      return;
-    }
+    loadGoogleMaps(googleApiKey).then((success) => {
+      if (!active) return;
+      if (success && !hasGoogleMapsAuthFailed()) {
+        const g = (
+          window as unknown as { google?: { maps?: { places?: unknown } } }
+        ).google;
+        if (g?.maps?.places) {
+          setGoogleLoaded(true);
+        }
+      } else {
+        setGoogleLoaded(false);
+      }
+    });
 
-    const script = document.createElement("script");
-    script.id = scriptId;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places&language=th&region=TH`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => setGoogleLoaded(true);
-    document.head.appendChild(script);
+    return () => {
+      active = false;
+    };
   }, [googleApiKey, googleLoaded]);
 
   // ── Attach Google Places Autocomplete widget ──────────────────────────────
@@ -380,7 +392,9 @@ export function LocationPicker({
                 marginBottom: "6px",
               }}
             >
-              🔍 ค้นหาที่อยู่บ้านจาก Google Maps API:
+              {googleLoaded
+                ? "🔍 ค้นหาที่อยู่บ้านจาก Google Maps API:"
+                : "🔍 ค้นหาที่อยู่บ้าน (ค้นหาตำบล, อำเภอ, จังหวัด):"}
             </label>
 
             <div style={{ position: "relative" }}>
@@ -472,18 +486,15 @@ export function LocationPicker({
                 ))}
               </div>
             )}
-
-            {!googleApiKey && (
+            {hasGoogleMapsAuthFailed() && (
               <p
                 style={{
                   fontSize: "0.68rem",
-                  color: "var(--color-text-muted)",
+                  color: "var(--color-watch)",
                   margin: "4px 0 0 0",
                 }}
               >
-                * สามารถระบุ <code>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY</code> ใน{" "}
-                <code>.env.local</code> เพื่อเปิดใช้ Google Places Autocomplete
-                ได้โดยตรง
+                ⚡ กำลังใช้งานระบบค้นหาพิกัดสำรอง (พิมพ์ชื่อตำบล, อำเภอ หรือสถานที่ แล้วเลือกจากรายการ)
               </p>
             )}
           </div>
