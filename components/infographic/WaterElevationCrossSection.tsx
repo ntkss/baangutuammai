@@ -167,7 +167,7 @@ export function WaterElevationCrossSection({
               color: "var(--color-text-primary)",
             }}
           >
-            ภาพตัดขวางระดับน้ำจริง
+            ระดับน้ำ
           </h2>
         </div>
         <span

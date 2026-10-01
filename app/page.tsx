@@ -54,12 +54,17 @@ type ExtendedDashboardResponse = DashboardResponse & {
       percent_storage: number | null;
       inflow: number | null;
       outflow: number | null;
+      isMajor?: boolean;
+      priority?: number;
     }>;
     missingDams?: Array<{
       id: string;
       name: string;
+      isMajor?: boolean;
+      priority?: number;
     }>;
     observedDate: string;
+    isFallbackToPreviousDay?: boolean;
   } | null;
   _terrainElevation?: {
     elevationM: number | null;
@@ -74,6 +79,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showDamNotice, setShowDamNotice] = useState(false);
 
   const activeLat = homeLocation?.latitude ?? DEFAULT_LAT;
   const activeLng = homeLocation?.longitude ?? DEFAULT_LNG;
@@ -123,7 +129,7 @@ export default function HomePage() {
       <main
         className="page"
         id="main-content"
-        style={{ paddingBottom: "80px" }}
+        style={{ paddingBottom: "110px" }}
       >
         {/* ── App Header (Modern, Sleek & Clean) ──────────────── */}
         <header
@@ -181,21 +187,28 @@ export default function HomePage() {
           onLocationSelect={handleLocationSelect}
         />
 
-        {/* ── Data notices ───────────────────────────────────── */}
-        {data?.dataNotices && data.dataNotices.length > 0 && (
-          <div style={{ marginBottom: "12px" }}>
-            {data.dataNotices.map((notice, i) => (
-              <div
-                key={i}
-                className="notice notice--info"
-                style={{ marginBottom: "6px" }}
-              >
-                <Info size={16} color="var(--color-accent)" style={{ flexShrink: 0, marginTop: "2px" }} />
-                <span>{notice}</span>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* ── Critical Data notices (system / connection errors only) ── */}
+        {data?.dataNotices &&
+          data.dataNotices.filter((n) => !n.includes("ข้อมูลเขื่อนประจำวัน")).length > 0 && (
+            <div style={{ marginBottom: "12px" }}>
+              {data.dataNotices
+                .filter((n) => !n.includes("ข้อมูลเขื่อนประจำวัน"))
+                .map((notice, i) => (
+                  <div
+                    key={i}
+                    className="notice notice--info"
+                    style={{ marginBottom: "6px" }}
+                  >
+                    <Info
+                      size={16}
+                      color="var(--color-accent)"
+                      style={{ flexShrink: 0, marginTop: "2px" }}
+                    />
+                    <span>{notice}</span>
+                  </div>
+                ))}
+            </div>
+          )}
 
         {/* ── Error state ────────────────────────────────────── */}
         {error && (
@@ -509,6 +522,9 @@ export default function HomePage() {
                           }}
                         >
                           ข้อมูล ณ {data._reservoirBasin.observedDate}
+                          {data._reservoirBasin.isFallbackToPreviousDay
+                            ? " (รอบ 24 ชม. ล่าสุดที่ครบ)"
+                            : ""}
                         </span>
                       )}
                     </div>
@@ -550,7 +566,7 @@ export default function HomePage() {
                       </span>
                     </div>
 
-                    {/* Reporting dams list */}
+                    {/* Reporting dams list sorted by strategic importance */}
                     {data._reservoirBasin.reportingDams &&
                       data._reservoirBasin.reportingDams.length > 0 && (
                         <div
@@ -562,45 +578,166 @@ export default function HomePage() {
                         >
                           <div
                             style={{
-                              fontSize: "0.72rem",
-                              fontWeight: 600,
-                              color: "var(--color-text-secondary)",
-                              marginBottom: "4px",
                               display: "flex",
+                              justifyContent: "space-between",
                               alignItems: "center",
-                              gap: "5px",
+                              marginBottom: "6px",
                             }}
                           >
-                            <Activity size={14} />
-                            <span>ปริมาณน้ำเขื่อนที่ตรวจวัดจริงวันนี้:</span>
+                            <div
+                              style={{
+                                fontSize: "0.72rem",
+                                fontWeight: 700,
+                                color: "var(--color-text-secondary)",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
+                              }}
+                            >
+                              <Activity size={14} color="var(--color-accent)" />
+                              <span>
+                                {data._reservoirBasin.isFallbackToPreviousDay
+                                  ? "ปริมาณน้ำเขื่อนที่ตรวจวัดจริง (รอบสรุปล่าสุด):"
+                                  : "ปริมาณน้ำเขื่อนที่ตรวจวัดจริงวันนี้:"}
+                              </span>
+                            </div>
+                            <span
+                              style={{
+                                fontSize: "0.64rem",
+                                color: "var(--color-text-muted)",
+                              }}
+                            >
+                              เรียงตามลำดับความสำคัญยุทธศาสตร์
+                            </span>
                           </div>
+
                           <div
                             style={{
                               display: "flex",
                               flexDirection: "column",
-                              gap: "3px",
+                              gap: "2px",
                             }}
                           >
-                            {data._reservoirBasin.reportingDams.map((d) => (
-                              <div
-                                key={d.id}
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  fontSize: "0.72rem",
-                                  color: "var(--color-text-primary)",
-                                }}
-                              >
-                                <span>• {d.name}</span>
-                                <span style={{ fontWeight: 600 }}>
-                                  {d.percent_storage !== null
-                                    ? `${d.percent_storage.toFixed(1)}%`
-                                    : "-"}{" "}
-                                  ({d.volume.toLocaleString()} /{" "}
-                                  {d.capacity.toLocaleString()} ล้าน ลบ.ม.)
-                                </span>
-                              </div>
-                            ))}
+                            {data._reservoirBasin.reportingDams.map((d, idx) => {
+                              const pct = d.percent_storage;
+                              let statusColor = "var(--color-text-primary)";
+                              let badgeText: string | null = null;
+                              let badgeBg = "transparent";
+                              let badgeColor = "transparent";
+
+                              if (pct !== null) {
+                                if (pct >= 100) {
+                                  statusColor = "var(--color-severe)"; // Red
+                                  badgeText = "วิกฤต";
+                                  badgeBg = "rgba(239, 68, 68, 0.12)";
+                                  badgeColor = "var(--color-severe)";
+                                } else if (pct >= 80) {
+                                  statusColor = "var(--color-watch)"; // Orange
+                                  badgeText = "เฝ้าระวัง";
+                                  badgeBg = "rgba(245, 158, 11, 0.12)";
+                                  badgeColor = "var(--color-watch)";
+                                }
+                              }
+
+                              return (
+                                <div
+                                  key={d.id}
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    fontSize: "0.72rem",
+                                    padding: "5px 0",
+                                    borderBottom: "1px solid rgba(0,0,0,0.04)",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "5px",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        color: "var(--color-text-muted)",
+                                        fontSize: "0.66rem",
+                                        width: "16px",
+                                        fontVariantNumeric: "tabular-nums",
+                                      }}
+                                    >
+                                      {idx + 1}.
+                                    </span>
+                                    <span
+                                      style={{
+                                        fontWeight: d.isMajor ? 700 : 500,
+                                        color: "var(--color-text-primary)",
+                                      }}
+                                    >
+                                      {d.name}
+                                    </span>
+                                    {d.isMajor && (
+                                      <span
+                                        style={{
+                                          fontSize: "0.6rem",
+                                          padding: "1px 5px",
+                                          borderRadius: "4px",
+                                          background: "rgba(37, 99, 235, 0.08)",
+                                          color: "var(--color-accent)",
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        เขื่อนหลัก
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: "6px",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        fontWeight: 700,
+                                        fontFamily: "var(--font-inter)",
+                                        color: statusColor,
+                                        fontVariantNumeric: "tabular-nums",
+                                        fontSize: "0.75rem",
+                                      }}
+                                    >
+                                      {pct !== null ? `${pct.toFixed(1)}%` : "-"}
+                                    </span>
+                                    {badgeText && (
+                                      <span
+                                        style={{
+                                          fontSize: "0.6rem",
+                                          padding: "1px 5px",
+                                          borderRadius: "4px",
+                                          background: badgeBg,
+                                          color: badgeColor,
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        {badgeText}
+                                      </span>
+                                    )}
+                                    <span
+                                      style={{
+                                        fontSize: "0.66rem",
+                                        color: "var(--color-text-muted)",
+                                        fontVariantNumeric: "tabular-nums",
+                                      }}
+                                    >
+                                      ({d.volume.toLocaleString()} /{" "}
+                                      {d.capacity.toLocaleString()} ล้าน ลบ.ม.)
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -658,6 +795,129 @@ export default function HomePage() {
             ) : null}
           </div>
         )}
+
+        {/* ── Daily Dam Status Notice (Placed at the very bottom) ─────── */}
+        {data?.dataNotices &&
+          data.dataNotices
+            .filter((n) => n.includes("ข้อมูลเขื่อนประจำวัน"))
+            .map((notice, i) => (
+              <div
+                key={i}
+                style={{
+                  marginBottom: "20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setShowDamNotice((v) => !v)}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    background: "rgba(37, 99, 235, 0.05)",
+                    border: "1px solid rgba(37, 99, 235, 0.15)",
+                    borderRadius: "20px",
+                    padding: "6px 14px",
+                    fontSize: "0.72rem",
+                    color: "var(--color-accent)",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                  }}
+                >
+                  <Info size={13} />
+                  <span>
+                    ข้อมูลเขื่อนประจำวัน ({data._reservoirBasin?.damCount ?? "?"}/
+                    {data._reservoirBasin?.totalDamsInBasin ?? 9} แห่ง)
+                    {data._reservoirBasin?.isFallbackToPreviousDay
+                      ? " • รอบล่าสุดที่ครบ"
+                      : ""}
+                  </span>
+                  {showDamNotice ? (
+                    <ChevronUp size={13} />
+                  ) : (
+                    <ChevronDown size={13} />
+                  )}
+                </button>
+
+                {showDamNotice && (
+                  <div
+                    className="notice notice--info"
+                    style={{
+                      marginTop: "10px",
+                      width: "100%",
+                      fontSize: "0.74rem",
+                      lineHeight: 1.5,
+                      textAlign: "left",
+                    }}
+                  >
+                    <Info
+                      size={15}
+                      color="var(--color-accent)"
+                      style={{ flexShrink: 0, marginTop: "2px" }}
+                    />
+                    <div>
+                      <div>{notice}</div>
+                      {data._reservoirBasin?.reportingDams &&
+                        data._reservoirBasin.reportingDams.some(
+                          (d) => (d.percent_storage ?? 0) >= 80,
+                        ) && (
+                          <div
+                            style={{
+                              marginTop: "8px",
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: "6px",
+                            }}
+                          >
+                            {data._reservoirBasin.reportingDams
+                              .filter((d) => (d.percent_storage ?? 0) >= 80)
+                              .map((d) => {
+                                const isSevere =
+                                  (d.percent_storage ?? 0) >= 100;
+                                return (
+                                  <span
+                                    key={d.id}
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                      fontSize: "0.68rem",
+                                      padding: "3px 8px",
+                                      borderRadius: "6px",
+                                      background: isSevere
+                                        ? "rgba(239, 68, 68, 0.12)"
+                                        : "rgba(245, 158, 11, 0.12)",
+                                      color: isSevere
+                                        ? "var(--color-severe)"
+                                        : "var(--color-watch)",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    <span>{d.name}</span>
+                                    <strong
+                                      style={{
+                                        fontFamily: "var(--font-inter)",
+                                        fontVariantNumeric: "tabular-nums",
+                                      }}
+                                    >
+                                      {d.percent_storage?.toFixed(1)}%
+                                    </strong>
+                                    <span>
+                                      ({isSevere ? "วิกฤต" : "เฝ้าระวัง"})
+                                    </span>
+                                  </span>
+                                );
+                              })}
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
 
         {/* ── Footer & Disclaimer ───────────────────────────── */}
         <Footer />

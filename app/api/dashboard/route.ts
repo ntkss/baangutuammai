@@ -90,6 +90,10 @@ export async function GET(req: NextRequest) {
       dataNotices.push(
         `ข้อมูลเขื่อนประจำวัน (${ridResult.chaoPrayaBasin.observedDate}) มีรายงาน ${ridResult.chaoPrayaBasin.damCount} จาก ${ridResult.chaoPrayaBasin.totalDamsInBasin} แห่ง (รอรายงานตรวจวัดล่าสุดจาก: ${missingNames})`,
       );
+    } else if (ridResult.chaoPrayaBasin?.isFallbackToPreviousDay) {
+      dataNotices.push(
+        `ข้อมูลเขื่อนประจำวัน (${ridResult.chaoPrayaBasin.observedDate}): แสดงรอบสรุป 24 ชม. ล่าสุดที่มีรายงานตรวจวัดครบทั้ง ${ridResult.chaoPrayaBasin.damCount} แห่ง (ระหว่างรอ ชป./กฟผ. สรุปรายงานของวันนี้)`,
+      );
     }
   } else {
     dataNotices.push("ข้อมูลอ่างเก็บน้ำขนาดใหญ่ (ชป.) ขณะนี้ไม่พร้อมใช้งาน");
