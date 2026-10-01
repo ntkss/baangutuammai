@@ -2,6 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import {
+  Waves,
+  Info,
+  AlertTriangle,
+  Zap,
+  BarChart3,
+  ChevronUp,
+  ChevronDown,
+  MountainSnow,
+  Activity,
+  ArrowRight,
+} from "lucide-react";
 import { BottomNav } from "@/components/common/BottomNav";
 import { Footer } from "@/components/common/Footer";
 import {
@@ -11,6 +23,9 @@ import {
 } from "@/components/risk/RiskCard";
 import { WaterDataCard, RainDataCard } from "@/components/risk/DataCards";
 import { NorthernRunoffCard } from "@/components/risk/NorthernRunoffCard";
+import { WaterElevationCrossSection } from "@/components/infographic/WaterElevationCrossSection";
+import { BentoVitals } from "@/components/infographic/BentoVitals";
+import { RiverFlowStepper } from "@/components/infographic/RiverFlowStepper";
 import { LocationPicker } from "@/components/location/LocationPicker";
 import { useUserPrefs } from "@/lib/store/userPrefs";
 import { UI_TEXT } from "@/lib/i18n/th";
@@ -130,11 +145,10 @@ export default function HomePage() {
                   justifyContent: "center",
                   borderRadius: "10px",
                   background: "linear-gradient(135deg, #2563eb, #38bdf8)",
-                  fontSize: "1.1rem",
                   boxShadow: "0 2px 8px rgba(37, 99, 235, 0.25)",
                 }}
               >
-                🌊
+                <Waves size={18} color="#ffffff" strokeWidth={2.4} />
               </span>
               <h1
                 style={{
@@ -176,7 +190,7 @@ export default function HomePage() {
                 className="notice notice--info"
                 style={{ marginBottom: "6px" }}
               >
-                <span>ℹ️</span>
+                <Info size={16} color="var(--color-accent)" style={{ flexShrink: 0, marginTop: "2px" }} />
                 <span>{notice}</span>
               </div>
             ))}
@@ -189,7 +203,7 @@ export default function HomePage() {
             className="notice notice--warning"
             style={{ marginBottom: "16px" }}
           >
-            <span>⚠️</span>
+            <AlertTriangle size={16} color="var(--color-watch)" style={{ flexShrink: 0, marginTop: "2px" }} />
             <span>{error}</span>
           </div>
         )}
@@ -209,61 +223,43 @@ export default function HomePage() {
           ) : null}
         </div>
 
-        {/* ── 2. Northern Runoff Focus (นครสวรรค์ C.2 + เขื่อนเจ้าพระยา C.13 + สายน้ำ 3 ตอน) ── */}
+        {/* ── 2. Infographic Cross-Section (ระดับน้ำ vs พื้นบ้าน vs ตลิ่ง) ── */}
+        {isLoading ? (
+          <DataCardSkeleton />
+        ) : data ? (
+          <WaterElevationCrossSection
+            houseElevationM={data._terrainElevation?.elevationM}
+            riverWaterLevelM={
+              data._northernRunoff?.corridor.nearest?.waterLevelM ??
+              data.water?.current?.waterLevelM
+            }
+            bankLevelM={data._northernRunoff?.corridor.nearest?.bankLevelM}
+            elevationMarginM={data.risk.estimatedElevationMarginM}
+            diffBankM={data._northernRunoff?.corridor.nearest?.diffBankM}
+            stationName={
+              data._northernRunoff?.corridor.nearest?.stationName ??
+              data.water?.station?.name
+            }
+          />
+        ) : null}
+
+        {/* ── 3. Bento Micro-Gauges (3 สัญญาณชี้ชะตา: เขื่อน C.13 / ฝน / อ่างเก็บน้ำ) ── */}
+        {isLoading ? (
+          <DataCardSkeleton />
+        ) : data ? (
+          <BentoVitals
+            c13DischargeM3s={data._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s}
+            rain24hMm={data.rain?.total24h}
+            reservoirBasin={data._reservoirBasin}
+          />
+        ) : null}
+
+        {/* ── 4. River Flowline Stepper (เส้นทางมวลน้ำ 4 จุดสำคัญ) ── */}
         {isLoading ? (
           <DataCardSkeleton />
         ) : data?._northernRunoff ? (
-          <NorthernRunoffCard data={data._northernRunoff} />
+          <RiverFlowStepper data={data._northernRunoff} />
         ) : null}
-
-        {/* ── 3. Elevation Margin ────────────────────────────── */}
-        {data?.risk.estimatedElevationMarginM !== undefined &&
-          data.risk.estimatedElevationMarginM !== null && (
-            <div className="card" style={{ marginBottom: "16px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <div>
-                  <span
-                    style={{
-                      fontSize: "0.875rem",
-                      fontWeight: 600,
-                      color: "var(--color-text-primary)",
-                    }}
-                  >
-                    🏠 {UI_TEXT.elevationMargin}
-                  </span>
-                  <p
-                    style={{
-                      fontSize: "0.72rem",
-                      color: "var(--color-text-muted)",
-                      margin: "2px 0 0 0",
-                    }}
-                  >
-                    {UI_TEXT.elevationMarginDisclaimer}
-                  </p>
-                </div>
-                <span
-                  style={{
-                    fontSize: "1.1rem",
-                    fontWeight: 700,
-                    color:
-                      (data.risk.estimatedElevationMarginM ?? 0) < 0.3
-                        ? "var(--color-high)"
-                        : "var(--color-low)",
-                  }}
-                >
-                  {(data.risk.estimatedElevationMarginM ?? 0) > 0
-                    ? `+${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`
-                    : `${data.risk.estimatedElevationMarginM?.toFixed(2)} ม.`}
-                </span>
-              </div>
-            </div>
-          )}
 
         {/* ── 4. Teaser Link to Critical Triggers Page (สัญญาณวิกฤต) ── */}
         <Link
@@ -285,7 +281,6 @@ export default function HomePage() {
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <span
               style={{
-                fontSize: "1.4rem",
                 width: "42px",
                 height: "42px",
                 display: "flex",
@@ -297,7 +292,7 @@ export default function HomePage() {
                 flexShrink: 0,
               }}
             >
-              ⚡
+              <Zap size={22} color="var(--color-severe)" strokeWidth={2.2} />
             </span>
             <div>
               <div
@@ -343,9 +338,12 @@ export default function HomePage() {
               color: "var(--color-accent)",
               whiteSpace: "nowrap",
               paddingLeft: "8px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
             }}
           >
-            ดูเงื่อนไข →
+            ดูเงื่อนไข <ArrowRight size={14} />
           </span>
         </Link>
 
@@ -369,7 +367,6 @@ export default function HomePage() {
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <span
               style={{
-                fontSize: "1.4rem",
                 width: "42px",
                 height: "42px",
                 display: "flex",
@@ -381,7 +378,7 @@ export default function HomePage() {
                 flexShrink: 0,
               }}
             >
-              📊
+              <BarChart3 size={22} color="var(--color-low)" strokeWidth={2.2} />
             </span>
             <div>
               <div
@@ -427,9 +424,12 @@ export default function HomePage() {
               color: "var(--color-accent)",
               whiteSpace: "nowrap",
               paddingLeft: "8px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
             }}
           >
-            เปรียบเทียบ →
+            เปรียบเทียบ <ArrowRight size={14} />
           </span>
         </Link>
 
@@ -437,12 +437,27 @@ export default function HomePage() {
         <button
           id="toggle-details-btn"
           className="btn btn--outline"
-          style={{ width: "100%", marginBottom: "16px", padding: "10px" }}
+          style={{
+            width: "100%",
+            marginBottom: "16px",
+            padding: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            fontWeight: 600,
+          }}
           onClick={() => setShowDetails((v) => !v)}
         >
-          {showDetails
-            ? "▲ ซ่อนรายละเอียดระดับน้ำและฝน"
-            : "▼ ดูรายละเอียดระดับน้ำ ฝน และอ่างเก็บน้ำ"}
+          {showDetails ? (
+            <>
+              <ChevronUp size={16} /> ซ่อนรายละเอียดระดับน้ำและฝน
+            </>
+          ) : (
+            <>
+              <ChevronDown size={16} /> ดูรายละเอียดระดับน้ำ ฝน และอ่างเก็บน้ำ
+            </>
+          )}
         </button>
 
         {showDetails && (
@@ -456,6 +471,9 @@ export default function HomePage() {
           >
             {data ? (
               <>
+                {data._northernRunoff && (
+                  <NorthernRunoffCard data={data._northernRunoff} />
+                )}
                 <WaterDataCard water={data.water} />
                 <RainDataCard rain={data.rain} />
 
@@ -475,9 +493,13 @@ export default function HomePage() {
                           fontSize: "0.9rem",
                           fontWeight: 600,
                           margin: 0,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
                         }}
                       >
-                        🏔️ เขื่อนหลักลุ่มน้ำเจ้าพระยา (ชป.)
+                        <MountainSnow size={18} color="var(--color-accent)" />
+                        <span>เขื่อนหลักลุ่มน้ำเจ้าพระยา (ชป.)</span>
                       </h2>
                       {data._reservoirBasin.observedDate && (
                         <span
@@ -508,14 +530,14 @@ export default function HomePage() {
                       </span>
                       <span className="data-row__value">
                         {data._reservoirBasin.totalInflowM3s.toLocaleString()}{" "}
-                        ลบ.ม./วินาที
+                        ล้าน ลบ.ม./วัน
                       </span>
                     </div>
                     <div className="data-row">
                       <span className="data-row__label">ปริมาณน้ำระบายออก</span>
                       <span className="data-row__value">
                         {data._reservoirBasin.totalOutflowM3s.toLocaleString()}{" "}
-                        ลบ.ม./วินาที
+                        ล้าน ลบ.ม./วัน
                       </span>
                     </div>
                     <div className="data-row">
@@ -544,9 +566,13 @@ export default function HomePage() {
                               fontWeight: 600,
                               color: "var(--color-text-secondary)",
                               marginBottom: "4px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "5px",
                             }}
                           >
-                            📊 ปริมาณน้ำเขื่อนที่ตรวจวัดจริงวันนี้:
+                            <Activity size={14} />
+                            <span>ปริมาณน้ำเขื่อนที่ตรวจวัดจริงวันนี้:</span>
                           </div>
                           <div
                             style={{
@@ -598,10 +624,16 @@ export default function HomePage() {
                               fontWeight: 600,
                               color: "var(--color-watch)",
                               marginBottom: "3px",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "5px",
                             }}
                           >
-                            ⚠️ รอรายงานตรวจวัดประจำวันจาก{" "}
-                            {data._reservoirBasin.missingDams.length} เขื่อน:
+                            <AlertTriangle size={14} color="var(--color-watch)" />
+                            <span>
+                              รอรายงานตรวจวัดประจำวันจาก{" "}
+                              {data._reservoirBasin.missingDams.length} เขื่อน:
+                            </span>
                           </div>
                           <div style={{ color: "var(--color-text-secondary)" }}>
                             {data._reservoirBasin.missingDams

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { MapPin, Search, Crosshair, Loader2, AlertTriangle } from "lucide-react";
 import { useUserPrefs } from "@/lib/store/userPrefs";
 import {
   loadGoogleMaps,
@@ -291,7 +292,7 @@ export function LocationPicker({
             minWidth: 0,
           }}
         >
-          <span style={{ fontSize: "1.1rem" }}>📍</span>
+          <MapPin size={18} color="var(--color-severe)" style={{ flexShrink: 0 }} />
           <div style={{ minWidth: 0 }}>
             <div
               style={{
@@ -365,7 +366,11 @@ export function LocationPicker({
               marginBottom: "16px",
             }}
           >
-            <span>{isLocating ? "⏳" : "🎯"}</span>
+            {isLocating ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <Crosshair size={16} />
+            )}
             <span>
               {isLocating
                 ? "กำลังดึงพิกัด GPS..."
@@ -382,9 +387,13 @@ export function LocationPicker({
                 borderRadius: "6px",
                 fontSize: "0.75rem",
                 marginBottom: "14px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
               }}
             >
-              ⚠️ {geoError}
+              <AlertTriangle size={14} color="var(--color-severe)" />
+              <span>{geoError}</span>
             </div>
           )}
 
@@ -393,16 +402,21 @@ export function LocationPicker({
             <label
               htmlFor="address-search-input"
               style={{
-                display: "block",
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
                 fontSize: "0.78rem",
                 fontWeight: 600,
                 color: "var(--color-text-secondary)",
                 marginBottom: "6px",
               }}
             >
-              {googleLoaded
-                ? "🔍 ค้นหาที่อยู่บ้านจาก Google Maps API:"
-                : "🔍 ค้นหาที่อยู่บ้าน (ค้นหาตำบล, อำเภอ, จังหวัด):"}
+              <Search size={13} />
+              <span>
+                {googleLoaded
+                  ? "ค้นหาที่อยู่บ้านจาก Google Maps API:"
+                  : "ค้นหาที่อยู่บ้าน (ค้นหาตำบล, อำเภอ, จังหวัด):"}
+              </span>
             </label>
 
             <div style={{ position: "relative" }}>
@@ -478,7 +492,10 @@ export function LocationPicker({
                         "transparent")
                     }
                   >
-                    <div style={{ fontWeight: 600 }}>📍 {item.name}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 600 }}>
+                      <MapPin size={12} color="var(--color-accent)" />
+                      <span>{item.name}</span>
+                    </div>
                     <div
                       style={{
                         fontSize: "0.68rem",

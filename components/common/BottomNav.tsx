@@ -2,23 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, Zap, BarChart3, Map } from "lucide-react";
 import { NAV_LABELS } from "@/lib/i18n/th";
 
 const navItems = [
-  { href: "/", label: NAV_LABELS.home, icon: "🏠", id: "nav-home" },
+  { href: "/", label: NAV_LABELS.home, icon: Home, id: "nav-home" },
   {
     href: "/triggers",
     label: NAV_LABELS.triggers,
-    icon: "⚡",
+    icon: Zap,
     id: "nav-triggers",
   },
   {
     href: "/2554",
     label: NAV_LABELS.history2554,
-    icon: "📊",
+    icon: BarChart3,
     id: "nav-2554",
   },
-  { href: "/map", label: NAV_LABELS.map, icon: "🗺️", id: "nav-map" },
+  { href: "/map", label: NAV_LABELS.map, icon: Map, id: "nav-map" },
 ];
 
 export function BottomNav() {
@@ -28,6 +29,7 @@ export function BottomNav() {
     <nav className="nav-bar" aria-label="เมนูหลัก">
       {navItems.map((item) => {
         const isActive = pathname === item.href;
+        const IconComponent = item.icon;
         return (
           <Link
             key={item.href}
@@ -37,7 +39,7 @@ export function BottomNav() {
             aria-current={isActive ? "page" : undefined}
           >
             <span className="nav-item__icon" aria-hidden="true">
-              {item.icon}
+              <IconComponent size={20} strokeWidth={isActive ? 2.3 : 1.8} />
             </span>
             <span>{item.label}</span>
           </Link>

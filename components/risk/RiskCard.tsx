@@ -2,20 +2,42 @@
 
 import type { RiskLevel, ConfidenceLevel } from "@/lib/types/domain";
 import {
+  ShieldCheck,
+  AlertTriangle,
+  AlertOctagon,
+  ShieldAlert,
+  Lightbulb,
+  Check,
+  Minus,
+  AlertCircle,
+} from "lucide-react";
+import {
   RISK_LEVEL_LABEL,
   RISK_LEVEL_DESCRIPTION,
   CONFIDENCE_LABEL,
   CONFIDENCE_DESCRIPTION,
-  RISK_EMOJI,
   UI_TEXT,
 } from "@/lib/i18n/th";
 
-// ─── Risk Icon ────────────────────────────────────────────────────────────
+// ─── Risk Icon Components ──────────────────────────────────────────────────
+
+export function getRiskLucideIcon(level: RiskLevel, size = 28) {
+  switch (level) {
+    case "low":
+      return <ShieldCheck size={size} strokeWidth={2.2} color="var(--color-low)" />;
+    case "watch":
+      return <AlertTriangle size={size} strokeWidth={2.2} color="var(--color-watch)" />;
+    case "high":
+      return <AlertOctagon size={size} strokeWidth={2.2} color="var(--color-high)" />;
+    case "severe":
+      return <ShieldAlert size={size} strokeWidth={2.2} color="var(--color-severe)" />;
+  }
+}
 
 export function RiskIcon({ level }: { level: RiskLevel }) {
   return (
     <div className={`risk-icon risk-icon--${level}`} aria-hidden="true">
-      {RISK_EMOJI[level]}
+      {getRiskLucideIcon(level, 40)}
     </div>
   );
 }
@@ -25,7 +47,7 @@ export function RiskIcon({ level }: { level: RiskLevel }) {
 export function RiskBadge({ level }: { level: RiskLevel }) {
   return (
     <span className={`risk-badge risk-badge--${level}`}>
-      {RISK_EMOJI[level]} {RISK_LEVEL_LABEL[level]}
+      {getRiskLucideIcon(level, 14)} {RISK_LEVEL_LABEL[level]}
     </span>
   );
 }
@@ -54,97 +76,167 @@ export function RiskStatusCard({
     timeZone: "Asia/Bangkok",
   });
 
+  const levelColor = getLevelColor(level);
+
+  // Background tint gradients per level
+  const bgGradients = {
+    low: "linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(240, 253, 250, 0.8))",
+    watch: "linear-gradient(135deg, rgba(254, 252, 232, 0.95), rgba(255, 251, 235, 0.8))",
+    high: "linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(254, 242, 242, 0.8))",
+    severe: "linear-gradient(135deg, rgba(254, 242, 242, 0.95), rgba(255, 241, 242, 0.8))",
+  };
+
+  const borderColors = {
+    low: "rgba(167, 243, 208, 0.8)",
+    watch: "rgba(253, 230, 138, 0.8)",
+    high: "rgba(254, 215, 170, 0.8)",
+    severe: "rgba(254, 202, 202, 0.8)",
+  };
+
   return (
-    <div className={`card card--elevated`} style={{ textAlign: "center" }}>
-      {/* Icon */}
-      <div style={{ marginBottom: "16px" }}>
-        <RiskIcon level={level} />
-      </div>
-
-      {/* Level label */}
-      <h1
-        style={{
-          fontSize: "2rem",
-          fontWeight: 700,
-          margin: "0 0 8px 0",
-          color: getLevelColor(level),
-        }}
-      >
-        {RISK_LEVEL_LABEL[level]}
-      </h1>
-
-      {/* Short description */}
-      <p
-        style={{
-          fontSize: "0.95rem",
-          color: "var(--color-text-secondary)",
-          margin: "0 0 20px 0",
-          lineHeight: 1.7,
-        }}
-      >
-        {RISK_LEVEL_DESCRIPTION[level]}
-      </p>
-
-      {/* Reasons */}
-      {reasons.length > 0 && (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: "0 0 20px 0",
-            display: "flex",
-            flexDirection: "column",
-            gap: "8px",
-          }}
-        >
-          {reasons.map((r, i) => (
-            <li
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: "8px",
-                textAlign: "left",
-                fontSize: "0.875rem",
-                color: "var(--color-text-primary)",
-              }}
-            >
-              <span style={{ color: getLevelColor(level), marginTop: "2px" }}>
-                •
-              </span>
-              <span>{r}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Recommended action */}
-      {recommendedAction && (
-        <div
-          className="notice notice--warning"
-          style={{ marginBottom: "16px", textAlign: "left" }}
-        >
-          <span>⚠️</span>
-          <span>{recommendedAction}</span>
-        </div>
-      )}
-
-      <hr className="divider" style={{ margin: "12px 0" }} />
-
-      {/* Footer: updated time + confidence */}
+    <div
+      className="card card--elevated"
+      style={{
+        background: bgGradients[level],
+        border: `1px solid ${borderColors[level]}`,
+        padding: "18px",
+        borderRadius: "20px",
+      }}
+    >
+      {/* Top row: Status header + Confidence Badge */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          fontSize: "0.78rem",
-          color: "var(--color-text-muted)",
+          marginBottom: "12px",
         }}
       >
-        <span>
-          {UI_TEXT.updatedAt} {timeStr} น.
+        <span
+          style={{
+            fontSize: "0.72rem",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          ประเมินสถานการณ์ล่าสุด
         </span>
         <ConfidenceChip level={confidence} />
+      </div>
+
+      {/* Main hero status display */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+          marginBottom: "12px",
+        }}
+      >
+        <div
+          style={{
+            width: "56px",
+            height: "56px",
+            borderRadius: "16px",
+            background: "#ffffff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+            flexShrink: 0,
+          }}
+        >
+          {getRiskLucideIcon(level, 32)}
+        </div>
+
+        <div>
+          <h1
+            style={{
+              fontSize: "1.45rem",
+              fontWeight: 800,
+              margin: 0,
+              color: levelColor,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.2,
+            }}
+          >
+            {RISK_LEVEL_LABEL[level]}
+          </h1>
+          <p
+            style={{
+              fontSize: "0.82rem",
+              color: "var(--color-text-secondary)",
+              margin: "3px 0 0 0",
+              lineHeight: 1.4,
+            }}
+          >
+            {RISK_LEVEL_DESCRIPTION[level]}
+          </p>
+        </div>
+      </div>
+
+      {/* Key Reasons - concise chips rather than endless bullets */}
+      {reasons.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "6px",
+            marginBottom: recommendedAction ? "10px" : "12px",
+          }}
+        >
+          {reasons.map((r, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: "0.72rem",
+                padding: "3px 8px",
+                borderRadius: "6px",
+                background: "rgba(255, 255, 255, 0.75)",
+                border: "1px solid rgba(0, 0, 0, 0.05)",
+                color: "var(--color-text-primary)",
+              }}
+            >
+              • {r}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Recommended action */}
+      {recommendedAction && (
+        <div
+          style={{
+            padding: "8px 10px",
+            borderRadius: "8px",
+            background: "rgba(255, 255, 255, 0.85)",
+            border: `1px solid ${borderColors[level]}`,
+            fontSize: "0.75rem",
+            color: "var(--color-text-primary)",
+            marginBottom: "12px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <Lightbulb size={16} strokeWidth={2.2} color="var(--color-watch)" />
+          <span style={{ fontWeight: 600 }}>{recommendedAction}</span>
+        </div>
+      )}
+
+      {/* Footer: updated time */}
+      <div
+        style={{
+          borderTop: "1px solid rgba(0, 0, 0, 0.05)",
+          paddingTop: "8px",
+          fontSize: "0.68rem",
+          color: "var(--color-text-muted)",
+          textAlign: "right",
+        }}
+      >
+        {UI_TEXT.updatedAt} {timeStr} น.
       </div>
     </div>
   );
@@ -153,13 +245,17 @@ export function RiskStatusCard({
 // ─── Confidence chip ──────────────────────────────────────────────────────
 
 export function ConfidenceChip({ level }: { level: ConfidenceLevel }) {
+  const IconComponent =
+    level === "high" ? Check : level === "medium" ? Minus : AlertCircle;
+
   return (
     <span
       className={`confidence-chip confidence-chip--${level}`}
       title={CONFIDENCE_DESCRIPTION[level]}
+      style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}
     >
-      {level === "high" ? "✓" : level === "medium" ? "~" : "!"}{" "}
-      {CONFIDENCE_LABEL[level]}
+      <IconComponent size={12} strokeWidth={2.5} />
+      <span>{CONFIDENCE_LABEL[level]}</span>
     </span>
   );
 }

@@ -1,8 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Sans+Thai:wght@300;400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 /* ─── Design tokens (Modern, Minimal & Clean) ───────────────────────────── */
 :root {
+  /* Font Families */
+  --font-family-thai: var(--font-anuphan), "Anuphan", var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
+  --font-family-sans: var(--font-inter), "Inter", var(--font-anuphan), "Anuphan", system-ui, -apple-system, sans-serif;
+
   /* Palette - Modern Clean Slate */
   --color-bg: #f8fafc;
   --color-surface: #ffffff;
@@ -66,23 +70,20 @@ html {
 body {
   background: var(--color-bg);
   color: var(--color-text-primary);
-  font-family:
-    "Sarabun",
-    "IBM Plex Sans Thai",
-    system-ui,
-    -apple-system,
-    sans-serif;
+  font-family: var(--font-family-thai);
   font-weight: 400;
   line-height: 1.6;
   min-height: 100%;
   margin: 0;
   -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "tnum";
 }
 
 /* ─── Typography helpers ─────────────────────────────────────────────────── */
 .text-thai {
-  font-family: "Sarabun", "IBM Plex Sans Thai", system-ui, sans-serif;
-  line-height: 1.7;
+  font-family: var(--font-family-thai);
+  line-height: 1.65;
+  letter-spacing: -0.01em;
 }
 
 /* ─── Risk badge ─────────────────────────────────────────────────────────── */

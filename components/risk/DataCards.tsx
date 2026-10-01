@@ -1,6 +1,7 @@
 "use client";
 
 import type { DashboardResponse } from "@/lib/types/domain";
+import { Droplets, CloudRain } from "lucide-react";
 import { UI_TEXT, FRESHNESS_LABEL } from "@/lib/i18n/th";
 
 interface WaterDataCardProps {
@@ -52,9 +53,13 @@ export function WaterDataCard({ water }: WaterDataCardProps) {
             fontWeight: 600,
             margin: 0,
             color: "var(--color-text-primary)",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          💧 {UI_TEXT.waterLevel}
+          <Droplets size={16} color="var(--color-accent)" />
+          <span>{UI_TEXT.waterLevel}</span>
         </h2>
         <span
           style={{
@@ -166,9 +171,13 @@ export function RainDataCard({ rain }: RainDataCardProps) {
             fontWeight: 600,
             margin: 0,
             color: "var(--color-text-primary)",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
           }}
         >
-          🌧️ {UI_TEXT.rainfall}
+          <CloudRain size={16} color="var(--color-accent)" />
+          <span>{UI_TEXT.rainfall}</span>
         </h2>
         <span
           style={{

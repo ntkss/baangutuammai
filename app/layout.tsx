@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from "next";
-import { Sarabun } from "next/font/google";
+import { Anuphan, Inter } from "next/font/google";
 import "./globals.css";
 
-const sarabun = Sarabun({
+const anuphan = Anuphan({
   subsets: ["thai", "latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-sarabun",
+  variable: "--font-anuphan",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -110,7 +117,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="th" className={sarabun.variable}>
+    <html lang="th" className={`${anuphan.variable} ${inter.variable}`}>
       <body className="text-thai">{children}</body>
     </html>
   );
