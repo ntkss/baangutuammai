@@ -57,7 +57,12 @@ export const CHAO_PHRAYA_DAM_PRIORITY: Record<string, number> = {
   "100303": 9, // เขื่อนกระเสียว (ลุ่มน้ำท่าจีน)
 };
 
-export const MAJOR_4_DAM_IDS = new Set(["200101", "200102", "100301", "100107"]);
+export const MAJOR_4_DAM_IDS = new Set([
+  "200101",
+  "200102",
+  "100301",
+  "100107",
+]);
 
 const CHAO_PHRAYA_DAM_IDS = new Set(Object.keys(CHAO_PHRAYA_DAM_PRIORITY));
 
@@ -219,7 +224,8 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
   // If today does not have all basin dams reported yet, try previous day
   if (
     todayResult.chaoPrayaBasin &&
-    todayResult.chaoPrayaBasin.damCount < todayResult.chaoPrayaBasin.totalDamsInBasin
+    todayResult.chaoPrayaBasin.damCount <
+      todayResult.chaoPrayaBasin.totalDamsInBasin
   ) {
     try {
       const [y, m, d] = json.date.split("-").map(Number);
@@ -248,7 +254,10 @@ export async function fetchRidReservoirs(): Promise<RidReservoirResult> {
         }
       }
     } catch (err) {
-      console.warn("[rid-reservoir] Could not fetch previous complete date:", err);
+      console.warn(
+        "[rid-reservoir] Could not fetch previous complete date:",
+        err,
+      );
     }
   }
 

@@ -17,7 +17,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export function useWebPush() {
   const [isSupported] = useState(() => {
     if (typeof window === "undefined") return false;
-    return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+    return (
+      "serviceWorker" in navigator &&
+      "PushManager" in window &&
+      "Notification" in window
+    );
   });
 
   const [isIOS] = useState(() => {
@@ -29,16 +33,20 @@ export function useWebPush() {
     if (typeof window === "undefined") return false;
     return (
       window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as unknown as { standalone?: boolean }).standalone === true
+      (window.navigator as unknown as { standalone?: boolean }).standalone ===
+        true
     );
   });
 
   const [permission, setPermission] = useState<NotificationPermission>(() => {
-    if (typeof window === "undefined" || !("Notification" in window)) return "default";
+    if (typeof window === "undefined" || !("Notification" in window))
+      return "default";
     return Notification.permission;
   });
 
-  const [subscription, setSubscription] = useState<PushSubscription | null>(null);
+  const [subscription, setSubscription] = useState<PushSubscription | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(() => isSupported);
   const [isTesting, setIsTesting] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -126,7 +134,8 @@ export function useWebPush() {
           }),
         });
 
-        if (!saveRes.ok) throw new Error("Failed to register subscription on server");
+        if (!saveRes.ok)
+          throw new Error("Failed to register subscription on server");
 
         setSubscription(sub);
         setStatusMessage("เปิดการแจ้งเตือนสำเร็จแล้ว!");

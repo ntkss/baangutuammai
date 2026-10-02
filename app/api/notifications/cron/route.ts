@@ -12,7 +12,8 @@ export async function GET(request: Request) {
 
     // Optional verification if CRON_SECRET is set in environment
     if (cronSecret) {
-      const providedSecret = authHeader?.replace("Bearer ", "") || searchParams.get("secret");
+      const providedSecret =
+        authHeader?.replace("Bearer ", "") || searchParams.get("secret");
       if (providedSecret !== cronSecret) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
@@ -21,7 +22,9 @@ export async function GET(request: Request) {
     // Default reference coordinate (Nonthaburi / Chao Phraya corridor)
     const data = await fetchRealWaterLevel(13.862, 100.514);
     if (!data || !data.northernRunoff) {
-      return NextResponse.json({ message: "No river telemetry data available" });
+      return NextResponse.json({
+        message: "No river telemetry data available",
+      });
     }
 
     const c13 = data.northernRunoff.c13ChaoPhrayaDam;
@@ -72,6 +75,9 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error("[Cron Push] Error executing cron task:", error);
-    return NextResponse.json({ error: "Failed to run cron job" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to run cron job" },
+      { status: 500 },
+    );
   }
 }

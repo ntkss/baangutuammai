@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { MapPin, Search, Crosshair, Loader2, AlertTriangle } from "lucide-react";
+import {
+  MapPin,
+  Search,
+  Crosshair,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
 import { useUserPrefs } from "@/lib/store/userPrefs";
 import {
   loadGoogleMaps,
@@ -292,7 +298,11 @@ export function LocationPicker({
             minWidth: 0,
           }}
         >
-          <MapPin size={18} color="var(--color-severe)" style={{ flexShrink: 0 }} />
+          <MapPin
+            size={18}
+            color="var(--color-severe)"
+            style={{ flexShrink: 0 }}
+          />
           <div style={{ minWidth: 0 }}>
             <div
               style={{
@@ -492,7 +502,14 @@ export function LocationPicker({
                         "transparent")
                     }
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: "4px", fontWeight: 600 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "4px",
+                        fontWeight: 600,
+                      }}
+                    >
                       <MapPin size={12} color="var(--color-accent)" />
                       <span>{item.name}</span>
                     </div>

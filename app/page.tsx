@@ -149,11 +149,14 @@ export default function HomePage() {
     window.addEventListener("focus", handleVisibility);
 
     // Periodic check every 5 minutes while app is running
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        refreshDashboard();
-      }
-    }, 5 * 60 * 1000);
+    const interval = setInterval(
+      () => {
+        if (document.visibilityState === "visible") {
+          refreshDashboard();
+        }
+      },
+      5 * 60 * 1000,
+    );
 
     return () => {
       window.removeEventListener("visibilitychange", handleVisibility);
@@ -262,7 +265,9 @@ export default function HomePage() {
                 background: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
                 boxShadow: "var(--shadow-sm)",
-                color: isRefreshing ? "var(--color-accent)" : "var(--color-text-secondary)",
+                color: isRefreshing
+                  ? "var(--color-accent)"
+                  : "var(--color-text-secondary)",
                 fontSize: "0.76rem",
                 fontWeight: 600,
                 transition: "all 0.2s ease",
@@ -272,7 +277,9 @@ export default function HomePage() {
                 size={13}
                 className={isRefreshing || isLoading ? "spin" : ""}
                 style={{
-                  color: isRefreshing ? "var(--color-accent)" : "var(--color-text-muted)",
+                  color: isRefreshing
+                    ? "var(--color-accent)"
+                    : "var(--color-text-muted)",
                   transition: "color 0.2s ease",
                 }}
               />
@@ -289,7 +296,8 @@ export default function HomePage() {
                 {lastUpdated.toLocaleTimeString("th-TH", {
                   hour: "2-digit",
                   minute: "2-digit",
-                })} น.
+                })}{" "}
+                น.
               </span>
             )}
           </button>
@@ -304,7 +312,8 @@ export default function HomePage() {
 
         {/* ── Critical Data notices (system / connection errors only) ── */}
         {data?.dataNotices &&
-          data.dataNotices.filter((n) => !n.includes("ข้อมูลเขื่อนประจำวัน")).length > 0 && (
+          data.dataNotices.filter((n) => !n.includes("ข้อมูลเขื่อนประจำวัน"))
+            .length > 0 && (
             <div style={{ marginBottom: "12px" }}>
               {data.dataNotices
                 .filter((n) => !n.includes("ข้อมูลเขื่อนประจำวัน"))
@@ -331,7 +340,11 @@ export default function HomePage() {
             className="notice notice--warning"
             style={{ marginBottom: "16px" }}
           >
-            <AlertTriangle size={16} color="var(--color-watch)" style={{ flexShrink: 0, marginTop: "2px" }} />
+            <AlertTriangle
+              size={16}
+              color="var(--color-watch)"
+              style={{ flexShrink: 0, marginTop: "2px" }}
+            />
             <span>{error}</span>
           </div>
         )}
@@ -376,7 +389,9 @@ export default function HomePage() {
           <DataCardSkeleton />
         ) : data ? (
           <BentoVitals
-            c13DischargeM3s={data._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s}
+            c13DischargeM3s={
+              data._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s
+            }
             rain24hMm={data.rain?.total24h}
             reservoirBasin={data._reservoirBasin}
           />
@@ -733,126 +748,133 @@ export default function HomePage() {
                               gap: "2px",
                             }}
                           >
-                            {data._reservoirBasin.reportingDams.map((d, idx) => {
-                              const pct = d.percent_storage;
-                              let statusColor = "var(--color-text-primary)";
-                              let badgeText: string | null = null;
-                              let badgeBg = "transparent";
-                              let badgeColor = "transparent";
+                            {data._reservoirBasin.reportingDams.map(
+                              (d, idx) => {
+                                const pct = d.percent_storage;
+                                let statusColor = "var(--color-text-primary)";
+                                let badgeText: string | null = null;
+                                let badgeBg = "transparent";
+                                let badgeColor = "transparent";
 
-                              if (pct !== null) {
-                                if (pct >= 100) {
-                                  statusColor = "var(--color-severe)"; // Red
-                                  badgeText = "วิกฤต";
-                                  badgeBg = "rgba(239, 68, 68, 0.12)";
-                                  badgeColor = "var(--color-severe)";
-                                } else if (pct >= 80) {
-                                  statusColor = "var(--color-watch)"; // Orange
-                                  badgeText = "เฝ้าระวัง";
-                                  badgeBg = "rgba(245, 158, 11, 0.12)";
-                                  badgeColor = "var(--color-watch)";
+                                if (pct !== null) {
+                                  if (pct >= 100) {
+                                    statusColor = "var(--color-severe)"; // Red
+                                    badgeText = "วิกฤต";
+                                    badgeBg = "rgba(239, 68, 68, 0.12)";
+                                    badgeColor = "var(--color-severe)";
+                                  } else if (pct >= 80) {
+                                    statusColor = "var(--color-watch)"; // Orange
+                                    badgeText = "เฝ้าระวัง";
+                                    badgeBg = "rgba(245, 158, 11, 0.12)";
+                                    badgeColor = "var(--color-watch)";
+                                  }
                                 }
-                              }
 
-                              return (
-                                <div
-                                  key={d.id}
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    fontSize: "0.72rem",
-                                    padding: "5px 0",
-                                    borderBottom: "1px solid rgba(0,0,0,0.04)",
-                                  }}
-                                >
+                                return (
                                   <div
+                                    key={d.id}
                                     style={{
                                       display: "flex",
+                                      justifyContent: "space-between",
                                       alignItems: "center",
-                                      gap: "5px",
+                                      fontSize: "0.72rem",
+                                      padding: "5px 0",
+                                      borderBottom:
+                                        "1px solid rgba(0,0,0,0.04)",
                                     }}
                                   >
-                                    <span
+                                    <div
                                       style={{
-                                        color: "var(--color-text-muted)",
-                                        fontSize: "0.66rem",
-                                        width: "16px",
-                                        fontVariantNumeric: "tabular-nums",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "5px",
                                       }}
                                     >
-                                      {idx + 1}.
-                                    </span>
-                                    <span
-                                      style={{
-                                        fontWeight: d.isMajor ? 700 : 500,
-                                        color: "var(--color-text-primary)",
-                                      }}
-                                    >
-                                      {d.name}
-                                    </span>
-                                    {d.isMajor && (
                                       <span
                                         style={{
-                                          fontSize: "0.6rem",
-                                          padding: "1px 5px",
-                                          borderRadius: "4px",
-                                          background: "rgba(37, 99, 235, 0.08)",
-                                          color: "var(--color-accent)",
-                                          fontWeight: 700,
+                                          color: "var(--color-text-muted)",
+                                          fontSize: "0.66rem",
+                                          width: "16px",
+                                          fontVariantNumeric: "tabular-nums",
                                         }}
                                       >
-                                        เขื่อนหลัก
+                                        {idx + 1}.
                                       </span>
-                                    )}
-                                  </div>
+                                      <span
+                                        style={{
+                                          fontWeight: d.isMajor ? 700 : 500,
+                                          color: "var(--color-text-primary)",
+                                        }}
+                                      >
+                                        {d.name}
+                                      </span>
+                                      {d.isMajor && (
+                                        <span
+                                          style={{
+                                            fontSize: "0.6rem",
+                                            padding: "1px 5px",
+                                            borderRadius: "4px",
+                                            background:
+                                              "rgba(37, 99, 235, 0.08)",
+                                            color: "var(--color-accent)",
+                                            fontWeight: 700,
+                                          }}
+                                        >
+                                          เขื่อนหลัก
+                                        </span>
+                                      )}
+                                    </div>
 
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "6px",
-                                    }}
-                                  >
-                                    <span
+                                    <div
                                       style={{
-                                        fontWeight: 700,
-                                        fontFamily: "var(--font-inter)",
-                                        color: statusColor,
-                                        fontVariantNumeric: "tabular-nums",
-                                        fontSize: "0.75rem",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "6px",
                                       }}
                                     >
-                                      {pct !== null ? `${pct.toFixed(1)}%` : "-"}
-                                    </span>
-                                    {badgeText && (
                                       <span
                                         style={{
-                                          fontSize: "0.6rem",
-                                          padding: "1px 5px",
-                                          borderRadius: "4px",
-                                          background: badgeBg,
-                                          color: badgeColor,
                                           fontWeight: 700,
+                                          fontFamily: "var(--font-inter)",
+                                          color: statusColor,
+                                          fontVariantNumeric: "tabular-nums",
+                                          fontSize: "0.75rem",
                                         }}
                                       >
-                                        {badgeText}
+                                        {pct !== null
+                                          ? `${pct.toFixed(1)}%`
+                                          : "-"}
                                       </span>
-                                    )}
-                                    <span
-                                      style={{
-                                        fontSize: "0.66rem",
-                                        color: "var(--color-text-muted)",
-                                        fontVariantNumeric: "tabular-nums",
-                                      }}
-                                    >
-                                      ({d.volume.toLocaleString()} /{" "}
-                                      {d.capacity.toLocaleString()} ล้าน ลบ.ม.)
-                                    </span>
+                                      {badgeText && (
+                                        <span
+                                          style={{
+                                            fontSize: "0.6rem",
+                                            padding: "1px 5px",
+                                            borderRadius: "4px",
+                                            background: badgeBg,
+                                            color: badgeColor,
+                                            fontWeight: 700,
+                                          }}
+                                        >
+                                          {badgeText}
+                                        </span>
+                                      )}
+                                      <span
+                                        style={{
+                                          fontSize: "0.66rem",
+                                          color: "var(--color-text-muted)",
+                                          fontVariantNumeric: "tabular-nums",
+                                        }}
+                                      >
+                                        ({d.volume.toLocaleString()} /{" "}
+                                        {d.capacity.toLocaleString()} ล้าน
+                                        ลบ.ม.)
+                                      </span>
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              },
+                            )}
                           </div>
                         </div>
                       )}
@@ -881,7 +903,10 @@ export default function HomePage() {
                               gap: "5px",
                             }}
                           >
-                            <AlertTriangle size={14} color="var(--color-watch)" />
+                            <AlertTriangle
+                              size={14}
+                              color="var(--color-watch)"
+                            />
                             <span>
                               รอรายงานตรวจวัดประจำวันจาก{" "}
                               {data._reservoirBasin.missingDams.length} เขื่อน:
@@ -944,7 +969,8 @@ export default function HomePage() {
                 >
                   <Info size={13} />
                   <span>
-                    ข้อมูลเขื่อนประจำวัน ({data._reservoirBasin?.damCount ?? "?"}/
+                    ข้อมูลเขื่อนประจำวัน (
+                    {data._reservoirBasin?.damCount ?? "?"}/
                     {data._reservoirBasin?.totalDamsInBasin ?? 9} แห่ง)
                     {data._reservoirBasin?.isFallbackToPreviousDay
                       ? " • รอบล่าสุดที่ครบ"

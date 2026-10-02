@@ -24,13 +24,29 @@ import {
 export function getRiskLucideIcon(level: RiskLevel, size = 28) {
   switch (level) {
     case "low":
-      return <ShieldCheck size={size} strokeWidth={2.2} color="var(--color-low)" />;
+      return (
+        <ShieldCheck size={size} strokeWidth={2.2} color="var(--color-low)" />
+      );
     case "watch":
-      return <AlertTriangle size={size} strokeWidth={2.2} color="var(--color-watch)" />;
+      return (
+        <AlertTriangle
+          size={size}
+          strokeWidth={2.2}
+          color="var(--color-watch)"
+        />
+      );
     case "high":
-      return <AlertOctagon size={size} strokeWidth={2.2} color="var(--color-high)" />;
+      return (
+        <AlertOctagon size={size} strokeWidth={2.2} color="var(--color-high)" />
+      );
     case "severe":
-      return <ShieldAlert size={size} strokeWidth={2.2} color="var(--color-severe)" />;
+      return (
+        <ShieldAlert
+          size={size}
+          strokeWidth={2.2}
+          color="var(--color-severe)"
+        />
+      );
   }
 }
 
@@ -81,9 +97,11 @@ export function RiskStatusCard({
   // Background tint gradients per level
   const bgGradients = {
     low: "linear-gradient(135deg, rgba(236, 253, 245, 0.95), rgba(240, 253, 250, 0.8))",
-    watch: "linear-gradient(135deg, rgba(254, 252, 232, 0.95), rgba(255, 251, 235, 0.8))",
+    watch:
+      "linear-gradient(135deg, rgba(254, 252, 232, 0.95), rgba(255, 251, 235, 0.8))",
     high: "linear-gradient(135deg, rgba(255, 247, 237, 0.95), rgba(254, 242, 242, 0.8))",
-    severe: "linear-gradient(135deg, rgba(254, 242, 242, 0.95), rgba(255, 241, 242, 0.8))",
+    severe:
+      "linear-gradient(135deg, rgba(254, 242, 242, 0.95), rgba(255, 241, 242, 0.8))",
   };
 
   const borderColors = {

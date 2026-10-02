@@ -399,9 +399,7 @@ export function FloodTriggerFactorsCard({
               alignItems: "center",
               justifyContent: "space-between",
               boxShadow:
-                watchCount > 0
-                  ? "0 2px 8px rgba(217, 119, 6, 0.15)"
-                  : "none",
+                watchCount > 0 ? "0 2px 8px rgba(217, 119, 6, 0.15)" : "none",
             }}
           >
             <div>
@@ -429,7 +427,9 @@ export function FloodTriggerFactorsCard({
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "baseline", gap: "3px" }}>
+            <div
+              style={{ display: "flex", alignItems: "baseline", gap: "3px" }}
+            >
               <span
                 style={{
                   fontSize: "1.85rem",
@@ -497,7 +497,9 @@ export function FloodTriggerFactorsCard({
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "baseline", gap: "3px" }}>
+            <div
+              style={{ display: "flex", alignItems: "baseline", gap: "3px" }}
+            >
               <span
                 style={{
                   fontSize: "1.85rem",
@@ -545,7 +547,9 @@ export function FloodTriggerFactorsCard({
                 display: "inline-block",
               }}
             />
-            <span>ปกติ / ปลอดภัย <strong>{safeCount}</strong> ปัจจัย</span>
+            <span>
+              ปกติ / ปลอดภัย <strong>{safeCount}</strong> ปัจจัย
+            </span>
           </span>
 
           {unknownCount > 0 && (

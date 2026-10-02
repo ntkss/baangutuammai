@@ -113,7 +113,9 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
           icon={Mountain}
           title="นครสวรรค์"
           sub="C.2"
-          value={c2Discharge !== null ? `${c2Discharge.toLocaleString()}` : "--"}
+          value={
+            c2Discharge !== null ? `${c2Discharge.toLocaleString()}` : "--"
+          }
           unit="ลบ.ม./วิ"
           statusColor={
             isC2Severe
@@ -130,7 +132,9 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
           icon={Gauge}
           title="เขื่อนเจ้าพระยา"
           sub="C.13"
-          value={c13Discharge !== null ? `${c13Discharge.toLocaleString()}` : "--"}
+          value={
+            c13Discharge !== null ? `${c13Discharge.toLocaleString()}` : "--"
+          }
           unit="ลบ.ม./วิ"
           statusColor={
             isC13Severe
@@ -148,7 +152,11 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
         <FlowNode
           icon={Home}
           title="จุดใกล้บ้าน"
-          sub={nearest?.stationName ? nearest.stationName.slice(0, 10) : "ลำน้ำรอบบ้าน"}
+          sub={
+            nearest?.stationName
+              ? nearest.stationName.slice(0, 10)
+              : "ลำน้ำรอบบ้าน"
+          }
           value={
             nearest?.waterLevelM !== undefined
               ? `+${nearest.waterLevelM.toFixed(2)}`
@@ -214,11 +222,24 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
             }}
           >
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontWeight: 600,
+                }}
+              >
                 <Mountain size={13} color="var(--color-accent)" />
                 <span>1. สถานี C.2 นครสวรรค์</span>
               </div>
-              <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", marginLeft: "18px" }}>
+              <div
+                style={{
+                  fontSize: "0.68rem",
+                  color: "var(--color-text-muted)",
+                  marginLeft: "18px",
+                }}
+              >
                 ระดับน้ำ {c2NakhonSawan?.waterLevelM.toFixed(2)} ม.รทก.
               </div>
             </div>
@@ -239,11 +260,24 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
             }}
           >
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontWeight: 600,
+                }}
+              >
                 <Gauge size={13} color="var(--color-accent)" />
                 <span>2. สถานี C.13 เขื่อนเจ้าพระยา (ชัยนาท)</span>
               </div>
-              <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", marginLeft: "18px" }}>
+              <div
+                style={{
+                  fontSize: "0.68rem",
+                  color: "var(--color-text-muted)",
+                  marginLeft: "18px",
+                }}
+              >
                 ท้ายเขื่อน {c13ChaoPhrayaDam?.waterLevelM.toFixed(2)} ม.รทก.
               </div>
             </div>
@@ -265,11 +299,24 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
               }}
             >
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    fontWeight: 600,
+                  }}
+                >
                   <ArrowUp size={13} color="var(--color-accent)" />
                   <span>เหนือบ้าน: {corridor.upstream.stationName}</span>
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", marginLeft: "18px" }}>
+                <div
+                  style={{
+                    fontSize: "0.68rem",
+                    color: "var(--color-text-muted)",
+                    marginLeft: "18px",
+                  }}
+                >
                   {corridor.upstream.distanceKm} กม. เหนือบ้าน
                 </div>
               </div>
@@ -293,14 +340,36 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
               }}
             >
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px", fontWeight: 700, color: "var(--color-accent)" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    fontWeight: 700,
+                    color: "var(--color-accent)",
+                  }}
+                >
                   <Home size={13} color="var(--color-accent)" />
                   <span>ใกล้บ้านที่สุด: {nearest.stationName}</span>
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", marginLeft: "18px" }}>
+                <div
+                  style={{
+                    fontSize: "0.68rem",
+                    color: "var(--color-text-muted)",
+                    marginLeft: "18px",
+                  }}
+                >
                   {nearest.diffBankM !== null && (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
-                      {isNearestOverflow && <AlertTriangle size={11} color="var(--color-severe)" />}
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                      }}
+                    >
+                      {isNearestOverflow && (
+                        <AlertTriangle size={11} color="var(--color-severe)" />
+                      )}
                       {nearest.diffBankText?.includes("ล้น")
                         ? `ล้นตลิ่ง ${Math.abs(nearest.diffBankM).toFixed(2)} ม.`
                         : `ต่ำกว่าตลิ่ง ${nearest.diffBankM.toFixed(2)} ม.`}
@@ -327,11 +396,24 @@ export function RiverFlowStepper({ data }: RiverFlowStepperProps) {
               }}
             >
               <div>
-                <div style={{ display: "flex", alignItems: "center", gap: "5px", fontWeight: 600 }}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    fontWeight: 600,
+                  }}
+                >
                   <ArrowDown size={13} color="var(--color-low)" />
                   <span>ใต้บ้าน: {downstream.stationName}</span>
                 </div>
-                <div style={{ fontSize: "0.68rem", color: "var(--color-text-muted)", marginLeft: "18px" }}>
+                <div
+                  style={{
+                    fontSize: "0.68rem",
+                    color: "var(--color-text-muted)",
+                    marginLeft: "18px",
+                  }}
+                >
                   ระบายออกสู่ปากอ่าวไทย ({downstream.distanceKm} กม.)
                 </div>
               </div>
@@ -402,7 +484,9 @@ function FlowNode({
         style={{
           fontSize: "0.7rem",
           fontWeight: 700,
-          color: isHighlighted ? "var(--color-accent)" : "var(--color-text-primary)",
+          color: isHighlighted
+            ? "var(--color-accent)"
+            : "var(--color-text-primary)",
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",

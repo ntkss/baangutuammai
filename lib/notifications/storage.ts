@@ -23,7 +23,10 @@ function loadFromDisk(): void {
       }
     }
   } catch (err) {
-    console.error("[Storage] Failed to read push subscriptions from disk:", err);
+    console.error(
+      "[Storage] Failed to read push subscriptions from disk:",
+      err,
+    );
   }
   isInitialized = true;
 }
@@ -37,7 +40,10 @@ function saveToDisk(): void {
     fs.writeFileSync(DATA_FILE, JSON.stringify(list, null, 2), "utf-8");
   } catch (err) {
     // In serverless read-only filesystem environments, memory cache is used
-    console.warn("[Storage] Could not write to disk (likely serverless environment):", err);
+    console.warn(
+      "[Storage] Could not write to disk (likely serverless environment):",
+      err,
+    );
   }
 }
 
@@ -67,7 +73,9 @@ export async function getAllSubscriptions(): Promise<StoredSubscription[]> {
   return Array.from(memorySubscriptions.values());
 }
 
-export async function cleanInvalidSubscriptions(invalidEndpoints: string[]): Promise<void> {
+export async function cleanInvalidSubscriptions(
+  invalidEndpoints: string[],
+): Promise<void> {
   if (!invalidEndpoints.length) return;
   ensureInit();
   let modified = false;

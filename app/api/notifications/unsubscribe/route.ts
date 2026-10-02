@@ -7,13 +7,19 @@ export async function POST(request: Request) {
     const { endpoint } = body;
 
     if (!endpoint || typeof endpoint !== "string") {
-      return NextResponse.json({ error: "Endpoint is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Endpoint is required" },
+        { status: 400 },
+      );
     }
 
     const removed = await removeSubscription(endpoint);
     return NextResponse.json({ success: true, removed });
   } catch (error) {
     console.error("[Unsubscribe API] Error removing subscription:", error);
-    return NextResponse.json({ error: "Failed to remove subscription" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to remove subscription" },
+      { status: 500 },
+    );
   }
 }

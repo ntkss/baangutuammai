@@ -17,13 +17,16 @@ interface BentoVitalsProps {
   c13DischargeM3s: number | null | undefined;
   rain24hMm: number | null | undefined;
   rainIntensity?: string;
-  reservoirBasin: {
-    avgStoragePercent: number;
-    totalInflowM3s: number;
-    totalOutflowM3s: number;
-    damCount: number;
-    totalDamsInBasin?: number;
-  } | null | undefined;
+  reservoirBasin:
+    | {
+        avgStoragePercent: number;
+        totalInflowM3s: number;
+        totalOutflowM3s: number;
+        damCount: number;
+        totalDamsInBasin?: number;
+      }
+    | null
+    | undefined;
 }
 
 export function BentoVitals({
@@ -350,7 +353,8 @@ export function BentoVitals({
           className="card"
           style={{
             padding: "12px 14px",
-            background: "linear-gradient(135deg, rgba(255,255,255,1), rgba(248,250,252,0.8))",
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,1), rgba(248,250,252,0.8))",
           }}
         >
           <div
@@ -420,13 +424,27 @@ export function BentoVitals({
               color: "var(--color-text-muted)",
             }}
           >
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "3px",
+              }}
+            >
               <ArrowDownRight size={13} color="var(--color-low)" />
-              ไหลเข้า {reservoirBasin.totalInflowM3s.toLocaleString()} ล้าน ลบ.ม./วัน
+              ไหลเข้า {reservoirBasin.totalInflowM3s.toLocaleString()} ล้าน
+              ลบ.ม./วัน
             </span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "3px",
+              }}
+            >
               <ArrowUpRight size={13} color="var(--color-accent)" />
-              ระบายออก {reservoirBasin.totalOutflowM3s.toLocaleString()} ล้าน ลบ.ม./วัน
+              ระบายออก {reservoirBasin.totalOutflowM3s.toLocaleString()} ล้าน
+              ลบ.ม./วัน
             </span>
           </div>
         </div>

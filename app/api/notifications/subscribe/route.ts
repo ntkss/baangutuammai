@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { saveSubscription } from "@/lib/notifications/storage";
-import type { StoredSubscription, PushSubscriptionPayload, NotificationPreferences } from "@/lib/notifications/types";
+import type {
+  StoredSubscription,
+  PushSubscriptionPayload,
+  NotificationPreferences,
+} from "@/lib/notifications/types";
 
 interface SubscribeRequestBody {
   subscription: PushSubscriptionPayload;
@@ -12,8 +16,16 @@ export async function POST(request: Request) {
     const body = (await request.json()) as SubscribeRequestBody;
     const { subscription, preferences } = body;
 
-    if (!subscription || !subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
-      return NextResponse.json({ error: "Invalid subscription payload" }, { status: 400 });
+    if (
+      !subscription ||
+      !subscription.endpoint ||
+      !subscription.keys?.p256dh ||
+      !subscription.keys?.auth
+    ) {
+      return NextResponse.json(
+        { error: "Invalid subscription payload" },
+        { status: 400 },
+      );
     }
 
     const storedSub: StoredSubscription = {
@@ -36,6 +48,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, id: storedSub.id });
   } catch (error) {
     console.error("[Subscribe API] Error saving subscription:", error);
-    return NextResponse.json({ error: "Failed to save subscription" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to save subscription" },
+      { status: 500 },
+    );
   }
 }

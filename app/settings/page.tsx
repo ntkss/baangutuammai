@@ -6,13 +6,18 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "ตั้งค่า — บ้านกูจะน้ำท่วมมั้ย",
-  description: "ตั้งค่าตำแหน่งบ้าน ระดับพื้นบ้าน และการแจ้งเตือนเตือนภัยน้ำท่วม",
+  description:
+    "ตั้งค่าตำแหน่งบ้าน ระดับพื้นบ้าน และการแจ้งเตือนเตือนภัยน้ำท่วม",
 };
 
 export default function SettingsPage() {
   return (
     <>
-      <main className="page" id="main-content" style={{ paddingBottom: "110px" }}>
+      <main
+        className="page"
+        id="main-content"
+        style={{ paddingBottom: "110px" }}
+      >
         <h1
           style={{ fontSize: "1.25rem", fontWeight: 700, marginBottom: "16px" }}
         >

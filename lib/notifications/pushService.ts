@@ -1,6 +1,10 @@
 import webpush, { WebPushError } from "web-push";
 import { ensureVapidConfigured } from "./vapid";
-import { getAllSubscriptions, cleanInvalidSubscriptions, removeSubscription } from "./storage";
+import {
+  getAllSubscriptions,
+  cleanInvalidSubscriptions,
+  removeSubscription,
+} from "./storage";
 import type { StoredSubscription, NotificationPayload } from "./types";
 
 export async function sendNotificationToSubscription(
@@ -34,7 +38,10 @@ export async function sendNotificationToSubscription(
         return { success: false, shouldDelete: true };
       }
     }
-    console.error(`[PushService] Failed to send to ${sub.endpoint.slice(0, 30)}...:`, error);
+    console.error(
+      `[PushService] Failed to send to ${sub.endpoint.slice(0, 30)}...:`,
+      error,
+    );
     return { success: false, shouldDelete: false };
   }
 }
@@ -98,7 +105,10 @@ export async function sendTestNotificationToEndpoint(
     if (res.shouldDelete) {
       await removeSubscription(endpoint);
     }
-    return { success: false, error: "Push service failed or token was rejected by browser." };
+    return {
+      success: false,
+      error: "Push service failed or token was rejected by browser.",
+    };
   }
 
   return { success: true };

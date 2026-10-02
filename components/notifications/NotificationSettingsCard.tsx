@@ -1,7 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, BellOff, BellRing, Check, AlertTriangle, Smartphone, Loader2 } from "lucide-react";
+import {
+  Bell,
+  BellOff,
+  BellRing,
+  Check,
+  AlertTriangle,
+  Smartphone,
+  Loader2,
+} from "lucide-react";
 import { useWebPush } from "@/lib/notifications/useWebPush";
 import { useUserPrefs } from "@/lib/store/userPrefs";
 
@@ -54,11 +62,15 @@ export function NotificationSettingsCard() {
               width: "32px",
               height: "32px",
               borderRadius: "8px",
-              background: isSubscribed ? "rgba(37, 99, 235, 0.1)" : "var(--color-surface-2)",
+              background: isSubscribed
+                ? "rgba(37, 99, 235, 0.1)"
+                : "var(--color-surface-2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: isSubscribed ? "var(--color-accent)" : "var(--color-text-muted)",
+              color: isSubscribed
+                ? "var(--color-accent)"
+                : "var(--color-text-muted)",
             }}
           >
             {isSubscribed ? <BellRing size={18} /> : <Bell size={18} />}
@@ -67,7 +79,13 @@ export function NotificationSettingsCard() {
             <h2 style={{ fontSize: "1rem", fontWeight: 700, margin: 0 }}>
               การแจ้งเตือนเตือนภัยน้ำท่วม (Web Push)
             </h2>
-            <p style={{ fontSize: "0.76rem", color: "var(--color-text-muted)", margin: "2px 0 0 0" }}>
+            <p
+              style={{
+                fontSize: "0.76rem",
+                color: "var(--color-text-muted)",
+                margin: "2px 0 0 0",
+              }}
+            >
               แจ้งเตือนอัตโนมัติเมื่อเขื่อนระบายน้ำเกินเกณฑ์ หรือระดับน้ำวิกฤต
             </p>
           </div>
@@ -96,7 +114,11 @@ export function NotificationSettingsCard() {
           <div>
             <strong>คำแนะนำสำหรับ iPhone (iOS 16.4+):</strong>
             <br />
-            กรุณากดปุ่ม <strong>แชร์ ⬆️</strong> ใน Safari แล้วเลือก <strong>&quot;เพิ่มไปยังหน้าจอโฮม (Add to Home Screen)&quot;</strong> ก่อน จึงจะสามารถเปิดรับการแจ้งเตือนแบบพุชได้
+            กรุณากดปุ่ม <strong>แชร์ ⬆️</strong> ใน Safari แล้วเลือก{" "}
+            <strong>
+              &quot;เพิ่มไปยังหน้าจอโฮม (Add to Home Screen)&quot;
+            </strong>{" "}
+            ก่อน จึงจะสามารถเปิดรับการแจ้งเตือนแบบพุชได้
           </div>
         </div>
       )}
@@ -118,11 +140,15 @@ export function NotificationSettingsCard() {
             gap: "8px",
           }}
         >
-          <AlertTriangle size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
+          <AlertTriangle
+            size={18}
+            style={{ flexShrink: 0, marginTop: "2px" }}
+          />
           <div>
             <strong>การแจ้งเตือนถูกบล็อก:</strong>
             <br />
-            คุณได้ปิดการอนุญาตแจ้งเตือนไว้ กรุณาเข้าไปเปิดสิทธิ์ในการตั้งค่าของเบราว์เซอร์
+            คุณได้ปิดการอนุญาตแจ้งเตือนไว้
+            กรุณาเข้าไปเปิดสิทธิ์ในการตั้งค่าของเบราว์เซอร์
           </div>
         </div>
       )}
@@ -135,7 +161,9 @@ export function NotificationSettingsCard() {
           alignItems: "center",
           padding: "12px 0",
           borderTop: "1px solid var(--color-border-subtle)",
-          borderBottom: isSubscribed ? "1px solid var(--color-border-subtle)" : "none",
+          borderBottom: isSubscribed
+            ? "1px solid var(--color-border-subtle)"
+            : "none",
           marginTop: "8px",
         }}
       >
@@ -143,8 +171,12 @@ export function NotificationSettingsCard() {
           <div style={{ fontSize: "0.88rem", fontWeight: 600 }}>
             {isSubscribed ? "เปิดรับการแจ้งเตือนแล้ว" : "เปิดรับการแจ้งเตือน"}
           </div>
-          <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)" }}>
-            {isSubscribed ? "ระบบจะแจ้งเตือนเมื่อเกิดสถานการณ์วิกฤต" : "รับข้อความเตือนภัยแม้ปิดแอป"}
+          <div
+            style={{ fontSize: "0.74rem", color: "var(--color-text-muted)" }}
+          >
+            {isSubscribed
+              ? "ระบบจะแจ้งเตือนเมื่อเกิดสถานการณ์วิกฤต"
+              : "รับข้อความเตือนภัยแม้ปิดแอป"}
           </div>
         </div>
 
@@ -158,11 +190,16 @@ export function NotificationSettingsCard() {
             fontSize: "0.82rem",
             fontWeight: 600,
             border: "none",
-            cursor: isLoading || !isSupported || (isIOS && !isStandalone) ? "not-allowed" : "pointer",
+            cursor:
+              isLoading || !isSupported || (isIOS && !isStandalone)
+                ? "not-allowed"
+                : "pointer",
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
-            background: isSubscribed ? "rgba(220, 38, 38, 0.1)" : "var(--color-accent)",
+            background: isSubscribed
+              ? "rgba(220, 38, 38, 0.1)"
+              : "var(--color-accent)",
             color: isSubscribed ? "var(--color-severe)" : "#ffffff",
             transition: "all 0.2s ease",
           }}
@@ -188,8 +225,21 @@ export function NotificationSettingsCard() {
 
       {/* Detailed Alert Conditions (visible when subscribed) */}
       {isSubscribed && (
-        <div style={{ paddingTop: "12px", display: "flex", flexDirection: "column", gap: "10px" }}>
-          <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--color-text-secondary)" }}>
+        <div
+          style={{
+            paddingTop: "12px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.78rem",
+              fontWeight: 600,
+              color: "var(--color-text-secondary)",
+            }}
+          >
             เงื่อนไขที่ต้องการรับแจ้งเตือน:
           </div>
 
@@ -207,7 +257,11 @@ export function NotificationSettingsCard() {
               type="checkbox"
               checked={c13Alert}
               onChange={(e) => setC13Alert(e.target.checked)}
-              style={{ accentColor: "var(--color-accent)", width: "16px", height: "16px" }}
+              style={{
+                accentColor: "var(--color-accent)",
+                width: "16px",
+                height: "16px",
+              }}
             />
             <span>⚡ เขื่อนเจ้าพระยา (C.13) ระบายน้ำเกิน 2,000 ลบ.ม./วิ</span>
           </label>
@@ -226,13 +280,26 @@ export function NotificationSettingsCard() {
               type="checkbox"
               checked={waterLevelAlert}
               onChange={(e) => setWaterLevelAlert(e.target.checked)}
-              style={{ accentColor: "var(--color-accent)", width: "16px", height: "16px" }}
+              style={{
+                accentColor: "var(--color-accent)",
+                width: "16px",
+                height: "16px",
+              }}
             />
-            <span>🌊 ระดับผิวน้ำใกล้ระดับพื้นบ้าน (Freeboard ต่ำกว่า 0.50 ม.)</span>
+            <span>
+              🌊 ระดับผิวน้ำใกล้ระดับพื้นบ้าน (Freeboard ต่ำกว่า 0.50 ม.)
+            </span>
           </label>
 
           {/* Test Push Button */}
-          <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <div
+            style={{
+              marginTop: "10px",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
             <button
               type="button"
               onClick={sendTestNotification}
@@ -252,8 +319,14 @@ export function NotificationSettingsCard() {
                 transition: "all 0.15s ease",
               }}
             >
-              {isTesting ? <Loader2 size={13} className="spin" /> : <BellRing size={13} />}
-              <span>{isTesting ? "กำลังส่งข้อความ..." : "ทดสอบส่งการแจ้งเตือนทันที"}</span>
+              {isTesting ? (
+                <Loader2 size={13} className="spin" />
+              ) : (
+                <BellRing size={13} />
+              )}
+              <span>
+                {isTesting ? "กำลังส่งข้อความ..." : "ทดสอบส่งการแจ้งเตือนทันที"}
+              </span>
             </button>
           </div>
         </div>
@@ -267,7 +340,9 @@ export function NotificationSettingsCard() {
             padding: "8px 12px",
             borderRadius: "8px",
             fontSize: "0.76rem",
-            background: statusMessage.includes("สำเร็จ") ? "#f0fdf4" : "#fef2f2",
+            background: statusMessage.includes("สำเร็จ")
+              ? "#f0fdf4"
+              : "#fef2f2",
             color: statusMessage.includes("สำเร็จ") ? "#15803d" : "#b91c1c",
             border: `1px solid ${statusMessage.includes("สำเร็จ") ? "#bbf7d0" : "#fecaca"}`,
             display: "flex",
@@ -275,7 +350,11 @@ export function NotificationSettingsCard() {
             gap: "6px",
           }}
         >
-          {statusMessage.includes("สำเร็จ") ? <Check size={14} /> : <AlertTriangle size={14} />}
+          {statusMessage.includes("สำเร็จ") ? (
+            <Check size={14} />
+          ) : (
+            <AlertTriangle size={14} />
+          )}
           <span>{statusMessage}</span>
         </div>
       )}

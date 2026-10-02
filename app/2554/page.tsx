@@ -169,7 +169,9 @@ export default function History2554Page() {
               background: "var(--color-surface)",
               border: "1px solid var(--color-border)",
               boxShadow: "var(--shadow-sm)",
-              color: isRefreshing ? "var(--color-accent)" : "var(--color-text-muted)",
+              color: isRefreshing
+                ? "var(--color-accent)"
+                : "var(--color-text-muted)",
               cursor: isRefreshing || isLoading ? "default" : "pointer",
               transition: "all 0.2s ease",
             }}

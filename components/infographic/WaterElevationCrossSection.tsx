@@ -38,7 +38,13 @@ export function WaterElevationCrossSection({
           background: "var(--color-surface)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "8px",
+          }}
+        >
           <Waves size={28} color="var(--color-accent)" />
         </div>
         <p
@@ -55,7 +61,8 @@ export function WaterElevationCrossSection({
   }
 
   // Calculate clearance
-  const isOverflowBank = diffBankM !== undefined && diffBankM !== null ? diffBankM < 0 : false;
+  const isOverflowBank =
+    diffBankM !== undefined && diffBankM !== null ? diffBankM < 0 : false;
   const bankClearance =
     diffBankM !== undefined && diffBankM !== null
       ? Math.abs(diffBankM)
@@ -203,8 +210,16 @@ export function WaterElevationCrossSection({
         >
           <defs>
             <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={statusTheme.waterColor} stopOpacity="0.88" />
-              <stop offset="100%" stopColor={statusTheme.waterDeep} stopOpacity="0.95" />
+              <stop
+                offset="0%"
+                stopColor={statusTheme.waterColor}
+                stopOpacity="0.88"
+              />
+              <stop
+                offset="100%"
+                stopColor={statusTheme.waterDeep}
+                stopOpacity="0.95"
+              />
             </linearGradient>
             <linearGradient id="groundGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#e2e8f0" />
@@ -217,8 +232,24 @@ export function WaterElevationCrossSection({
           </defs>
 
           {/* Reference subtle lines */}
-          <line x1="0" y1="55" x2="400" y2="55" stroke="#e2e8f0" strokeDasharray="3 3" strokeWidth="0.8" />
-          <line x1="0" y1="90" x2="400" y2="90" stroke="#e2e8f0" strokeDasharray="3 3" strokeWidth="0.8" />
+          <line
+            x1="0"
+            y1="55"
+            x2="400"
+            y2="55"
+            stroke="#e2e8f0"
+            strokeDasharray="3 3"
+            strokeWidth="0.8"
+          />
+          <line
+            x1="0"
+            y1="90"
+            x2="400"
+            y2="90"
+            stroke="#e2e8f0"
+            strokeDasharray="3 3"
+            strokeWidth="0.8"
+          />
 
           {/* 1. Ground Profile */}
           <path
@@ -227,10 +258,24 @@ export function WaterElevationCrossSection({
           />
 
           {/* Grass strip on top of high ground */}
-          <rect x="0" y="54" width="135" height="3" fill="#10b981" opacity="0.6" />
+          <rect
+            x="0"
+            y="54"
+            width="135"
+            height="3"
+            fill="#10b981"
+            opacity="0.6"
+          />
 
           {/* Embankment Wall */}
-          <rect x="190" y="84" width="7" height="15" rx="1.5" fill="url(#embankGrad)" />
+          <rect
+            x="190"
+            y="84"
+            width="7"
+            height="15"
+            rx="1.5"
+            fill="url(#embankGrad)"
+          />
 
           {/* 2. Water Body */}
           <path d={waterPath} fill="url(#waterGrad)" />
@@ -250,7 +295,16 @@ export function WaterElevationCrossSection({
           {/* 3. House Icon */}
           <g transform="translate(45, 12)">
             <polygon points="20,8 3,24 37,24" fill="#3b82f6" />
-            <rect x="8" y="24" width="24" height="19" fill="#ffffff" stroke="#93c5fd" strokeWidth="1.5" rx="1" />
+            <rect
+              x="8"
+              y="24"
+              width="24"
+              height="19"
+              fill="#ffffff"
+              stroke="#93c5fd"
+              strokeWidth="1.5"
+              rx="1"
+            />
             <rect x="17" y="31" width="6" height="12" fill="#2563eb" rx="1" />
             <rect x="11" y="27" width="5" height="5" fill="#bfdbfe" rx="0.5" />
           </g>
@@ -267,10 +321,24 @@ export function WaterElevationCrossSection({
               stroke="rgba(0,0,0,0.06)"
               filter="drop-shadow(0 1px 2px rgba(0,0,0,0.05))"
             />
-            <text x="43" y="11" fontSize="9" fontWeight="700" fill="#1e293b" textAnchor="middle">
+            <text
+              x="43"
+              y="11"
+              fontSize="9"
+              fontWeight="700"
+              fill="#1e293b"
+              textAnchor="middle"
+            >
               🏠 พื้นบ้านของคุณ
             </text>
-            <text x="43" y="20" fontSize="8" fontWeight="600" fill="#64748b" textAnchor="middle">
+            <text
+              x="43"
+              y="20"
+              fontSize="8"
+              fontWeight="600"
+              fill="#64748b"
+              textAnchor="middle"
+            >
               {houseElevationM !== null && houseElevationM !== undefined
                 ? `+${houseElevationM.toFixed(2)} ม.รทก.`
                 : "ระดับพื้นดิน"}
@@ -278,11 +346,27 @@ export function WaterElevationCrossSection({
           </g>
 
           {/* Bank Crest Marker */}
-          <text x="184" y="80" fontSize="8.5" fontWeight="700" fill="#475569" textAnchor="end">
+          <text
+            x="184"
+            y="80"
+            fontSize="8.5"
+            fontWeight="700"
+            fill="#475569"
+            textAnchor="end"
+          >
             ⚓ ขอบตลิ่ง
           </text>
-          <text x="184" y="89" fontSize="8" fontWeight="600" fill="#64748b" textAnchor="end">
-            {bankLevelM !== null && bankLevelM !== undefined ? `+${bankLevelM.toFixed(2)} ม.` : ""}
+          <text
+            x="184"
+            y="89"
+            fontSize="8"
+            fontWeight="600"
+            fill="#64748b"
+            textAnchor="end"
+          >
+            {bankLevelM !== null && bankLevelM !== undefined
+              ? `+${bankLevelM.toFixed(2)} ม.`
+              : ""}
           </text>
 
           {/* River Water Level Indicator Pill */}
@@ -297,7 +381,14 @@ export function WaterElevationCrossSection({
               stroke="rgba(0,0,0,0.08)"
               filter="drop-shadow(0 2px 4px rgba(0,0,0,0.12))"
             />
-            <text x="0" y="1" fontSize="9" fontWeight="800" fill="#0284c7" textAnchor="middle">
+            <text
+              x="0"
+              y="1"
+              fontSize="9"
+              fontWeight="800"
+              fill="#0284c7"
+              textAnchor="middle"
+            >
               🌊 +{riverWaterLevelM.toFixed(2)} ม.รทก.
             </text>
           </g>
@@ -361,7 +452,9 @@ export function WaterElevationCrossSection({
             style={{
               fontSize: "0.95rem",
               fontWeight: 800,
-              color: isOverflowBank ? "var(--color-severe)" : "var(--color-text-primary)",
+              color: isOverflowBank
+                ? "var(--color-severe)"
+                : "var(--color-text-primary)",
             }}
           >
             {bankClearance !== null

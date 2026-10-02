@@ -4,8 +4,12 @@
 /* ─── Design tokens (Modern, Minimal & Clean) ───────────────────────────── */
 :root {
   /* Font Families */
-  --font-family-thai: var(--font-anuphan), "Anuphan", var(--font-inter), "Inter", system-ui, -apple-system, sans-serif;
-  --font-family-sans: var(--font-inter), "Inter", var(--font-anuphan), "Anuphan", system-ui, -apple-system, sans-serif;
+  --font-family-thai:
+    var(--font-anuphan), "Anuphan", var(--font-inter), "Inter", system-ui,
+    -apple-system, sans-serif;
+  --font-family-sans:
+    var(--font-inter), "Inter", var(--font-anuphan), "Anuphan", system-ui,
+    -apple-system, sans-serif;
 
   /* Palette - Modern Clean Slate */
   --color-bg: #f8fafc;
@@ -256,7 +260,8 @@ body {
 .page {
   max-width: 480px;
   margin: 0 auto;
-  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(72px + env(safe-area-inset-bottom, 0px)) 16px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 16px
+    calc(72px + env(safe-area-inset-bottom, 0px)) 16px;
   min-height: 100dvh;
   touch-action: manipulation;
 }
