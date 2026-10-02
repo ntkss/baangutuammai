@@ -146,9 +146,9 @@ export function FloodTriggerFactorsCard({
     {
       id: "margin",
       icon: "🏠",
-      name: "ระดับผิวน้ำแม่น้ำสูงเกินระดับพื้นบ้าน",
-      subtitle: "ความสูงต่างระหว่างผิวน้ำกับพื้นบ้านคุณ",
-      criticalThreshold: "ระยะสูงกว่าน้ำ ≤ 0.00 ม. (น้ำสูงกว่าพื้น)",
+      name: "ระดับผิวน้ำเทียบระดับพื้นดินบ้าน (Freeboard)",
+      subtitle: "ความสูงต่างระหว่างผิวน้ำแม่น้ำกับระดับดินบ้านคุณ",
+      criticalThreshold: "ผิวน้ำเสมอพื้น (≤ 0.00 ม.)",
       currentValue:
         elevationMarginM !== null && elevationMarginM !== undefined
           ? elevationMarginM > 0
@@ -158,11 +158,11 @@ export function FloodTriggerFactorsCard({
       status: marginStatus,
       statusText:
         marginStatus === "critical"
-          ? "🚨 ผิวน้ำสูงปริ่ม/ท่วมพื้น"
+          ? "🚨 ผิวน้ำสูงกว่าพื้นดิน"
           : marginStatus === "watch"
-            ? "⚠️ ระยะปลอดภัยแคบ"
+            ? "⚠️ ระยะปลอดภัยต่ำ"
             : marginStatus === "safe"
-              ? "🟢 พื้นบ้านสูงกว่าผิวน้ำ"
+              ? "🟢 พื้นดินสูงกว่าน้ำ"
               : "⚪ ไม่มีข้อมูล",
       statusColor:
         marginStatus === "critical"
@@ -173,7 +173,7 @@ export function FloodTriggerFactorsCard({
               ? "var(--color-low)"
               : "var(--color-text-muted)",
       impactExplanation:
-        "หากผิวน้ำในแม่น้ำเจ้าพระยาใกล้บ้านคุณสูงกว่าระดับพื้นดินบ้าน (Margin ติดลบ) น้ำจะดันย้อนท่อระบายน้ำและไหลเข้าบ้านโดยตรงหากไม่มีแนวคันกั้นน้ำส่วนตัว",
+        "หากผิวน้ำสูงกว่าระดับดิน (Margin ติดลบ) จะท่วมทันทีหากอยู่นอกคันกั้นน้ำ ส่วนในคันกั้นน้ำต้องระวังน้ำดันย้อนท่อระบายน้ำ",
     },
     {
       id: "c2",
@@ -239,6 +239,7 @@ export function FloodTriggerFactorsCard({
 
   const criticalCount = factors.filter((f) => f.status === "critical").length;
   const watchCount = factors.filter((f) => f.status === "watch").length;
+  const safeCount = factors.filter((f) => f.status === "safe").length;
   const unknownCount = factors.filter((f) => f.status === "unknown").length;
 
   return (
@@ -281,17 +282,6 @@ export function FloodTriggerFactorsCard({
               สัญญาณวิกฤต: ปัจจัยที่ทำให้น้ำท่วมถึงบ้านคุณ
             </h2>
           </div>
-          <p
-            style={{
-              fontSize: "0.75rem",
-              color: "var(--color-text-secondary)",
-              margin: "4px 0 0 0",
-              lineHeight: 1.5,
-            }}
-          >
-            หากปัจจัยเหล่านี้เกิดขึ้นพร้อมกัน
-            มวลน้ำจะมีแนวโน้มเอ่อล้นเข้าท่วมพื้นที่ของคุณแน่นอน
-          </p>
         </div>
 
         <button
@@ -315,30 +305,28 @@ export function FloodTriggerFactorsCard({
         style={{
           background:
             criticalCount >= 2
-              ? "rgba(220, 38, 38, 0.1)"
+              ? "rgba(220, 38, 38, 0.08)"
               : criticalCount === 1
-                ? "rgba(234, 88, 12, 0.08)"
+                ? "rgba(234, 88, 12, 0.06)"
                 : unknownCount === 5
                   ? "rgba(148, 163, 184, 0.08)"
-                  : "rgba(16, 185, 129, 0.08)",
-          borderRadius: "8px",
-          padding: "10px 12px",
+                  : "rgba(16, 185, 129, 0.06)",
+          borderRadius: "12px",
+          padding: "14px 16px",
           marginBottom: "14px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "8px",
           border:
-            criticalCount >= 1
-              ? "1px solid rgba(220, 38, 38, 0.2)"
-              : unknownCount === 5
-                ? "1px solid rgba(148, 163, 184, 0.2)"
-                : "1px solid rgba(16, 185, 129, 0.2)",
+            criticalCount >= 2
+              ? "2px solid var(--color-severe)"
+              : criticalCount === 1
+                ? "1.5px solid var(--color-high)"
+                : unknownCount === 5
+                  ? "1px solid var(--color-border)"
+                  : "1px solid var(--color-low-border)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "1.2rem" }}>
+        {/* Top Status Headline */}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
+          <span style={{ fontSize: "1.45rem", lineHeight: 1 }}>
             {criticalCount >= 2
               ? "🔴"
               : criticalCount === 1
@@ -347,11 +335,11 @@ export function FloodTriggerFactorsCard({
                   ? "⚪"
                   : "🟢"}
           </span>
-          <div>
+          <div style={{ flex: 1 }}>
             <div
               style={{
-                fontSize: "0.82rem",
-                fontWeight: 700,
+                fontSize: "0.92rem",
+                fontWeight: 750,
                 color:
                   criticalCount >= 2
                     ? "var(--color-severe)"
@@ -360,6 +348,7 @@ export function FloodTriggerFactorsCard({
                       : unknownCount === 5
                         ? "var(--color-text-muted)"
                         : "var(--color-low)",
+                lineHeight: 1.35,
               }}
             >
               {criticalCount >= 2
@@ -372,8 +361,10 @@ export function FloodTriggerFactorsCard({
             </div>
             <div
               style={{
-                fontSize: "0.7rem",
+                fontSize: "0.72rem",
                 color: "var(--color-text-secondary)",
+                marginTop: "3px",
+                lineHeight: 1.4,
               }}
             >
               {criticalCount >= 1
@@ -385,19 +376,183 @@ export function FloodTriggerFactorsCard({
           </div>
         </div>
 
+        {/* Big & Prominent Counters: เฝ้าระวัง X / วิกฤต X */}
         <div
           style={{
-            fontSize: "0.72rem",
-            fontWeight: 600,
-            padding: "4px 8px",
-            borderRadius: "4px",
-            background: "var(--color-surface)",
-            color: "var(--color-text-primary)",
-            border: "1px solid var(--color-border)",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "10px",
+            marginTop: "12px",
           }}
         >
-          เฝ้าระวัง {watchCount} / วิกฤต {criticalCount}
-          {unknownCount > 0 && ` / ไม่มีข้อมูล ${unknownCount}`}
+          {/* Card: เฝ้าระวัง */}
+          <div
+            style={{
+              background: "var(--color-surface)",
+              border:
+                watchCount > 0
+                  ? "2px solid var(--color-watch)"
+                  : "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow:
+                watchCount > 0
+                  ? "0 2px 8px rgba(217, 119, 6, 0.15)"
+                  : "none",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  color: "var(--color-watch)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <span>⚠️</span>
+                <span>เฝ้าระวัง</span>
+              </div>
+              <div
+                style={{
+                  fontSize: "0.64rem",
+                  color: "var(--color-text-muted)",
+                  marginTop: "2px",
+                }}
+              >
+                ใกล้จุดอันตราย
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "baseline", gap: "3px" }}>
+              <span
+                style={{
+                  fontSize: "1.85rem",
+                  fontWeight: 800,
+                  color: "var(--color-watch)",
+                  lineHeight: 1,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {watchCount}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.68rem",
+                  fontWeight: 600,
+                  color: "var(--color-text-muted)",
+                }}
+              >
+                ปัจจัย
+              </span>
+            </div>
+          </div>
+
+          {/* Card: วิกฤต */}
+          <div
+            style={{
+              background: "var(--color-surface)",
+              border:
+                criticalCount > 0
+                  ? "2px solid var(--color-severe)"
+                  : "1px solid var(--color-border)",
+              borderRadius: "10px",
+              padding: "10px 14px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow:
+                criticalCount > 0
+                  ? "0 2px 8px rgba(220, 38, 38, 0.15)"
+                  : "none",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: "0.8rem",
+                  fontWeight: 700,
+                  color: "var(--color-severe)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                }}
+              >
+                <span>🚨</span>
+                <span>วิกฤต</span>
+              </div>
+              <div
+                style={{
+                  fontSize: "0.64rem",
+                  color: "var(--color-text-muted)",
+                  marginTop: "2px",
+                }}
+              >
+                แตะเกณฑ์น้ำท่วม
+              </div>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "baseline", gap: "3px" }}>
+              <span
+                style={{
+                  fontSize: "1.85rem",
+                  fontWeight: 800,
+                  color: "var(--color-severe)",
+                  lineHeight: 1,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {criticalCount}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.68rem",
+                  fontWeight: 600,
+                  color: "var(--color-text-muted)",
+                }}
+              >
+                ปัจจัย
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Subtle Bottom Indicators */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginTop: "10px",
+            paddingTop: "8px",
+            borderTop: "1px dashed rgba(0, 0, 0, 0.08)",
+            fontSize: "0.7rem",
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+            <span
+              style={{
+                width: "7px",
+                height: "7px",
+                borderRadius: "50%",
+                background: "var(--color-low)",
+                display: "inline-block",
+              }}
+            />
+            <span>ปกติ / ปลอดภัย <strong>{safeCount}</strong> ปัจจัย</span>
+          </span>
+
+          {unknownCount > 0 && (
+            <span style={{ color: "var(--color-text-muted)" }}>
+              รอข้อมูลสถานี {unknownCount} ปัจจัย
+            </span>
+          )}
         </div>
       </div>
 
@@ -531,7 +686,7 @@ export function FloodTriggerFactorsCard({
               </div>
 
               {/* Impact Explanation */}
-              <div
+              {/* <div
                 style={{
                   fontSize: "0.7rem",
                   color: "var(--color-text-secondary)",
@@ -547,7 +702,7 @@ export function FloodTriggerFactorsCard({
                   ผลกระทบ:{" "}
                 </span>
                 {factor.impactExplanation}
-              </div>
+              </div> */}
             </div>
           ))}
 

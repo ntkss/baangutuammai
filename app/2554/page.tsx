@@ -62,13 +62,9 @@ export default function History2554Page() {
   return (
     <>
       <main
-        className="container"
-        style={{
-          paddingTop: "24px",
-          paddingBottom: "88px",
-          maxWidth: "600px",
-          margin: "0 auto",
-        }}
+        className="page"
+        id="main-content"
+        style={{ paddingBottom: "110px" }}
       >
         {/* ── Top Bar ─────────────────────────────────────────── */}
         <div
@@ -76,7 +72,7 @@ export default function History2554Page() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "20px",
+            marginBottom: "16px",
           }}
         >
           <div>

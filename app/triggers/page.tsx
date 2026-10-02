@@ -62,13 +62,9 @@ export default function TriggersPage() {
   return (
     <>
       <main
-        className="container"
-        style={{
-          paddingTop: "24px",
-          paddingBottom: "88px",
-          maxWidth: "600px",
-          margin: "0 auto",
-        }}
+        className="page"
+        id="main-content"
+        style={{ paddingBottom: "110px" }}
       >
         {/* ── Top Bar ─────────────────────────────────────────── */}
         <div
@@ -76,7 +72,7 @@ export default function TriggersPage() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "20px",
+            marginBottom: "16px",
           }}
         >
           <div>
@@ -125,7 +121,7 @@ export default function TriggersPage() {
         <div
           style={{
             background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
+            // border: "1px solid var(--color-border)",
             borderRadius: "12px",
             padding: "10px 14px",
             marginBottom: "16px",
@@ -152,7 +148,7 @@ export default function TriggersPage() {
               fontSize: "0.75rem",
             }}
           >
-            เปลี่ยนที่หน้าหลัก
+            เปลี่ยน
           </Link>
         </div>
 
