@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   Waves,
@@ -13,6 +13,7 @@ import {
   MountainSnow,
   Activity,
   ArrowRight,
+  RotateCw,
 } from "lucide-react";
 import { BottomNav } from "@/components/common/BottomNav";
 import { Footer } from "@/components/common/Footer";
@@ -77,13 +78,34 @@ export default function HomePage() {
   const { homeLocation, setHomeLocation } = useUserPrefs();
   const [data, setData] = useState<ExtendedDashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showDamNotice, setShowDamNotice] = useState(false);
 
   const activeLat = homeLocation?.latitude ?? DEFAULT_LAT;
   const activeLng = homeLocation?.longitude ?? DEFAULT_LNG;
+  const lastFetchRef = useRef<number>(0);
 
+  const refreshDashboard = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const r = await fetch(`/api/dashboard?lat=${activeLat}&lng=${activeLng}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = (await r.json()) as ExtendedDashboardResponse;
+      setData(d);
+      setLastUpdated(new Date());
+      lastFetchRef.current = Date.now();
+      setError(null);
+    } catch {
+      // Keep existing data on background refresh failure
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 400);
+    }
+  }, [activeLat, activeLng]);
+
+  // Initial fetch and on coordinates change
   useEffect(() => {
     let ignore = false;
     fetch(`/api/dashboard?lat=${activeLat}&lng=${activeLng}`)
@@ -94,6 +116,8 @@ export default function HomePage() {
       .then((d) => {
         if (!ignore) {
           setData(d);
+          setLastUpdated(new Date());
+          lastFetchRef.current = Date.now();
           setIsLoading(false);
         }
       })
@@ -108,6 +132,35 @@ export default function HomePage() {
       ignore = true;
     };
   }, [activeLat, activeLng]);
+
+  // Auto-refresh when app becomes visible or focused (PWA Home Screen return)
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        const elapsed = Date.now() - lastFetchRef.current;
+        // Auto-refresh if more than 5 minutes old
+        if (elapsed > 5 * 60 * 1000) {
+          refreshDashboard();
+        }
+      }
+    }
+
+    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+
+    // Periodic check every 5 minutes while app is running
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        refreshDashboard();
+      }
+    }, 5 * 60 * 1000);
+
+    return () => {
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+      clearInterval(interval);
+    };
+  }, [refreshDashboard]);
 
   function handleLocationSelect(
     newLat: number,
@@ -178,6 +231,68 @@ export default function HomePage() {
               {UI_TEXT.appTagline}
             </p>
           </div>
+
+          {/* ── Quick Refresh Button ──────────────────────────── */}
+          <button
+            type="button"
+            id="refresh-dashboard-btn"
+            onClick={() => refreshDashboard()}
+            disabled={isRefreshing || isLoading}
+            aria-label="รีเฟรชข้อมูล"
+            title="รีเฟรชข้อมูลล่าสุด"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "2px",
+              background: "none",
+              border: "none",
+              cursor: isRefreshing || isLoading ? "default" : "pointer",
+              padding: "4px 0 4px 8px",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                padding: "6px 12px",
+                borderRadius: "20px",
+                background: "var(--color-surface)",
+                border: "1px solid var(--color-border)",
+                boxShadow: "var(--shadow-sm)",
+                color: isRefreshing ? "var(--color-accent)" : "var(--color-text-secondary)",
+                fontSize: "0.76rem",
+                fontWeight: 600,
+                transition: "all 0.2s ease",
+              }}
+            >
+              <RotateCw
+                size={13}
+                className={isRefreshing || isLoading ? "spin" : ""}
+                style={{
+                  color: isRefreshing ? "var(--color-accent)" : "var(--color-text-muted)",
+                  transition: "color 0.2s ease",
+                }}
+              />
+              <span>{isRefreshing ? "กำลังอัปเดต" : "รีเฟรช"}</span>
+            </div>
+            {lastUpdated && (
+              <span
+                style={{
+                  fontSize: "0.68rem",
+                  color: "var(--color-text-muted)",
+                  paddingRight: "4px",
+                }}
+              >
+                {lastUpdated.toLocaleTimeString("th-TH", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })} น.
+              </span>
+            )}
+          </button>
         </header>
 
         {/* ── Location Selector (Home location picker) ───────── */}

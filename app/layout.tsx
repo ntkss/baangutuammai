@@ -53,6 +53,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "น้ำท่วมไหม",
+  },
   openGraph: {
     title: "บ้านกูจะน้ำท่วมมั้ย — เช็กความเสี่ยงน้ำท่วมรอบบ้านคุณ",
     description:

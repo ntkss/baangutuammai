@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
+import { RotateCw } from "lucide-react";
 import { BottomNav } from "@/components/common/BottomNav";
 import { Footer } from "@/components/common/Footer";
 import { FloodTriggerFactorsCard } from "@/components/risk/FloodTriggerFactorsCard";
@@ -31,9 +32,26 @@ export default function TriggersPage() {
   const { homeLocation } = useUserPrefs();
   const [data, setData] = useState<ExtendedDashboardResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const activeLat = homeLocation?.latitude ?? DEFAULT_LAT;
   const activeLng = homeLocation?.longitude ?? DEFAULT_LNG;
+  const lastFetchRef = useRef<number>(0);
+
+  const refreshDashboard = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const r = await fetch(`/api/dashboard?lat=${activeLat}&lng=${activeLng}`);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const d = (await r.json()) as ExtendedDashboardResponse;
+      setData(d);
+      lastFetchRef.current = Date.now();
+    } catch {
+      // preserve existing data
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 400);
+    }
+  }, [activeLat, activeLng]);
 
   useEffect(() => {
     let ignore = false;
@@ -45,6 +63,7 @@ export default function TriggersPage() {
       .then((d) => {
         if (!ignore) {
           setData(d);
+          lastFetchRef.current = Date.now();
           setIsLoading(false);
         }
       })
@@ -58,6 +77,24 @@ export default function TriggersPage() {
       ignore = true;
     };
   }, [activeLat, activeLng]);
+
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        const elapsed = Date.now() - lastFetchRef.current;
+        if (elapsed > 5 * 60 * 1000) {
+          refreshDashboard();
+        }
+      }
+    }
+
+    window.addEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("focus", handleVisibility);
+    return () => {
+      window.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("focus", handleVisibility);
+    };
+  }, [refreshDashboard]);
 
   return (
     <>
@@ -115,6 +152,33 @@ export default function TriggersPage() {
               </div>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => refreshDashboard()}
+            disabled={isRefreshing || isLoading}
+            aria-label="รีเฟรชข้อมูล"
+            title="รีเฟรชข้อมูลล่าสุด"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "34px",
+              height: "34px",
+              borderRadius: "50%",
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              boxShadow: "var(--shadow-sm)",
+              color: isRefreshing ? "var(--color-accent)" : "var(--color-text-muted)",
+              cursor: isRefreshing || isLoading ? "default" : "pointer",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <RotateCw
+              size={14}
+              className={isRefreshing || isLoading ? "spin" : ""}
+            />
+          </button>
         </div>
 
         {/* ── Active Location Banner ──────────────────────────── */}
