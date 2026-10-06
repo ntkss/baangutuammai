@@ -210,7 +210,7 @@ body {
 /* ─── Navigation bar (Floating Glassmorphism Capsule Dock) ────────────────── */
 .nav-bar {
   position: fixed;
-  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 24px);
@@ -231,6 +231,20 @@ body {
     inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.95),
     inset 0 -1px 2px 0 rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Adjust floating distance on devices with Home Indicator bar */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .nav-bar {
+    bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) * 0.4 + 6px));
+  }
+}
+
+/* Standalone PWA / Web App Mode: keep capsule dock closer to bottom */
+@media (display-mode: standalone) {
+  .nav-bar {
+    bottom: max(8px, calc(env(safe-area-inset-bottom, 0px) * 0.35 + 4px));
+  }
 }
 
 .nav-item {
@@ -285,9 +299,15 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: calc(16px + env(safe-area-inset-top, 0px)) 16px
-    calc(92px + env(safe-area-inset-bottom, 0px)) 16px;
+    calc(84px + env(safe-area-inset-bottom, 0px) * 0.5) 16px;
   min-height: 100dvh;
   touch-action: manipulation;
+}
+
+@media (display-mode: standalone) {
+  .page {
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px) * 0.35);
+  }
 }
 
 @keyframes spin {
