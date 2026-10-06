@@ -26,6 +26,7 @@ import {
 } from "@/lib/providers/open-elevation";
 import { fetchRealWaterLevel } from "@/lib/providers/thaiwater";
 import { fetchRealRainfall } from "@/lib/providers/open-meteo";
+import { findNearestBMAFloodBlackspot } from "@/lib/risk/blackspots";
 import type {
   DashboardResponse,
   ConfidenceLevel,
@@ -131,12 +132,23 @@ export async function GET(req: NextRequest) {
   // ── 5. Elevation risk ────────────────────────────────────────────────────
   const elevationRisk = calcElevationRisk({ terrainElevationM: terrainElevM });
 
+  // ── 5.5 BMA Flood Blackspot & Urban Drainage Bottleneck ──────────────────
+  const blackspotResult = findNearestBMAFloodBlackspot(lat, lng);
+  const infrastructureRisk = blackspotResult?.infrastructureRisk ?? 0;
+  if (blackspotResult && blackspotResult.distanceKm <= 0.8) {
+    const distM = Math.round(blackspotResult.distanceKm * 1000);
+    dataNotices.push(
+      `จุดเฝ้าระวังน้ำท่วมขัง กทม.: ใกล้ "${blackspotResult.blackspot.name}" (${distM} ม.) ซึ่งเป็นพื้นที่${blackspotResult.blackspot.type}`,
+    );
+  }
+
   // ── 6. Confidence Scoring ────────────────────────────────────────────────
   let availableSignalsCount = 0;
   if (waterResult) availableSignalsCount++;
   if (rainResult) availableSignalsCount++;
   if (ridResult) availableSignalsCount++;
   if (elevationResult) availableSignalsCount++;
+  if (blackspotResult) availableSignalsCount++;
 
   let confidence: ConfidenceLevel = "limited";
   if (availableSignalsCount >= 4) {
@@ -155,7 +167,7 @@ export async function GET(req: NextRequest) {
       rainfallRisk,
       upstreamRisk,
       elevationRisk,
-      infrastructureRisk: 0, // P2
+      infrastructureRisk,
       tideRisk: 0, // P2
       peakRainRate1hMm: rainResult?.peakRate1h,
     },
@@ -263,6 +275,7 @@ export async function GET(req: NextRequest) {
       : null,
     _northernRunoff: waterResult?.northernRunoff ?? null,
     _reservoirBasin: ridResult?.chaoPrayaBasin ?? null,
+    _blackspot: blackspotResult ?? null,
     _terrainElevation: elevationResult
       ? {
           elevationM: terrainElevM,

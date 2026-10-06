@@ -322,6 +322,8 @@ export function generateReasons(inputs: RiskInputs): string[] {
   }
 
   if (inputs.infrastructureRisk >= 0.5) {
+    reasons.push(RISK_REASONS.nearFloodBlackspot);
+  } else if (inputs.infrastructureRisk >= 0.25) {
     reasons.push(RISK_REASONS.drainageLimited);
   }
 

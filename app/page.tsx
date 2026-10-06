@@ -44,6 +44,16 @@ type ExtendedDashboardResponse = DashboardResponse & {
     diffBankM: number | null;
     diffBankText?: string;
   } | null;
+  _blackspot?: {
+    blackspot: {
+      name: string;
+      district: string;
+      type: string;
+      description: string;
+    };
+    distanceKm: number;
+    severity: "critical" | "warning" | "advisory";
+  } | null;
   _northernRunoff?: NorthernRunoffSummary | null;
   _reservoirBasin?: {
     totalCapacityMcm: number;
@@ -343,6 +353,46 @@ export default function HomePage() {
             )}
           </div>
         )}
+
+        {/* ── BMA Flood Blackspot Badge (Repetitive urban depression hotspot) ── */}
+        {!isLoading &&
+          data?._blackspot &&
+          data._blackspot.distanceKm <= 0.8 && (
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "4px 10px",
+                borderRadius: "20px",
+                background:
+                  data._blackspot.severity === "critical"
+                    ? "rgba(185, 28, 28, 0.08)"
+                    : "rgba(194, 65, 12, 0.08)",
+                border:
+                  data._blackspot.severity === "critical"
+                    ? "1px solid rgba(185, 28, 28, 0.25)"
+                    : "1px solid rgba(194, 65, 12, 0.25)",
+                fontSize: "0.72rem",
+                color:
+                  data._blackspot.severity === "critical"
+                    ? "#b91c1c"
+                    : "#c2410c",
+                fontWeight: 600,
+                marginTop: "2px",
+                marginBottom: "10px",
+              }}
+            >
+              <span style={{ fontSize: "12px" }}>⚠️</span>
+              <span>
+                จุดเฝ้าระวังน้ำท่วมขัง กทม.:{" "}
+                {data._blackspot.blackspot.name}
+              </span>
+              <span style={{ opacity: 0.85 }}>
+                ({Math.round(data._blackspot.distanceKm * 1000)} ม.)
+              </span>
+            </div>
+          )}
 
         {/* ── Critical Data notices (system / connection errors only) ── */}
         {data?.dataNotices &&
