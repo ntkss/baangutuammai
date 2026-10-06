@@ -6,9 +6,15 @@ import { UI_TEXT, FRESHNESS_LABEL } from "@/lib/i18n/th";
 
 interface WaterDataCardProps {
   water: DashboardResponse["water"];
+  extra?: {
+    distanceKm?: number;
+    bankLevelM?: number | null;
+    diffBankM?: number | null;
+    diffBankText?: string;
+  } | null;
 }
 
-export function WaterDataCard({ water }: WaterDataCardProps) {
+export function WaterDataCard({ water, extra }: WaterDataCardProps) {
   const {
     station,
     current,
@@ -36,6 +42,13 @@ export function WaterDataCard({ water }: WaterDataCardProps) {
     return "var(--color-text-secondary)";
   }
 
+  const isBma = station.provider?.includes("กทม");
+  const riverName = station.river
+    ? station.river.startsWith("คลอง") || station.river.startsWith("แม่น้ำ")
+      ? station.river
+      : `แม่น้ำ${station.river}`
+    : null;
+
   return (
     <div className="card">
       {/* Header */}
@@ -61,70 +74,134 @@ export function WaterDataCard({ water }: WaterDataCardProps) {
           <Droplets size={16} color="var(--color-accent)" />
           <span>{UI_TEXT.waterLevel}</span>
         </h2>
-        <span
-          style={{
-            fontSize: "0.72rem",
-            color:
-              freshness === "fresh" ? "var(--color-low)" : "var(--color-watch)",
-          }}
-        >
-          {FRESHNESS_LABEL[freshness]}
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          {isBma && (
+            <span
+              style={{
+                fontSize: "0.68rem",
+                padding: "2px 6px",
+                borderRadius: "4px",
+                background: "rgba(3, 105, 161, 0.1)",
+                color: "#0369a1",
+                fontWeight: 700,
+              }}
+            >
+              กทม.
+            </span>
+          )}
+          <span
+            style={{
+              fontSize: "0.72rem",
+              color:
+                freshness === "fresh" ? "var(--color-low)" : "var(--color-watch)",
+            }}
+          >
+            {FRESHNESS_LABEL[freshness]}
+          </span>
+        </div>
       </div>
 
       {/* Station info */}
-      <p
-        style={{
-          fontSize: "0.78rem",
-          color: "var(--color-text-muted)",
-          margin: "0 0 12px 0",
-        }}
-      >
-        {UI_TEXT.nearestStation}: {station.name}
-        {station.river ? ` (แม่น้ำ${station.river})` : ""}
-      </p>
+      <div style={{ marginBottom: "12px" }}>
+        <p
+          style={{
+            fontSize: "0.82rem",
+            fontWeight: 600,
+            color: "var(--color-text-primary)",
+            margin: "0 0 3px 0",
+          }}
+        >
+          {UI_TEXT.nearestStation}: {station.name}
+          {riverName ? ` (${riverName})` : ""}
+        </p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+            fontSize: "0.72rem",
+            color: "var(--color-text-muted)",
+          }}
+        >
+          <span>สังกัด: <strong>{station.provider}</strong></span>
+          {extra?.distanceKm !== undefined && (
+            <span>• ห่างจากบ้าน <strong>{extra.distanceKm} กม.</strong></span>
+          )}
+        </div>
+      </div>
 
       {/* Current level */}
       <div className="data-row">
         <span className="data-row__label">ระดับน้ำปัจจุบัน</span>
-        <span className="data-row__value">
+        <span className="data-row__value" style={{ fontWeight: 700 }}>
           {current?.waterLevelM !== undefined && current.waterLevelM !== null
             ? `${current.waterLevelM.toFixed(2)} ${UI_TEXT.metersAboveMSL}`
             : UI_TEXT.dataNotAvailable}
         </span>
       </div>
 
-      {/* Trend rows */}
-      <div className="data-row">
-        <span className="data-row__label">{UI_TEXT.lastXHours(6)}</span>
-        <span
-          className="data-row__value"
-          style={{ color: trendColor(trend6h) }}
-        >
-          {trendLabel(trend6h)}
-        </span>
-      </div>
-      <div className="data-row">
-        <span className="data-row__label">{UI_TEXT.lastXHours(12)}</span>
-        <span
-          className="data-row__value"
-          style={{ color: trendColor(trend12h) }}
-        >
-          {trendLabel(trend12h)}
-        </span>
-      </div>
-      <div className="data-row">
-        <span className="data-row__label">{UI_TEXT.lastXHours(24)}</span>
-        <span
-          className="data-row__value"
-          style={{ color: trendColor(trend24h) }}
-        >
-          {trendLabel(trend24h)}
-        </span>
-      </div>
+      {/* Bank / Critical threshold row if available */}
+      {extra?.bankLevelM !== undefined && extra.bankLevelM !== null && (
+        <div className="data-row">
+          <span className="data-row__label">ระดับวิกฤต / สันตลิ่ง</span>
+          <span className="data-row__value" style={{ color: "var(--color-text-secondary)" }}>
+            +{extra.bankLevelM.toFixed(2)} ม.รทก.
+          </span>
+        </div>
+      )}
+
+      {/* Distance to bank margin */}
+      {extra?.diffBankM !== undefined && extra.diffBankM !== null && (
+        <div className="data-row">
+          <span className="data-row__label">ระยะห่างถึงระดับวิกฤต</span>
+          <span
+            className="data-row__value"
+            style={{
+              color:
+                extra.diffBankM < 0
+                  ? "var(--color-severe)"
+                  : extra.diffBankM < 0.5
+                    ? "var(--color-high)"
+                    : "var(--color-low)",
+              fontWeight: 600,
+            }}
+          >
+            {extra.diffBankM < 0
+              ? `ล้นวิกฤต +${Math.abs(extra.diffBankM).toFixed(2)} ม.`
+              : `ต่ำกว่าวิกฤต ${extra.diffBankM.toFixed(2)} ม.`}
+            {extra.diffBankText ? ` (${extra.diffBankText})` : ""}
+          </span>
+        </div>
+      )}
+
+      {/* Trend rows (if recorded) */}
+      {(trend6h !== null && trend6h !== 0) && (
+        <div className="data-row">
+          <span className="data-row__label">{UI_TEXT.lastXHours(6)}</span>
+          <span
+            className="data-row__value"
+            style={{ color: trendColor(trend6h) }}
+          >
+            {trendLabel(trend6h)}
+          </span>
+        </div>
+      )}
+
+      {(trend24h !== null && trend24h !== 0) && (
+        <div className="data-row">
+          <span className="data-row__label">{UI_TEXT.lastXHours(24)}</span>
+          <span
+            className="data-row__value"
+            style={{ color: trendColor(trend24h) }}
+          >
+            {trendLabel(trend24h)}
+          </span>
+        </div>
+      )}
 
       {/* Rate */}
-      {rateMetersPerHour !== null && (
+      {rateMetersPerHour !== null && rateMetersPerHour !== 0 && (
         <div className="data-row">
           <span className="data-row__label">อัตราการเปลี่ยนแปลง</span>
           <span

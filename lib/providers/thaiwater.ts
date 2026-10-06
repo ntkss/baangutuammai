@@ -17,6 +17,7 @@ import type {
   FreshnessStatus,
 } from "@/lib/types/domain";
 import { normalizeWaterLevel, normalizeWaterTrend } from "@/lib/risk/engine";
+import { findNearestBMAStation } from "@/lib/providers/bma-water";
 
 export type ThaiWaterStationRaw = {
   id: number;
@@ -393,6 +394,68 @@ export async function fetchRealWaterLevel(
         downstream: downstreamStation,
       },
     };
+
+    // ── Check if a BMA canal station is closer (Bangkok network) ──────────
+    const bmaNearest = await findNearestBMAStation(lat, lng).catch(() => null);
+    const preferBma =
+      bmaNearest &&
+      (bmaNearest.distKm < selected.distKm ||
+        (selected.distKm > 10 && bmaNearest.distKm <= 15));
+
+    if (preferBma && bmaNearest) {
+      const bmaLevelM = bmaNearest.current.waterLevelM ?? 0;
+      const bmaDiffM =
+        bmaNearest.criticalM !== null
+          ? Math.round((bmaNearest.criticalM - bmaLevelM) * 100) / 100
+          : null;
+
+      const bmaKeyStation: KeyRiverStation = {
+        stationCode: bmaNearest.station.externalId,
+        stationName: bmaNearest.station.name,
+        province: "กรุงเทพมหานคร",
+        district: bmaNearest.raw.district_name,
+        river: bmaNearest.raw.river_name || "คลอง กทม.",
+        waterLevelM: bmaLevelM,
+        bankLevelM: bmaNearest.criticalM,
+        diffBankM: bmaDiffM,
+        diffBankText: bmaNearest.statusText,
+        dischargeM3s: null,
+        datetime: bmaNearest.current.observedAt,
+        situationLevel: bmaNearest.statusText.includes("วิกฤต")
+          ? 3
+          : bmaNearest.statusText.includes("เตือน")
+            ? 2
+            : 1,
+        latitude: bmaNearest.station.latitude,
+        longitude: bmaNearest.station.longitude,
+        distanceKm: bmaNearest.distKm,
+      };
+
+      const bmaNorthernRunoff: NorthernRunoffSummary = {
+        ...northernRunoff,
+        corridor: {
+          ...northernRunoff.corridor,
+          nearest: bmaKeyStation,
+        },
+      };
+
+      return {
+        station: bmaNearest.station,
+        current: bmaNearest.current,
+        rateMetersPerHour: 0,
+        trend6h: 0,
+        trend12h: 0,
+        trend24h: 0,
+        waterLevelRisk: bmaNearest.waterLevelRisk,
+        waterTrendRisk: 0,
+        freshness: bmaNearest.freshness,
+        distanceKm: bmaNearest.distKm,
+        bankLevelM: bmaNearest.criticalM,
+        diffBankM: bmaDiffM,
+        diffBankText: bmaNearest.statusText,
+        northernRunoff: bmaNorthernRunoff,
+      };
+    }
 
     return {
       station: waterStation,

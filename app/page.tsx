@@ -38,6 +38,12 @@ const DEFAULT_LAT = 13.862;
 const DEFAULT_LNG = 100.514;
 
 type ExtendedDashboardResponse = DashboardResponse & {
+  _waterExtra?: {
+    distanceKm: number;
+    bankLevelM: number | null;
+    diffBankM: number | null;
+    diffBankText?: string;
+  } | null;
   _northernRunoff?: NorthernRunoffSummary | null;
   _reservoirBasin?: {
     totalCapacityMcm: number;
@@ -310,6 +316,34 @@ export default function HomePage() {
           onLocationSelect={handleLocationSelect}
         />
 
+        {/* ── BMA Canal Telemetry Badge (for Bangkok residents) ── */}
+        {!isLoading && data?.water?.station?.provider?.includes("กทม") && (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 10px",
+              borderRadius: "20px",
+              background: "rgba(3, 105, 161, 0.08)",
+              border: "1px solid rgba(3, 105, 161, 0.2)",
+              fontSize: "0.72rem",
+              color: "#0369a1",
+              fontWeight: 600,
+              marginTop: "6px",
+              marginBottom: "10px",
+            }}
+          >
+            <span style={{ fontSize: "12px" }}>🌊</span>
+            <span>จุดวัดระดับน้ำคลองเรียลไทม์: สำนักการระบายน้ำ กทม.</span>
+            {data._waterExtra?.distanceKm !== undefined && (
+              <span style={{ color: "#0284c7" }}>
+                ({data._waterExtra.distanceKm} กม.)
+              </span>
+            )}
+          </div>
+        )}
+
         {/* ── Critical Data notices (system / connection errors only) ── */}
         {data?.dataNotices &&
           data.dataNotices.filter((n) => !n.includes("ข้อมูลเขื่อนประจำวัน"))
@@ -374,9 +408,15 @@ export default function HomePage() {
               data._northernRunoff?.corridor.nearest?.waterLevelM ??
               data.water?.current?.waterLevelM
             }
-            bankLevelM={data._northernRunoff?.corridor.nearest?.bankLevelM}
+            bankLevelM={
+              data._northernRunoff?.corridor.nearest?.bankLevelM ??
+              data._waterExtra?.bankLevelM
+            }
             elevationMarginM={data.risk.estimatedElevationMarginM}
-            diffBankM={data._northernRunoff?.corridor.nearest?.diffBankM}
+            diffBankM={
+              data._northernRunoff?.corridor.nearest?.diffBankM ??
+              data._waterExtra?.diffBankM
+            }
             stationName={
               data._northernRunoff?.corridor.nearest?.stationName ??
               data.water?.station?.name
@@ -617,7 +657,7 @@ export default function HomePage() {
                 {data._northernRunoff && (
                   <NorthernRunoffCard data={data._northernRunoff} />
                 )}
-                <WaterDataCard water={data.water} />
+                <WaterDataCard water={data.water} extra={data._waterExtra} />
                 <RainDataCard rain={data.rain} />
 
                 {/* Reservoir overview card */}
