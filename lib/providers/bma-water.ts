@@ -72,7 +72,9 @@ function calculateHaversineKm(
   return 6371 * c;
 }
 
-export async function fetchRawBMAWaterStations(): Promise<BMAWaterStationRaw[]> {
+export async function fetchRawBMAWaterStations(): Promise<
+  BMAWaterStationRaw[]
+> {
   const now = Date.now();
   if (memoryCache && now - memoryCache.timestamp < CACHE_TTL_MS) {
     return memoryCache.data;

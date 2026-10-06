@@ -98,13 +98,14 @@ export async function GET() {
             ? s.critical
             : null;
         const isCritical =
-          s.txtStatus?.includes("วิกฤต") || (critical !== null && wl >= critical);
+          s.txtStatus?.includes("วิกฤต") ||
+          (critical !== null && wl >= critical);
         const isWarning =
           s.txtStatus?.includes("เตือน") || (warning !== null && wl >= warning);
         const isOffline = s.txtStatus?.includes("ขัดข้อง");
 
         let color = "#1d5aa8";
-        let statusText = s.txtStatus || "ปกติ";
+        const statusText = s.txtStatus || "ปกติ";
         if (isOffline) {
           color = "#64748b";
         } else if (isCritical) {

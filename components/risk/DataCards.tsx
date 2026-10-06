@@ -93,7 +93,9 @@ export function WaterDataCard({ water, extra }: WaterDataCardProps) {
             style={{
               fontSize: "0.72rem",
               color:
-                freshness === "fresh" ? "var(--color-low)" : "var(--color-watch)",
+                freshness === "fresh"
+                  ? "var(--color-low)"
+                  : "var(--color-watch)",
             }}
           >
             {FRESHNESS_LABEL[freshness]}
@@ -124,9 +126,13 @@ export function WaterDataCard({ water, extra }: WaterDataCardProps) {
             color: "var(--color-text-muted)",
           }}
         >
-          <span>สังกัด: <strong>{station.provider}</strong></span>
+          <span>
+            สังกัด: <strong>{station.provider}</strong>
+          </span>
           {extra?.distanceKm !== undefined && (
-            <span>• ห่างจากบ้าน <strong>{extra.distanceKm} กม.</strong></span>
+            <span>
+              • ห่างจากบ้าน <strong>{extra.distanceKm} กม.</strong>
+            </span>
           )}
         </div>
       </div>
@@ -145,7 +151,10 @@ export function WaterDataCard({ water, extra }: WaterDataCardProps) {
       {extra?.bankLevelM !== undefined && extra.bankLevelM !== null && (
         <div className="data-row">
           <span className="data-row__label">ระดับวิกฤต / สันตลิ่ง</span>
-          <span className="data-row__value" style={{ color: "var(--color-text-secondary)" }}>
+          <span
+            className="data-row__value"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
             +{extra.bankLevelM.toFixed(2)} ม.รทก.
           </span>
         </div>
@@ -176,7 +185,7 @@ export function WaterDataCard({ water, extra }: WaterDataCardProps) {
       )}
 
       {/* Trend rows (if recorded) */}
-      {(trend6h !== null && trend6h !== 0) && (
+      {trend6h !== null && trend6h !== 0 && (
         <div className="data-row">
           <span className="data-row__label">{UI_TEXT.lastXHours(6)}</span>
           <span
@@ -188,7 +197,19 @@ export function WaterDataCard({ water, extra }: WaterDataCardProps) {
         </div>
       )}
 
-      {(trend24h !== null && trend24h !== 0) && (
+      {trend12h !== null && trend12h !== 0 && (
+        <div className="data-row">
+          <span className="data-row__label">{UI_TEXT.lastXHours(12)}</span>
+          <span
+            className="data-row__value"
+            style={{ color: trendColor(trend12h) }}
+          >
+            {trendLabel(trend12h)}
+          </span>
+        </div>
+      )}
+
+      {trend24h !== null && trend24h !== 0 && (
         <div className="data-row">
           <span className="data-row__label">{UI_TEXT.lastXHours(24)}</span>
           <span
