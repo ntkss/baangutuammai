@@ -32,6 +32,7 @@ import { useUserPrefs } from "@/lib/store/userPrefs";
 import { UI_TEXT } from "@/lib/i18n/th";
 import type { DashboardResponse } from "@/lib/types/domain";
 import type { NorthernRunoffSummary } from "@/lib/providers/thaiwater";
+import type { EstuarineTideResult } from "@/lib/risk/tide";
 
 // Default center: Nonthaburi
 const DEFAULT_LAT = 13.862;
@@ -54,6 +55,7 @@ type ExtendedDashboardResponse = DashboardResponse & {
     distanceKm: number;
     severity: "critical" | "warning" | "advisory";
   } | null;
+  _tide?: EstuarineTideResult | null;
   _northernRunoff?: NorthernRunoffSummary | null;
   _reservoirBasin?: {
     totalCapacityMcm: number;
@@ -393,6 +395,32 @@ export default function HomePage() {
               </span>
             </div>
           )}
+
+        {/* ── High Sea Tide Alert Badge ── */}
+        {!isLoading && data?._tide && data._tide.isHighTideAlert && (
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 10px",
+              borderRadius: "20px",
+              background: "rgba(14, 116, 144, 0.08)",
+              border: "1px solid rgba(14, 116, 144, 0.25)",
+              fontSize: "0.72rem",
+              color: "#0e7490",
+              fontWeight: 600,
+              marginTop: "2px",
+              marginBottom: "10px",
+            }}
+          >
+            <span style={{ fontSize: "12px" }}>🌊</span>
+            <span>{data._tide.phaseLabel}</span>
+            <span style={{ opacity: 0.85 }}>
+              (~+{data._tide.astronomicalLevelM.toFixed(2)} ม.รทก.)
+            </span>
+          </div>
+        )}
 
         {/* ── Critical Data notices (system / connection errors only) ── */}
         {data?.dataNotices &&

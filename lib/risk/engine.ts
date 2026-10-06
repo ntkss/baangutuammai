@@ -327,7 +327,7 @@ export function generateReasons(inputs: RiskInputs): string[] {
     reasons.push(RISK_REASONS.drainageLimited);
   }
 
-  if (inputs.tideRisk >= 0.5) {
+  if (inputs.tideRisk >= 0.4) {
     reasons.push(RISK_REASONS.tidalEffect);
   }
 

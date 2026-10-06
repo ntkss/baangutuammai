@@ -27,6 +27,7 @@ import {
 import { fetchRealWaterLevel } from "@/lib/providers/thaiwater";
 import { fetchRealRainfall } from "@/lib/providers/open-meteo";
 import { findNearestBMAFloodBlackspot } from "@/lib/risk/blackspots";
+import { calcEstuarineTideRisk } from "@/lib/risk/tide";
 import type {
   DashboardResponse,
   ConfidenceLevel,
@@ -142,6 +143,15 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  // ── 5.6 Estuarine Tidal Influence (Gulf of Thailand & Lower Chao Phraya) ─
+  const tideResult = calcEstuarineTideRisk(lat, lng);
+  const tideRisk = tideResult.tideRisk;
+  if (tideResult.isHighTideAlert) {
+    dataNotices.push(
+      `สภาวะน้ำทะเลหนุน: ${tideResult.phaseLabel} (ระดับทะเลคาดการณ์ ~+${tideResult.astronomicalLevelM.toFixed(2)} ม.รทก.)`,
+    );
+  }
+
   // ── 6. Confidence Scoring ────────────────────────────────────────────────
   let availableSignalsCount = 0;
   if (waterResult) availableSignalsCount++;
@@ -149,6 +159,7 @@ export async function GET(req: NextRequest) {
   if (ridResult) availableSignalsCount++;
   if (elevationResult) availableSignalsCount++;
   if (blackspotResult) availableSignalsCount++;
+  if (tideRisk > 0) availableSignalsCount++;
 
   let confidence: ConfidenceLevel = "limited";
   if (availableSignalsCount >= 4) {
@@ -168,7 +179,7 @@ export async function GET(req: NextRequest) {
       upstreamRisk,
       elevationRisk,
       infrastructureRisk,
-      tideRisk: 0, // P2
+      tideRisk,
       peakRainRate1hMm: rainResult?.peakRate1h,
     },
     weights: zoneInfo.weights,
@@ -276,6 +287,7 @@ export async function GET(req: NextRequest) {
     _northernRunoff: waterResult?.northernRunoff ?? null,
     _reservoirBasin: ridResult?.chaoPrayaBasin ?? null,
     _blackspot: blackspotResult ?? null,
+    _tide: tideResult,
     _terrainElevation: elevationResult
       ? {
           elevationM: terrainElevM,
