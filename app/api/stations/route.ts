@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
 import { fetchRawThaiWaterStations } from "@/lib/providers/thaiwater";
-import { fetchRawBMAWaterStations } from "@/lib/providers/bma-water";
+import { fetchBMAStationsWithStatus } from "@/lib/providers/bma-water";
 import type { MapMarker } from "@/components/map/FloodMap";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [rawStations, bmaStations] = await Promise.all([
+    const [rawStations, bmaResult] = await Promise.all([
       fetchRawThaiWaterStations().catch((err) => {
         console.error("[stations API] ThaiWater fetch error:", err);
         return [];
       }),
-      fetchRawBMAWaterStations().catch((err) => {
+      fetchBMAStationsWithStatus().catch((err) => {
         console.error("[stations API] BMA fetch error:", err);
-        return [];
+        return { data: [], isFallback: true };
       }),
     ]);
+
+    const bmaStations = bmaResult.data;
+    const bmaIsFallback = bmaResult.isFallback;
 
     // ── 1. Map ThaiWater stations ──────────────────────────────────────────
     const validThaiWater = rawStations.filter((s) => {
@@ -122,7 +125,9 @@ export async function GET() {
 
         const popup = `
           <div style="font-family: sans-serif; font-size: 13px; line-height: 1.5; color: #1e293b;">
-            <span style="display:inline-block; font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 1px 5px; border-radius: 3px; font-weight: bold; margin-bottom: 2px;">สำนักการระบายน้ำ กทม.</span><br/>
+            <span style="display:inline-block; font-size: 10px; background: ${bmaIsFallback ? "#fef3c7" : "#e0f2fe"}; color: ${bmaIsFallback ? "#92400e" : "#0369a1"}; padding: 1px 5px; border-radius: 3px; font-weight: bold; margin-bottom: 2px;">
+              สำนักการระบายน้ำ กทม.${bmaIsFallback ? " (ข้อมูลอ้างอิง)" : ""}
+            </span><br/>
             <strong style="font-size: 14px; color: #0f172a;">${name}</strong>${dist ? `<span style="font-size: 11px; color: #64748b;">${dist}</span>` : ""}<br/>
             <span style="color: #475569;">คลอง: ${river}</span><br/>
             <span>ระดับน้ำ: <strong>${wl.toFixed(2)} ม.รทก.</strong></span><br/>
@@ -147,12 +152,20 @@ export async function GET() {
 
     const allMarkers = [...thaiWaterMarkers, ...bmaMarkers];
 
-    return NextResponse.json({
-      stationsCount: allMarkers.length,
-      thaiWaterCount: thaiWaterMarkers.length,
-      bmaCount: bmaMarkers.length,
-      markers: allMarkers,
-    });
+    return NextResponse.json(
+      {
+        stationsCount: allMarkers.length,
+        thaiWaterCount: thaiWaterMarkers.length,
+        bmaCount: bmaMarkers.length,
+        bmaIsFallback,
+        markers: allMarkers,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=120, stale-while-revalidate=300",
+        },
+      },
+    );
   } catch (err) {
     console.error("[stations API] Error:", err);
     return NextResponse.json(

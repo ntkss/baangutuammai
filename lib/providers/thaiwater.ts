@@ -399,6 +399,7 @@ export async function fetchRealWaterLevel(
     const bmaNearest = await findNearestBMAStation(lat, lng).catch(() => null);
     const preferBma =
       bmaNearest &&
+      !bmaNearest.isFallback &&
       (bmaNearest.distKm < selected.distKm ||
         (selected.distKm > 10 && bmaNearest.distKm <= 15));
 

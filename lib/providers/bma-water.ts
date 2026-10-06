@@ -18,6 +18,7 @@ import type {
   FreshnessStatus,
 } from "@/lib/types/domain";
 import { normalizeWaterLevel } from "@/lib/risk/engine";
+import fallbackBMAStations from "@/lib/data/bma-stations-fallback.json";
 
 export type BMAWaterStationRaw = {
   water_id: number;
@@ -51,6 +52,7 @@ const BMA_WATER_API_URL =
 let memoryCache: {
   data: BMAWaterStationRaw[];
   timestamp: number;
+  isFallback: boolean;
 } | null = null;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -72,45 +74,80 @@ function calculateHaversineKm(
   return 6371 * c;
 }
 
-export async function fetchRawBMAWaterStations(): Promise<
-  BMAWaterStationRaw[]
-> {
+export type BMAFetchResponse = {
+  data: BMAWaterStationRaw[];
+  isFallback: boolean;
+};
+
+export async function fetchBMAStationsWithStatus(): Promise<BMAFetchResponse> {
   const now = Date.now();
   if (memoryCache && now - memoryCache.timestamp < CACHE_TTL_MS) {
-    return memoryCache.data;
+    return { data: memoryCache.data, isFallback: memoryCache.isFallback };
   }
+
+  const fallbackList =
+    (fallbackBMAStations as unknown as BMAWaterStationRaw[]) ?? [];
 
   try {
     const res = await fetch(BMA_WATER_API_URL, {
       method: "POST",
       headers: {
-        "User-Agent": "BaanGuTuamMai/1.0",
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json, text/javascript, */*",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        Referer: "https://weather.bangkok.go.th/water/",
+        "X-Requested-With": "XMLHttpRequest",
+        Accept: "application/json, text/javascript, */*; q=0.01",
       },
-      signal: AbortSignal.timeout(12000),
+      body: "payload=TEST_DATA_GOES_HERE",
+      signal: AbortSignal.timeout(6000),
     });
 
     if (!res.ok) {
-      console.warn(`[bma-water] HTTP ${res.status}: ${res.statusText}`);
-      return memoryCache?.data ?? [];
+      console.warn(
+        `[bma-water] HTTP ${res.status}: ${res.statusText}, using fallback stations (${fallbackList.length})`,
+      );
+      return {
+        data: memoryCache?.data ?? fallbackList,
+        isFallback: memoryCache ? memoryCache.isFallback : true,
+      };
     }
 
     const data: BMAWaterStationRaw[] = await res.json();
     if (!Array.isArray(data) || data.length === 0) {
-      return memoryCache?.data ?? [];
+      console.warn(
+        `[bma-water] Response is empty, using fallback stations (${fallbackList.length})`,
+      );
+      return {
+        data: memoryCache?.data ?? fallbackList,
+        isFallback: memoryCache ? memoryCache.isFallback : true,
+      };
     }
 
     memoryCache = {
       data,
       timestamp: now,
+      isFallback: false,
     };
 
-    return data;
+    return { data, isFallback: false };
   } catch (err) {
-    console.error("[bma-water] Fetch failed, using cache if available:", err);
-    return memoryCache?.data ?? [];
+    console.error(
+      `[bma-water] Fetch failed, using fallback stations (${fallbackList.length}):`,
+      err,
+    );
+    return {
+      data: memoryCache?.data ?? fallbackList,
+      isFallback: memoryCache ? memoryCache.isFallback : true,
+    };
   }
+}
+
+export async function fetchRawBMAWaterStations(): Promise<
+  BMAWaterStationRaw[]
+> {
+  const result = await fetchBMAStationsWithStatus();
+  return result.data;
 }
 
 export type BMANearestResult = {
@@ -124,13 +161,14 @@ export type BMANearestResult = {
   freshness: FreshnessStatus;
   statusText: string;
   statusColor: string;
+  isFallback: boolean;
 };
 
 export async function findNearestBMAStation(
   lat: number,
   lng: number,
 ): Promise<BMANearestResult | null> {
-  const stations = await fetchRawBMAWaterStations();
+  const { data: stations, isFallback } = await fetchBMAStationsWithStatus();
   if (stations.length === 0) return null;
 
   // Filter valid stations with coordinates and valid water level
@@ -232,7 +270,7 @@ export async function findNearestBMAStation(
     observedAt: observedAtIso,
     fetchedAt: new Date().toISOString(),
     waterLevelM: currentLevelM,
-    quality: "verified",
+    quality: isFallback ? "unverified" : "verified",
     provider: station.provider,
   };
 
@@ -244,8 +282,9 @@ export async function findNearestBMAStation(
     criticalM,
     warningM,
     waterLevelRisk,
-    freshness,
+    freshness: isFallback ? "stale" : freshness,
     statusText: nearest.txtStatus || "ปกติ",
     statusColor: nearest.colorStatus || "#4caf50",
+    isFallback,
   };
 }
