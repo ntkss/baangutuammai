@@ -140,7 +140,9 @@ export function calcEstuarineTideRisk(
 
   const astro = calcAstronomicalFactor(date);
   const tideRisk = Math.round(astro.score * proximityFactor * 100) / 100;
-  const isHighTideAlert = tideRisk >= 0.5;
+  // High tide alert only triggers during actual spring tide (น้ำเกิด) or significant seasonal surge
+  const isHighTideAlert =
+    astro.phase === "spring_tide" || (tideRisk >= 0.65 && astro.approxMsl >= 1.7);
 
   return {
     tideRisk,

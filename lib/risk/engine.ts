@@ -284,9 +284,29 @@ export function scoreToLevel(score: number): RiskLevel {
  * Returns plain-language sentences for display on the dashboard.
  * Intentionally avoids raw numbers; these are contextual descriptions.
  */
-export function generateReasons(inputs: RiskInputs): string[] {
+export function generateReasons(
+  inputs: RiskInputs,
+  level: RiskLevel = "low",
+): string[] {
   const reasons: string[] = [];
 
+  // ── When overall status is LOW ("ปลอดภัย"): ──
+  // Reassure the user and avoid confusing, alarmist warning chips
+  if (level === "low") {
+    reasons.push(RISK_REASONS.normalConditions);
+
+    if (inputs.elevationRisk <= 0.1) {
+      reasons.push(RISK_REASONS.elevationGoodMargin);
+    }
+
+    if (inputs.infrastructureRisk >= 0.5) {
+      reasons.push("อยู่ในพื้นที่แอ่งกระทะ (เฝ้าระวังเมื่อมีฝนตกหนัก)");
+    }
+
+    return reasons.slice(0, 3);
+  }
+
+  // ── When status is WATCH / HIGH / SEVERE: ──
   if (inputs.waterLevelRisk >= 0.75) {
     reasons.push(RISK_REASONS.waterLevelCritical);
   } else if (inputs.waterLevelRisk >= 0.5) {
@@ -335,7 +355,7 @@ export function generateReasons(inputs: RiskInputs): string[] {
     reasons.push(RISK_REASONS.normalConditions);
   }
 
-  return reasons;
+  return reasons.slice(0, 3);
 }
 
 /**
@@ -461,7 +481,7 @@ export function buildRiskAssessment(
 
   const score = computeRiskScore(inputs, weights);
   const level = scoreToLevel(score);
-  const reasons = generateReasons(inputs);
+  const reasons = generateReasons(inputs, level);
   const recommendedAction = generateRecommendedAction(level);
 
   return {

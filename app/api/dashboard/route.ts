@@ -136,21 +136,10 @@ export async function GET(req: NextRequest) {
   // ── 5.5 BMA Flood Blackspot & Urban Drainage Bottleneck ──────────────────
   const blackspotResult = findNearestBMAFloodBlackspot(lat, lng);
   const infrastructureRisk = blackspotResult?.infrastructureRisk ?? 0;
-  if (blackspotResult && blackspotResult.distanceKm <= 0.8) {
-    const distM = Math.round(blackspotResult.distanceKm * 1000);
-    dataNotices.push(
-      `จุดเฝ้าระวังน้ำท่วมขัง กทม.: ใกล้ "${blackspotResult.blackspot.name}" (${distM} ม.) ซึ่งเป็นพื้นที่${blackspotResult.blackspot.type}`,
-    );
-  }
 
   // ── 5.6 Estuarine Tidal Influence (Gulf of Thailand & Lower Chao Phraya) ─
   const tideResult = calcEstuarineTideRisk(lat, lng);
   const tideRisk = tideResult.tideRisk;
-  if (tideResult.isHighTideAlert) {
-    dataNotices.push(
-      `สภาวะน้ำทะเลหนุน: ${tideResult.phaseLabel} (ระดับทะเลคาดการณ์ ~+${tideResult.astronomicalLevelM.toFixed(2)} ม.รทก.)`,
-    );
-  }
 
   // ── 6. Confidence Scoring ────────────────────────────────────────────────
   let availableSignalsCount = 0;

@@ -328,97 +328,102 @@ export default function HomePage() {
           onLocationSelect={handleLocationSelect}
         />
 
-        {/* ── BMA Canal Telemetry Badge (for Bangkok residents) ── */}
-        {!isLoading && data?.water?.station?.provider?.includes("กทม") && (
+        {/* ── Contextual Local Area Tags (สภาพแวดล้อมเฉพาะพิกัด) ── */}
+        {!isLoading && data && (
           <div
             style={{
-              display: "inline-flex",
-              alignItems: "center",
+              display: "flex",
+              flexWrap: "wrap",
               gap: "6px",
-              padding: "4px 10px",
-              borderRadius: "20px",
-              background: "rgba(3, 105, 161, 0.08)",
-              border: "1px solid rgba(3, 105, 161, 0.2)",
-              fontSize: "0.72rem",
-              color: "#0369a1",
-              fontWeight: 600,
-              marginTop: "6px",
-              marginBottom: "10px",
+              alignItems: "center",
+              marginTop: "8px",
+              marginBottom: "12px",
             }}
           >
-            <span style={{ fontSize: "12px" }}>🌊</span>
-            <span>จุดวัดระดับน้ำคลองเรียลไทม์: สำนักการระบายน้ำ กทม.</span>
-            {data._waterExtra?.distanceKm !== undefined && (
-              <span style={{ color: "#0284c7" }}>
-                ({data._waterExtra.distanceKm} กม.)
+            {/* Canal Station Tag */}
+            {data.water?.station?.provider?.includes("กทม") && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "3px 9px",
+                  borderRadius: "20px",
+                  background: "rgba(3, 105, 161, 0.08)",
+                  border: "1px solid rgba(3, 105, 161, 0.2)",
+                  fontSize: "0.72rem",
+                  color: "#0369a1",
+                  fontWeight: 600,
+                }}
+              >
+                <span>🌊</span>
+                <span>คลอง กทม.</span>
+                {data._waterExtra?.distanceKm !== undefined && (
+                  <span style={{ opacity: 0.85 }}>
+                    ({data._waterExtra.distanceKm} กม.)
+                  </span>
+                )}
               </span>
             )}
-          </div>
-        )}
 
-        {/* ── BMA Flood Blackspot Badge (Repetitive urban depression hotspot) ── */}
-        {!isLoading &&
-          data?._blackspot &&
-          data._blackspot.distanceKm <= 0.8 && (
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "6px",
-                padding: "4px 10px",
-                borderRadius: "20px",
-                background:
-                  data._blackspot.severity === "critical"
-                    ? "rgba(185, 28, 28, 0.08)"
-                    : "rgba(194, 65, 12, 0.08)",
-                border:
-                  data._blackspot.severity === "critical"
-                    ? "1px solid rgba(185, 28, 28, 0.25)"
-                    : "1px solid rgba(194, 65, 12, 0.25)",
-                fontSize: "0.72rem",
-                color:
-                  data._blackspot.severity === "critical"
-                    ? "#b91c1c"
-                    : "#c2410c",
-                fontWeight: 600,
-                marginTop: "2px",
-                marginBottom: "10px",
-              }}
-            >
-              <span style={{ fontSize: "12px" }}>⚠️</span>
-              <span>
-                จุดเฝ้าระวังน้ำท่วมขัง กทม.:{" "}
-                {data._blackspot.blackspot.name}
+            {/* BMA Blackspot Hotspot Tag */}
+            {data._blackspot && data._blackspot.distanceKm <= 0.8 && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "3px 9px",
+                  borderRadius: "20px",
+                  background:
+                    data._blackspot.severity === "critical"
+                      ? "rgba(185, 28, 28, 0.08)"
+                      : "rgba(194, 65, 12, 0.08)",
+                  border:
+                    data._blackspot.severity === "critical"
+                      ? "1px solid rgba(185, 28, 28, 0.25)"
+                      : "1px solid rgba(194, 65, 12, 0.25)",
+                  fontSize: "0.72rem",
+                  color:
+                    data._blackspot.severity === "critical"
+                      ? "#b91c1c"
+                      : "#c2410c",
+                  fontWeight: 600,
+                }}
+              >
+                <span>⚠️</span>
+                <span>
+                  จุดเสี่ยงน้ำท่วมขัง: {data._blackspot.blackspot.name}
+                </span>
+                <span style={{ opacity: 0.85 }}>
+                  ({Math.round(data._blackspot.distanceKm * 1000)} ม.)
+                </span>
               </span>
-              <span style={{ opacity: 0.85 }}>
-                ({Math.round(data._blackspot.distanceKm * 1000)} ม.)
-              </span>
-            </div>
-          )}
+            )}
 
-        {/* ── High Sea Tide Alert Badge ── */}
-        {!isLoading && data?._tide && data._tide.isHighTideAlert && (
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "4px 10px",
-              borderRadius: "20px",
-              background: "rgba(14, 116, 144, 0.08)",
-              border: "1px solid rgba(14, 116, 144, 0.25)",
-              fontSize: "0.72rem",
-              color: "#0e7490",
-              fontWeight: 600,
-              marginTop: "2px",
-              marginBottom: "10px",
-            }}
-          >
-            <span style={{ fontSize: "12px" }}>🌊</span>
-            <span>{data._tide.phaseLabel}</span>
-            <span style={{ opacity: 0.85 }}>
-              (~+{data._tide.astronomicalLevelM.toFixed(2)} ม.รทก.)
-            </span>
+            {/* High Sea Tide Alert Tag (ONLY if elevated alert) */}
+            {data._tide && data._tide.isHighTideAlert && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "3px 9px",
+                  borderRadius: "20px",
+                  background: "rgba(14, 116, 144, 0.08)",
+                  border: "1px solid rgba(14, 116, 144, 0.25)",
+                  fontSize: "0.72rem",
+                  color: "#0e7490",
+                  fontWeight: 600,
+                }}
+              >
+                <span>🌊</span>
+                <span>น้ำทะเลหนุนสูง ({data._tide.phaseLabel})</span>
+                <span style={{ opacity: 0.85 }}>
+                  (~+{data._tide.astronomicalLevelM.toFixed(2)} ม.รทก.)
+                </span>
+              </span>
+            )}
           </div>
         )}
 
@@ -462,7 +467,7 @@ export default function HomePage() {
         )}
 
         {/* ── 1. Primary Risk Card ───────────────────────────── */}
-        <div style={{ marginBottom: "16px" }}>
+        <div style={{ marginBottom: "14px" }}>
           {isLoading ? (
             <RiskCardSkeleton />
           ) : data ? (
@@ -503,6 +508,24 @@ export default function HomePage() {
           />
         ) : null}
 
+        {/* ── SECTION: สัญญาณมวลน้ำหลักและการระบาย ───────────── */}
+        <div style={{ marginTop: "22px", marginBottom: "10px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              color: "var(--color-text-secondary)",
+              letterSpacing: "0.02em",
+            }}
+          >
+            <span>🌊</span>
+            <span>สัญญาณมวลน้ำหลักและการไหลผ่าน</span>
+          </div>
+        </div>
+
         {/* ── 3. Bento Micro-Gauges (3 สัญญาณชี้ชะตา: เขื่อน C.13 / ฝน / อ่างเก็บน้ำ) ── */}
         {isLoading ? (
           <DataCardSkeleton />
@@ -523,177 +546,207 @@ export default function HomePage() {
           <RiverFlowStepper data={data._northernRunoff} />
         ) : null}
 
-        {/* ── 4. Teaser Link to Critical Triggers Page (สัญญาณวิกฤต) ── */}
-        <Link
-          href="/triggers"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background:
-              "linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(254, 242, 242, 0.8))",
-            border: "1px solid rgba(191, 219, 254, 0.8)",
-            borderRadius: "16px",
-            padding: "14px 16px",
-            marginBottom: "16px",
-            textDecoration: "none",
-            boxShadow: "var(--shadow-sm)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span
-              style={{
-                width: "42px",
-                height: "42px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "12px",
-                background: "#ffffff",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                flexShrink: 0,
-              }}
-            >
-              <Zap size={22} color="var(--color-severe)" strokeWidth={2.2} />
-            </span>
-            <div>
-              <div
-                style={{
-                  fontSize: "0.88rem",
-                  fontWeight: 700,
-                  color: "var(--color-text-primary)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <span>5 สัญญาณวิกฤตน้ำท่วมบ้าน</span>
-                <span
-                  style={{
-                    fontSize: "0.65rem",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    background: "rgba(220, 38, 38, 0.1)",
-                    color: "var(--color-severe)",
-                    fontWeight: 700,
-                  }}
-                >
-                  จุดชี้ชะตา
-                </span>
-              </div>
-              <div
-                style={{
-                  fontSize: "0.72rem",
-                  color: "var(--color-text-secondary)",
-                  marginTop: "2px",
-                }}
-              >
-                เช็กเงื่อนไข: เขื่อนปล่อยน้ำ + ฝนซ้ำ + น้ำหนุน
-              </div>
-            </div>
-          </div>
-
-          <span
+        {/* ── SECTION: เครื่องมือวิเคราะห์เชิงลึกและประวัติการณ์ ── */}
+        <div style={{ marginTop: "22px", marginBottom: "10px" }}>
+          <div
             style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
               fontSize: "0.82rem",
               fontWeight: 700,
-              color: "var(--color-accent)",
-              whiteSpace: "nowrap",
-              paddingLeft: "8px",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "4px",
+              color: "var(--color-text-secondary)",
+              letterSpacing: "0.02em",
             }}
           >
-            ดูเงื่อนไข <ArrowRight size={14} />
-          </span>
-        </Link>
+            <span>📊</span>
+            <span>แบบจำลองและประวัติการณ์เปรียบเทียบ</span>
+          </div>
+        </div>
 
-        {/* ── 5. Teaser Link to 2554 Comparison Page (ปี 2554) ── */}
-        <Link
-          href="/2554"
+        {/* ── 5. Teaser Links Grid (5 สัญญาณวิกฤต + เทียบปี 2554) ── */}
+        <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            background:
-              "linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(239, 246, 255, 0.8))",
-            border: "1px solid rgba(153, 246, 228, 0.7)",
-            borderRadius: "16px",
-            padding: "14px 16px",
-            marginBottom: "16px",
-            textDecoration: "none",
-            boxShadow: "var(--shadow-sm)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: "10px",
+            marginBottom: "18px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span
-              style={{
-                width: "42px",
-                height: "42px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: "12px",
-                background: "#ffffff",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                flexShrink: 0,
-              }}
-            >
-              <BarChart3 size={22} color="var(--color-low)" strokeWidth={2.2} />
-            </span>
-            <div>
-              <div
-                style={{
-                  fontSize: "0.88rem",
-                  fontWeight: 700,
-                  color: "var(--color-text-primary)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                <span>เทียบกับมหาอุทกภัยปี 2554</span>
-                <span
-                  style={{
-                    fontSize: "0.65rem",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    background: "rgba(13, 148, 136, 0.1)",
-                    color: "var(--color-low)",
-                    fontWeight: 700,
-                  }}
-                >
-                  เช็กลิสต์
-                </span>
-              </div>
-              <div
-                style={{
-                  fontSize: "0.72rem",
-                  color: "var(--color-text-secondary)",
-                  marginTop: "2px",
-                }}
-              >
-                เทียบปริมาณน้ำ C.13, C.2 และ 4 เขื่อนใหญ่กับปี 54
-              </div>
-            </div>
-          </div>
-
-          <span
+          {/* Teaser 1: Critical Triggers */}
+          <Link
+            href="/triggers"
             style={{
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              color: "var(--color-accent)",
-              whiteSpace: "nowrap",
-              paddingLeft: "8px",
-              display: "inline-flex",
+              display: "flex",
               alignItems: "center",
-              gap: "4px",
+              justifyContent: "space-between",
+              background:
+                "linear-gradient(135deg, rgba(239, 246, 255, 0.95), rgba(254, 242, 242, 0.8))",
+              border: "1px solid rgba(191, 219, 254, 0.8)",
+              borderRadius: "16px",
+              padding: "14px 16px",
+              textDecoration: "none",
+              boxShadow: "var(--shadow-sm)",
             }}
           >
-            เปรียบเทียบ <ArrowRight size={14} />
-          </span>
-        </Link>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  flexShrink: 0,
+                }}
+              >
+                <Zap size={20} color="var(--color-severe)" strokeWidth={2.2} />
+              </span>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    color: "var(--color-text-primary)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <span>5 สัญญาณวิกฤต</span>
+                  <span
+                    style={{
+                      fontSize: "0.65rem",
+                      padding: "2px 6px",
+                      borderRadius: "4px",
+                      background: "rgba(220, 38, 38, 0.1)",
+                      color: "var(--color-severe)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    จุดชี้ชะตา
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    color: "var(--color-text-secondary)",
+                    marginTop: "2px",
+                  }}
+                >
+                  เช็กเขื่อน + ฝนซ้ำ + น้ำทะเลหนุน
+                </div>
+              </div>
+            </div>
+
+            <span
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                color: "var(--color-accent)",
+                whiteSpace: "nowrap",
+                paddingLeft: "6px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "2px",
+              }}
+            >
+              ดู <ArrowRight size={14} />
+            </span>
+          </Link>
+
+          {/* Teaser 2: 2554 Comparison */}
+          <Link
+            href="/2554"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              background:
+                "linear-gradient(135deg, rgba(240, 253, 250, 0.95), rgba(239, 246, 255, 0.8))",
+              border: "1px solid rgba(153, 246, 228, 0.7)",
+              borderRadius: "16px",
+              padding: "14px 16px",
+              textDecoration: "none",
+              boxShadow: "var(--shadow-sm)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <span
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: "12px",
+                  background: "#ffffff",
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                  flexShrink: 0,
+                }}
+              >
+                <BarChart3
+                  size={20}
+                  color="var(--color-low)"
+                  strokeWidth={2.2}
+                />
+              </span>
+              <div>
+                <div
+                  style={{
+                    fontSize: "0.88rem",
+                    fontWeight: 700,
+                    color: "var(--color-text-primary)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  <span>เทียบน้ำท่วมปี 2554</span>
+                  <span
+                    style={{
+                      fontSize: "0.65rem",
+                      padding: "2px 6px",
+                      borderRadius: "4px",
+                      background: "rgba(13, 148, 136, 0.1)",
+                      color: "var(--color-low)",
+                      fontWeight: 700,
+                    }}
+                  >
+                    เช็กลิสต์
+                  </span>
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    color: "var(--color-text-secondary)",
+                    marginTop: "2px",
+                  }}
+                >
+                  เทียบ C.13, C.2 และ 4 เขื่อนใหญ่
+                </div>
+              </div>
+            </div>
+
+            <span
+              style={{
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                color: "var(--color-accent)",
+                whiteSpace: "nowrap",
+                paddingLeft: "6px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "2px",
+              }}
+            >
+              ดู <ArrowRight size={14} />
+            </span>
+          </Link>
+        </div>
 
         {/* ── 5. Progressive Disclosure: Toggle Details ───────── */}
         <button
