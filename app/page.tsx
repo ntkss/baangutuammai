@@ -394,6 +394,7 @@ export default function HomePage() {
               confidence={data.risk.confidence}
               updatedAt={data.updatedAt}
               recommendedAction={data.risk.recommendedAction}
+              zoneLabel={data.risk.zoneLabel}
             />
           ) : null}
         </div>

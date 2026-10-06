@@ -141,6 +141,7 @@ export type TideObservation = {
 export type RiskLevel = "low" | "watch" | "high" | "severe";
 export type ConfidenceLevel = "high" | "medium" | "limited";
 export type FreshnessStatus = "fresh" | "aging" | "stale" | "unavailable";
+export type RiskZone = "bangkok_urban" | "chao_phraya_valley" | "general";
 
 export type RiskAssessment = {
   locationId: string;
@@ -149,6 +150,8 @@ export type RiskAssessment = {
   /** Normalised 0–1 composite score. Never show raw to users. */
   score: number;
   confidence: ConfidenceLevel;
+  zone?: RiskZone;
+  zoneLabel?: string;
 
   /** Individual normalised sub-scores (0–1) */
   waterLevelRisk: number;

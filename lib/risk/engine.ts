@@ -12,6 +12,7 @@ import type {
   RiskLevel,
   RiskAssessment,
   ConfidenceLevel,
+  RiskZone,
 } from "@/lib/types/domain";
 import { RISK_REASONS, RECOMMENDED_ACTIONS } from "@/lib/i18n/th";
 
@@ -42,6 +43,85 @@ export const DEFAULT_RISK_WEIGHTS: RiskWeights = {
   infrastructure: 0.1,
   tide: 0.05,
 };
+
+/**
+ * Bangkok & Vicinity Urban Weight Profile
+ * Flood mechanism: Local flash floods from sudden heavy downpours, canal backwater,
+ * low-lying depression basins (แอ่งกระทะ), and tidal blockage at the estuary.
+ * Protected by the Chao Phraya flood wall, so upstream dam surge impact is moderated.
+ * Sum = 1.0
+ */
+export const BANGKOK_URBAN_WEIGHTS: RiskWeights = {
+  waterLevel: 0.25,
+  waterTrend: 0.15,
+  rainfall: 0.25,
+  upstream: 0.05,
+  elevation: 0.15,
+  infrastructure: 0.10,
+  tide: 0.05,
+};
+
+/**
+ * Central Chao Phraya Valley Floodplain Profile (Chai Nat, Sing Buri, Ang Thong, Ayutthaya)
+ * Flood mechanism: River overbank spills driven by C.13 Chao Phraya Dam release and upstream surge.
+ * Sum = 1.0
+ */
+export const CHAO_PHRAYA_VALLEY_WEIGHTS: RiskWeights = {
+  waterLevel: 0.35,
+  waterTrend: 0.20,
+  upstream: 0.25,
+  rainfall: 0.10,
+  elevation: 0.08,
+  infrastructure: 0.02,
+  tide: 0.00,
+};
+
+/**
+ * Detect risk zone from geographical coordinates.
+ */
+export function detectRiskZone(lat: number, lng: number): RiskZone {
+  // Bangkok & Vicinities (Bangkok, Nonthaburi, Samut Prakan, southern Pathum Thani corridor)
+  if (lat >= 13.45 && lat <= 14.12 && lng >= 100.25 && lng <= 100.95) {
+    return "bangkok_urban";
+  }
+
+  // Central Chao Phraya Floodplain (Ayutthaya, Ang Thong, Sing Buri, Chai Nat, Lower Nakhon Sawan)
+  if (lat > 14.12 && lat <= 15.45 && lng >= 99.80 && lng <= 100.85) {
+    return "chao_phraya_valley";
+  }
+
+  return "general";
+}
+
+/**
+ * Get the specialized risk weights and localized zone description for a given location.
+ */
+export function getRiskWeightsForLocation(
+  lat: number,
+  lng: number,
+): { zone: RiskZone; weights: RiskWeights; zoneLabel: string } {
+  const zone = detectRiskZone(lat, lng);
+  switch (zone) {
+    case "bangkok_urban":
+      return {
+        zone,
+        weights: BANGKOK_URBAN_WEIGHTS,
+        zoneLabel: "กรุงเทพฯ และปริมณฑล (เน้นฝนสะสม คลอง และแอ่งกระทะ)",
+      };
+    case "chao_phraya_valley":
+      return {
+        zone,
+        weights: CHAO_PHRAYA_VALLEY_WEIGHTS,
+        zoneLabel: "ลุ่มน้ำเจ้าพระยา (เน้นการระบายน้ำเขื่อนและระดับน้ำแม่น้ำ)",
+      };
+    default:
+      return {
+        zone,
+        weights: DEFAULT_RISK_WEIGHTS,
+        zoneLabel: "ทั่วไป",
+      };
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Signal normalizers
@@ -343,6 +423,8 @@ export type BuildAssessmentParams = {
   distanceToCriticalLevelM?: number;
   estimatedElevationMarginM?: number;
   confidence: ConfidenceLevel;
+  zone?: RiskZone;
+  zoneLabel?: string;
 };
 
 export function buildRiskAssessment(
@@ -355,6 +437,8 @@ export function buildRiskAssessment(
     distanceToCriticalLevelM,
     estimatedElevationMarginM,
     confidence,
+    zone,
+    zoneLabel,
   } = params;
 
   const score = computeRiskScore(inputs, weights);
@@ -368,6 +452,8 @@ export function buildRiskAssessment(
     level,
     score,
     confidence,
+    zone,
+    zoneLabel,
     waterLevelRisk: inputs.waterLevelRisk,
     waterTrendRisk: inputs.waterTrendRisk,
     rainfallRisk: inputs.rainfallRisk,

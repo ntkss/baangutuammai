@@ -76,6 +76,7 @@ interface RiskStatusCardProps {
   confidence: ConfidenceLevel;
   updatedAt: string;
   recommendedAction?: string;
+  zoneLabel?: string;
 }
 
 export function RiskStatusCard({
@@ -84,6 +85,7 @@ export function RiskStatusCard({
   confidence,
   updatedAt,
   recommendedAction,
+  zoneLabel,
 }: RiskStatusCardProps) {
   const updatedDate = new Date(updatedAt);
   const timeStr = updatedDate.toLocaleTimeString("th-TH", {
@@ -127,7 +129,7 @@ export function RiskStatusCard({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "12px",
+          marginBottom: zoneLabel ? "6px" : "12px",
         }}
       >
         <span
@@ -143,6 +145,22 @@ export function RiskStatusCard({
         </span>
         <ConfidenceChip level={confidence} />
       </div>
+
+      {zoneLabel && (
+        <div
+          style={{
+            fontSize: "0.7rem",
+            color: "var(--color-text-muted)",
+            marginBottom: "10px",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+          }}
+        >
+          <span>📍</span>
+          <span>โมเดลพื้นที่: <strong>{zoneLabel}</strong></span>
+        </div>
+      )}
 
       {/* Main hero status display */}
       <div

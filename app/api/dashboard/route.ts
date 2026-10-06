@@ -12,7 +12,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { buildRiskAssessment } from "@/lib/risk/engine";
+import {
+  buildRiskAssessment,
+  getRiskWeightsForLocation,
+} from "@/lib/risk/engine";
 import {
   fetchRidReservoirs,
   calcUpstreamRiskFromReservoirs,
@@ -143,6 +146,7 @@ export async function GET(req: NextRequest) {
   }
 
   // ── 7. Risk assessment ───────────────────────────────────────────────────
+  const zoneInfo = getRiskWeightsForLocation(lat, lng);
   const risk = buildRiskAssessment({
     locationId: `${lat.toFixed(4)},${lng.toFixed(4)}`,
     inputs: {
@@ -154,6 +158,9 @@ export async function GET(req: NextRequest) {
       infrastructureRisk: 0, // P2
       tideRisk: 0, // P2
     },
+    weights: zoneInfo.weights,
+    zone: zoneInfo.zone,
+    zoneLabel: zoneInfo.zoneLabel,
     confidence,
     estimatedElevationMarginM:
       terrainElevM !== null && waterResult?.current.waterLevelM
