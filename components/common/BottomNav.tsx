@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Zap, BarChart3, Map } from "lucide-react";
+import { Home, Zap, BarChart3, Map, Settings } from "lucide-react";
 import { NAV_LABELS } from "@/lib/i18n/th";
 
 const navItems = [
@@ -20,6 +20,12 @@ const navItems = [
     id: "nav-2554",
   },
   { href: "/map", label: NAV_LABELS.map, icon: Map, id: "nav-map" },
+  {
+    href: "/settings",
+    label: NAV_LABELS.settings,
+    icon: Settings,
+    id: "nav-settings",
+  },
 ];
 
 export function BottomNav() {
