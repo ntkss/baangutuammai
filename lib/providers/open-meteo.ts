@@ -20,6 +20,8 @@ export type RainfallResult = {
   total1h: number;
   total6h: number;
   total24h: number;
+  peakRate1h: number;
+  isExceedingDrainageCapacity: boolean;
   rainfallRisk: number; // 0–1 fraction
   freshness: FreshnessStatus;
   source: string;
@@ -102,6 +104,16 @@ export async function fetchRealRainfall(
     const total6hRound = Math.round(total6h * 10) / 10;
     const total24hRound = Math.round(total24h * 10) / 10;
 
+    // Find peak 1-hour rainfall rate across the last 6 hours
+    let peakRate1h = total1h;
+    for (let i = start6h; i <= currentIndex; i++) {
+      const val = precips[i] ?? 0;
+      if (val > peakRate1h) peakRate1h = val;
+    }
+    const peakRate1hRound = Math.round(peakRate1h * 10) / 10;
+    // BMA municipal stormwater pipes typically have ~50–60 mm/hr design limit
+    const isExceedingDrainageCapacity = peakRate1hRound >= 50;
+
     const observedAtTime = times[currentIndex]
       ? `${times[currentIndex]}:00+07:00`
       : new Date().toISOString();
@@ -125,7 +137,11 @@ export async function fetchRealRainfall(
       provider: "Open-Meteo",
     };
 
-    const rainfallRisk = normalizeRainfall(total24hRound, 24);
+    const rainfallRisk = normalizeRainfall(
+      total24hRound,
+      24,
+      peakRate1hRound,
+    );
 
     return {
       station,
@@ -133,6 +149,8 @@ export async function fetchRealRainfall(
       total1h: total1hRound,
       total6h: total6hRound,
       total24h: total24hRound,
+      peakRate1h: peakRate1hRound,
+      isExceedingDrainageCapacity,
       rainfallRisk,
       freshness: "fresh",
       source: "Open-Meteo High-Resolution Weather Model",

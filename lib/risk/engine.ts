@@ -172,15 +172,17 @@ export function normalizeWaterTrend(
 /**
  * Normalize rainfall total to 0–1 risk.
  *
- * Thresholds are derived from Thai Meteorological Department rainfall categories.
- * Stored here as an engineering assumption — NOT an official safety threshold.
+ * Thresholds are derived from Thai Meteorological Department rainfall categories
+ * combined with urban drainage capacity thresholds (e.g. BMA ~50-60 mm/hr limit).
  *
  * @param rainfallMm  - Accumulated rainfall in mm
  * @param windowHours - Accumulation window
+ * @param peak1hMm    - Peak 1-hour burst rainfall rate in mm/hr
  */
 export function normalizeRainfall(
   rainfallMm: number,
   windowHours: number,
+  peak1hMm?: number,
 ): number {
   // Rough thresholds per 24 h scaled to window:
   // Light:  0–35 mm/24h
@@ -189,9 +191,20 @@ export function normalizeRainfall(
   // Very heavy: >200 mm/24h → score = 1.0
   const scale = windowHours / 24;
   const scaled = rainfallMm / scale;
-  if (scaled < 35) return 0.0;
-  if (scaled >= 200) return 1.0;
-  return clamp01((scaled - 35) / (200 - 35));
+  let score = 0;
+  if (scaled < 35) score = 0.0;
+  else if (scaled >= 200) score = 1.0;
+  else score = clamp01((scaled - 35) / (200 - 35));
+
+  // If sudden short-duration burst intensity occurs
+  // Urban pipe design capacity (e.g. BMA standard) is typically ~50-60 mm/hr
+  if (peak1hMm && peak1hMm >= 30) {
+    const burstScore =
+      peak1hMm >= 60 ? 1.0 : clamp01((peak1hMm - 30) / (60 - 30));
+    score = Math.max(score, burstScore);
+  }
+
+  return score;
 }
 
 /**
@@ -219,6 +232,7 @@ export type RiskInputs = {
   elevationRisk: number;
   infrastructureRisk: number;
   tideRisk: number;
+  peakRainRate1hMm?: number;
 };
 
 /**
@@ -287,7 +301,9 @@ export function generateReasons(inputs: RiskInputs): string[] {
     reasons.push(RISK_REASONS.waterTrendIncreasing);
   }
 
-  if (inputs.rainfallRisk >= 0.75) {
+  if (inputs.peakRainRate1hMm && inputs.peakRainRate1hMm >= 50) {
+    reasons.push(RISK_REASONS.rainfallBurstIntensity);
+  } else if (inputs.rainfallRisk >= 0.75) {
     reasons.push(RISK_REASONS.rainfallVeryHeavy);
   } else if (inputs.rainfallRisk >= 0.5) {
     reasons.push(RISK_REASONS.rainfallHeavy);

@@ -157,6 +157,7 @@ export async function GET(req: NextRequest) {
       elevationRisk,
       infrastructureRisk: 0, // P2
       tideRisk: 0, // P2
+      peakRainRate1hMm: rainResult?.peakRate1h,
     },
     weights: zoneInfo.weights,
     zone: zoneInfo.zone,
@@ -238,6 +239,9 @@ export async function GET(req: NextRequest) {
       total1h: rainResult?.total1h ?? null,
       total6h: rainResult?.total6h ?? null,
       total24h: rainResult?.total24h ?? null,
+      peakRate1h: rainResult?.peakRate1h ?? null,
+      isExceedingDrainageCapacity:
+        rainResult?.isExceedingDrainageCapacity ?? false,
       freshness: rainFreshness,
     },
     historicalComparison,

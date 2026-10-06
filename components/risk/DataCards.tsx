@@ -304,6 +304,25 @@ export function RainDataCard({ rain }: RainDataCardProps) {
         <span className="data-row__label">สะสม 1 ชั่วโมง</span>
         <span className="data-row__value">{mmStr(total1h)}</span>
       </div>
+      {rain.peakRate1h !== undefined &&
+        rain.peakRate1h !== null &&
+        rain.peakRate1h > 0 && (
+          <div className="data-row">
+            <span className="data-row__label">ความเข้มฝนสูงสุด (ชม.)</span>
+            <span
+              className="data-row__value"
+              style={{
+                color: rain.isExceedingDrainageCapacity
+                  ? "var(--color-severe)"
+                  : undefined,
+                fontWeight: rain.isExceedingDrainageCapacity ? 700 : undefined,
+              }}
+            >
+              {rain.peakRate1h.toFixed(1)} {UI_TEXT.millimeters}/ชม.
+              {rain.isExceedingDrainageCapacity && " ⚠️ เกินขีดท่อ กทม."}
+            </span>
+          </div>
+        )}
       <div className="data-row">
         <span className="data-row__label">สะสม 6 ชั่วโมง</span>
         <span className="data-row__value">{mmStr(total6h)}</span>

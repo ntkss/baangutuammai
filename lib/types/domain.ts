@@ -260,6 +260,8 @@ export type DashboardResponse = {
     total1h: number | null;
     total6h: number | null;
     total24h: number | null;
+    peakRate1h?: number | null;
+    isExceedingDrainageCapacity?: boolean;
     freshness: FreshnessStatus;
   };
   historicalComparison: HistoricalComparison | null;

@@ -64,6 +64,7 @@ export const RISK_REASONS = {
   rainfallVeryHeavy: "มีฝนตกหนักมากในพื้นที่",
   rainfallHeavy: "มีฝนตกหนักบริเวณใกล้เคียง",
   rainfallModerate: "มีฝนตกปานกลาง",
+  rainfallBurstIntensity: "มีฝนตกหนักเฉียบพลันเกินศักยภาพท่อระบายน้ำเมือง (>50 มม./ชม.) เสี่ยงน้ำท่วมขังรอการระบาย",
   upstreamElevated: "สภาพน้ำต้นน้ำส่งผลให้ความเสี่ยงสูงขึ้น",
   elevationLowMargin: "ระดับพื้นที่ให้ระยะห่างจากน้ำน้อย",
   elevationGoodMargin: "ระดับพื้นที่มีระยะห่างจากน้ำพอสมควร",
