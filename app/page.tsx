@@ -23,7 +23,6 @@ import {
   DataCardSkeleton,
 } from "@/components/risk/RiskCard";
 import { WaterDataCard, RainDataCard } from "@/components/risk/DataCards";
-import { NorthernRunoffCard } from "@/components/risk/NorthernRunoffCard";
 import { WaterElevationCrossSection } from "@/components/infographic/WaterElevationCrossSection";
 import { BentoVitals } from "@/components/infographic/BentoVitals";
 import { RiverFlowStepper } from "@/components/infographic/RiverFlowStepper";
@@ -786,9 +785,6 @@ export default function HomePage() {
           >
             {data ? (
               <>
-                {data._northernRunoff && (
-                  <NorthernRunoffCard data={data._northernRunoff} />
-                )}
                 <WaterDataCard water={data.water} extra={data._waterExtra} />
                 <RainDataCard rain={data.rain} />
 
