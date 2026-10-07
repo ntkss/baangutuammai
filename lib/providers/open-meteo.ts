@@ -137,11 +137,7 @@ export async function fetchRealRainfall(
       provider: "Open-Meteo",
     };
 
-    const rainfallRisk = normalizeRainfall(
-      total24hRound,
-      24,
-      peakRate1hRound,
-    );
+    const rainfallRisk = normalizeRainfall(total24hRound, 24, peakRate1hRound);
 
     return {
       station,

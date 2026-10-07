@@ -151,7 +151,8 @@ export function calcEstuarineTideRisk(
   const tideRisk = Math.round(astro.score * proximityFactor * 100) / 100;
   // High tide alert only triggers during actual spring tide (น้ำเกิด) or significant seasonal surge
   const isHighTideAlert =
-    astro.phase === "spring_tide" || (tideRisk >= 0.65 && astro.approxMsl >= 1.7);
+    astro.phase === "spring_tide" ||
+    (tideRisk >= 0.65 && astro.approxMsl >= 1.7);
 
   const dailyExtremes = calcDailyTideExtremes(
     date,
@@ -218,8 +219,10 @@ function calcDailyTideExtremes(
   const tidalRange =
     phase === "spring_tide" ? 1.45 : phase === "neap_tide" ? 0.75 : 1.1;
   const highTideLevelM = Math.round(approxMsl * 100) / 100;
-  const lowTideLevelM =
-    Math.max(0.15, Math.round((approxMsl - tidalRange) * 100) / 100);
+  const lowTideLevelM = Math.max(
+    0.15,
+    Math.round((approxMsl - tidalRange) * 100) / 100,
+  );
 
   const summaryText = `น้ำขึ้นสูงสุด ~${highTideTime} (+${highTideLevelM.toFixed(2)} ม.) • น้ำลงต่ำสุด ~${lowTideTime} (+${lowTideLevelM.toFixed(2)} ม.)`;
 

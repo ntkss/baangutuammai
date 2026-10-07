@@ -158,7 +158,9 @@ export function RiskStatusCard({
           }}
         >
           <span>📍</span>
-          <span>โมเดลพื้นที่: <strong>{zoneLabel}</strong></span>
+          <span>
+            โมเดลพื้นที่: <strong>{zoneLabel}</strong>
+          </span>
         </div>
       )}
 

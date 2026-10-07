@@ -468,9 +468,9 @@ export async function fetchRealWaterLevel(
     // ── Check if a BMA canal station is closer (Bangkok network) ──────────
     const preferBma = Boolean(
       bmaNearest &&
-        (bmaNearest.distKm < selected.distKm ||
-          (selected.distKm > 6 && bmaNearest.distKm <= 10) ||
-          (bmaNearest.distKm <= 3 && selected.distKm > 3)),
+      (bmaNearest.distKm < selected.distKm ||
+        (selected.distKm > 6 && bmaNearest.distKm <= 10) ||
+        (bmaNearest.distKm <= 3 && selected.distKm > 3)),
     );
 
     if (preferBma && bmaNearest) {

@@ -536,11 +536,13 @@ export function WaterElevationCrossSection({
           >
             <span>🌊</span>
             <span>
-              น้ำขึ้นสูงสุด: <strong>~{tideExtremes.highTideTime}</strong> (+{tideExtremes.highTideLevelM.toFixed(2)} ม.)
+              น้ำขึ้นสูงสุด: <strong>~{tideExtremes.highTideTime}</strong> (+
+              {tideExtremes.highTideLevelM.toFixed(2)} ม.)
             </span>
             <span style={{ opacity: 0.4 }}>•</span>
             <span>
-              น้ำลงต่ำสุด: <strong>~{tideExtremes.lowTideTime}</strong> (+{tideExtremes.lowTideLevelM.toFixed(2)} ม.)
+              น้ำลงต่ำสุด: <strong>~{tideExtremes.lowTideTime}</strong> (+
+              {tideExtremes.lowTideLevelM.toFixed(2)} ม.)
             </span>
           </div>
         ) : (

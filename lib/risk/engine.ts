@@ -57,7 +57,7 @@ export const BANGKOK_URBAN_WEIGHTS: RiskWeights = {
   rainfall: 0.25,
   upstream: 0.05,
   elevation: 0.15,
-  infrastructure: 0.10,
+  infrastructure: 0.1,
   tide: 0.05,
 };
 
@@ -68,12 +68,12 @@ export const BANGKOK_URBAN_WEIGHTS: RiskWeights = {
  */
 export const CHAO_PHRAYA_VALLEY_WEIGHTS: RiskWeights = {
   waterLevel: 0.35,
-  waterTrend: 0.20,
+  waterTrend: 0.2,
   upstream: 0.25,
-  rainfall: 0.10,
+  rainfall: 0.1,
   elevation: 0.08,
   infrastructure: 0.02,
-  tide: 0.00,
+  tide: 0.0,
 };
 
 /**
@@ -86,7 +86,7 @@ export function detectRiskZone(lat: number, lng: number): RiskZone {
   }
 
   // Central Chao Phraya Floodplain (Ayutthaya, Ang Thong, Sing Buri, Chai Nat, Lower Nakhon Sawan)
-  if (lat > 14.12 && lat <= 15.45 && lng >= 99.80 && lng <= 100.85) {
+  if (lat > 14.12 && lat <= 15.45 && lng >= 99.8 && lng <= 100.85) {
     return "chao_phraya_valley";
   }
 

@@ -287,11 +287,13 @@ export function WaterDataCard({ water, extra, tide }: WaterDataCardProps) {
             }}
           >
             <span>
-              น้ำขึ้นสูงสุด: <strong>~{tide.dailyExtremes.highTideTime}</strong> (+{tide.dailyExtremes.highTideLevelM.toFixed(2)} ม.รทก.)
+              น้ำขึ้นสูงสุด: <strong>~{tide.dailyExtremes.highTideTime}</strong>{" "}
+              (+{tide.dailyExtremes.highTideLevelM.toFixed(2)} ม.รทก.)
             </span>
             <span style={{ opacity: 0.4 }}>•</span>
             <span>
-              น้ำลงต่ำสุด: <strong>~{tide.dailyExtremes.lowTideTime}</strong> (+{tide.dailyExtremes.lowTideLevelM.toFixed(2)} ม.รทก.)
+              น้ำลงต่ำสุด: <strong>~{tide.dailyExtremes.lowTideTime}</strong> (+
+              {tide.dailyExtremes.lowTideLevelM.toFixed(2)} ม.รทก.)
             </span>
           </div>
         </div>
