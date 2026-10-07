@@ -509,7 +509,7 @@ export default function HomePage() {
         ) : null}
 
         {/* ── SECTION: สัญญาณมวลน้ำหลักและการระบาย ───────────── */}
-        <div style={{ marginTop: "22px", marginBottom: "10px" }}>
+        {/* <div style={{ marginTop: "22px", marginBottom: "10px" }}>
           <div
             style={{
               display: "flex",
@@ -524,7 +524,7 @@ export default function HomePage() {
             <span>🌊</span>
             <span>สัญญาณมวลน้ำหลักและการไหลผ่าน</span>
           </div>
-        </div>
+        </div> */}
 
         {/* ── 3. Bento Micro-Gauges (3 สัญญาณชี้ชะตา: เขื่อน C.13 / ฝน / อ่างเก็บน้ำ) ── */}
         {isLoading ? (

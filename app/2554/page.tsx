@@ -15,6 +15,12 @@ const DEFAULT_LAT = 13.862;
 const DEFAULT_LNG = 100.514;
 
 type ExtendedDashboardResponse = DashboardResponse & {
+  _waterExtra?: {
+    distanceKm: number;
+    bankLevelM: number | null;
+    diffBankM: number | null;
+    diffBankText?: string;
+  } | null;
   _northernRunoff?: NorthernRunoffSummary | null;
   _reservoirBasin?: {
     avgStoragePercent: number;
@@ -95,6 +101,8 @@ export default function History2554Page() {
       window.removeEventListener("focus", handleVisibility);
     };
   }, [refreshDashboard]);
+
+  const isBkkUrban = data?.risk.zone === "bangkok_urban";
 
   return (
     <>
@@ -183,39 +191,124 @@ export default function History2554Page() {
           </button>
         </div>
 
-        {/* ── Active Location Banner ──────────────────────────── */}
+        {/* ── Active Location & Demographic Profile Banner ───── */}
         <div
           style={{
             background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: "12px",
-            padding: "10px 14px",
+            borderRadius: "14px",
+            padding: "12px 14px",
             marginBottom: "16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontSize: "0.8rem",
+            border: "1px solid var(--color-border)",
+            boxShadow: "var(--shadow-sm)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span>📍</span>
-            <span
-              style={{ fontWeight: 600, color: "var(--color-text-primary)" }}
-            >
-              {homeLocation?.label || "พิกัดปัจจุบัน (นนทบุรี)"}
-            </span>
-          </div>
-          <Link
-            href="/"
+          <div
             style={{
-              color: "var(--color-accent)",
-              textDecoration: "none",
-              fontWeight: 600,
-              fontSize: "0.75rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              fontSize: "0.8rem",
             }}
           >
-            เปลี่ยนที่หน้าหลัก
-          </Link>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span>📍</span>
+              <span
+                style={{ fontWeight: 700, color: "var(--color-text-primary)" }}
+              >
+                {homeLocation?.label || "พิกัดปัจจุบัน"}
+              </span>
+            </div>
+            <Link
+              href="/"
+              style={{
+                color: "var(--color-accent)",
+                textDecoration: "none",
+                fontWeight: 600,
+                fontSize: "0.75rem",
+                padding: "4px 8px",
+                borderRadius: "6px",
+                background: "rgba(2, 132, 199, 0.08)",
+              }}
+            >
+              เปลี่ยน
+            </Link>
+          </div>
+
+          {/* Demographic & Geographic Vitals Chips */}
+          <div
+            style={{
+              display: "flex",
+              gap: "6px",
+              flexWrap: "wrap",
+              marginTop: "8px",
+              fontSize: "0.72rem",
+            }}
+          >
+            {data?._terrainElevation?.elevationM !== null &&
+              data?._terrainElevation?.elevationM !== undefined && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "3px 8px",
+                    borderRadius: "6px",
+                    background: "var(--color-surface-2)",
+                    color: "var(--color-text-secondary)",
+                    fontWeight: 600,
+                  }}
+                >
+                  <span>📐 ระดับดิน:</span>
+                  <strong style={{ color: "var(--color-text-primary)" }}>
+                    +{data._terrainElevation.elevationM.toFixed(1)} ม.รทก.
+                  </strong>
+                </span>
+              )}
+
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "3px 8px",
+                borderRadius: "6px",
+                background: "var(--color-surface-2)",
+                color: "var(--color-text-secondary)",
+                fontWeight: 600,
+              }}
+            >
+              <span>
+                {isBkkUrban ? "🏙️ ในแนวคันกั้นน้ำ กทม." : "🏞️ ลุ่มน้ำเจ้าพระยา"}
+              </span>
+            </span>
+
+            {(data?.water?.station?.river || data?.water?.station?.name) && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "3px 8px",
+                  borderRadius: "6px",
+                  background: "var(--color-surface-2)",
+                  color: "var(--color-text-secondary)",
+                  fontWeight: 600,
+                }}
+              >
+                <span>🌊</span>
+                <span>
+                  {data.water.station.river
+                    ? `${data.water.station.river.startsWith("คลอง") ? "" : "แม่น้ำ"}${data.water.station.river}`
+                    : data.water.station.name}
+                </span>
+                {data._waterExtra?.distanceKm && (
+                  <span style={{ color: "var(--color-text-muted)" }}>
+                    ({data._waterExtra.distanceKm.toFixed(1)} กม.)
+                  </span>
+                )}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* ── Main Historical 2011 Comparison Card ────────────── */}
@@ -225,13 +318,17 @@ export default function History2554Page() {
           <Historical2011Card
             comparison={data?.historicalComparison ?? null}
             currentLevelM={data?.water.current?.waterLevelM}
+            bankLevelM={data?._waterExtra?.bankLevelM}
+            diffBankM={data?._waterExtra?.diffBankM}
+            stationName={data?.water.station.name}
+            riverName={data?.water.station.river}
             c2Discharge={data?._northernRunoff?.c2NakhonSawan?.dischargeM3s}
             c13Discharge={data?._northernRunoff?.c13ChaoPhrayaDam?.dischargeM3s}
             reservoirStoragePercent={data?._reservoirBasin?.avgStoragePercent}
           />
         )}
 
-        {/* ── Historical Context Education Card ────────────────── */}
+        {/* ── Visual 2554 Anatomy vs Today Matrix ─────────────── */}
         <div
           className="card"
           style={{
@@ -240,52 +337,254 @@ export default function History2554Page() {
             borderRadius: "16px",
             padding: "16px",
             border: "1px solid var(--color-border)",
+            boxShadow: "var(--shadow-sm)",
           }}
         >
-          <h3
-            style={{
-              fontSize: "0.9rem",
-              fontWeight: 700,
-              color: "var(--color-text-primary)",
-              margin: "0 0 10px 0",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <span>💡</span> ทำไมปี 2554 ถึงเกิดมหาอุทกภัย?
-          </h3>
-
           <div
             style={{
               display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              fontSize: "0.78rem",
-              color: "var(--color-text-secondary)",
-              lineHeight: 1.6,
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "12px",
             }}
           >
-            <div>
-              <strong style={{ color: "var(--color-text-primary)" }}>
-                1. พายุเข้าติดต่อกันถึง 5 ลูก:
-              </strong>{" "}
-              (ไหหม่า, นกเตน, ไห่ถาง, เนสาด, นัลแก)
-              ทำให้ฝนตกสะสมทั้งประเทศสูงกว่าค่าเฉลี่ยถึง 35%
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "1.1rem" }}>💡</span>
+              <h3
+                style={{
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                  margin: 0,
+                }}
+              >
+                ผ่า 3 ชนวนมหาอุทกภัยปี 54 เทียบปัจจุบัน
+              </h3>
             </div>
-            <div>
-              <strong style={{ color: "var(--color-text-primary)" }}>
-                2. เขื่อนใหญ่เต็มความจุตั้งแต่ต้นฤดู:
-              </strong>{" "}
-              เขื่อนภูมิพลและเขื่อนสิริกิติ์กักเก็บน้ำเกิน 100%
-              จนไม่สามารถหน่วงน้ำได้อีก จำเป็นต้องระบายน้ำออกเต็มกำลัง
+            <span
+              style={{
+                fontSize: "0.68rem",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              Anatomy Matrix
+            </span>
+          </div>
+
+          <div
+            style={{ display: "flex", flexDirection: "column", gap: "10px" }}
+          >
+            {/* 1. Storms */}
+            <div
+              style={{
+                background: "var(--color-surface-2)",
+                borderRadius: "10px",
+                padding: "10px 12px",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "0.78rem",
+                    fontWeight: 700,
+                    color: "var(--color-text-primary)",
+                  }}
+                >
+                  🌀 1. พายุจรเข้าไทย
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.68rem",
+                    color: "var(--color-low)",
+                    fontWeight: 700,
+                    background: "var(--color-low-bg)",
+                    padding: "1px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  🟢 ต่างกันชัดเจน
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  fontSize: "0.73rem",
+                  marginTop: "4px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    color: "var(--color-severe)",
+                    background: "var(--color-severe-bg)",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  ปี 54: พายุ 5 ลูกซ้อน (ฝนสะสม +35%)
+                </span>
+                <span
+                  style={{
+                    color: "var(--color-low)",
+                    background: "var(--color-low-bg)",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  ปัจจุบัน: ฝนตามฤดูกาล ไม่มีพายุจร
+                </span>
+              </div>
             </div>
-            <div>
-              <strong style={{ color: "var(--color-text-primary)" }}>
-                3. คันกั้นน้ำพังทลายหลายจุด:
-              </strong>{" "}
-              มวลน้ำมหาศาลไหลหลากทะลวงนิคมอุตสาหกรรมในอยุธยา ปทุมธานี
-              และไหลเข้าสู่พื้นที่ฝั่งตะวันออกและตะวันตกของ กทม.
+
+            {/* 2. Dams */}
+            <div
+              style={{
+                background: "var(--color-surface-2)",
+                borderRadius: "10px",
+                padding: "10px 12px",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "0.78rem",
+                    fontWeight: 700,
+                    color: "var(--color-text-primary)",
+                  }}
+                >
+                  🏞️ 2. ปริมาณน้ำในเขื่อนหลัก
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.68rem",
+                    color: "var(--color-low)",
+                    fontWeight: 700,
+                    background: "var(--color-low-bg)",
+                    padding: "1px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  🟢 ยังหน่วงน้ำได้
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  fontSize: "0.73rem",
+                  marginTop: "4px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    color: "var(--color-severe)",
+                    background: "var(--color-severe-bg)",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  ปี 54: เขื่อนเต็ม &gt;100% ตั้งแต่ต้นฤดู
+                </span>
+                <span
+                  style={{
+                    color: "var(--color-low)",
+                    background: "var(--color-low-bg)",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  ปัจจุบัน: กักเก็บปกติ มีช่องว่างรับน้ำ
+                </span>
+              </div>
+            </div>
+
+            {/* 3. Polders & Dikes */}
+            <div
+              style={{
+                background: "var(--color-surface-2)",
+                borderRadius: "10px",
+                padding: "10px 12px",
+                border: "1px solid var(--color-border)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "0.78rem",
+                    fontWeight: 700,
+                    color: "var(--color-text-primary)",
+                  }}
+                >
+                  🧱 3. คันกั้นน้ำ & การระบาย
+                </span>
+                <span
+                  style={{
+                    fontSize: "0.68rem",
+                    color: "var(--color-low)",
+                    fontWeight: 700,
+                    background: "var(--color-low-bg)",
+                    padding: "1px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  🟢 เสริมแนวป้องกันแล้ว
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  fontSize: "0.73rem",
+                  marginTop: "4px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    color: "var(--color-severe)",
+                    background: "var(--color-severe-bg)",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  ปี 54: คันกั้นน้ำพัง มวลน้ำหลากทุ่ง
+                </span>
+                <span
+                  style={{
+                    color: "var(--color-low)",
+                    background: "var(--color-low-bg)",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  ปัจจุบัน: เสริมคันเจ้าพระยา & อุโมงค์ระบาย
+                </span>
+              </div>
             </div>
           </div>
         </div>
