@@ -1,6 +1,7 @@
 "use client";
 
 import type { DashboardResponse } from "@/lib/types/domain";
+import type { EstuarineTideResult } from "@/lib/risk/tide";
 import { Droplets, CloudRain } from "lucide-react";
 import { UI_TEXT, FRESHNESS_LABEL } from "@/lib/i18n/th";
 
@@ -12,9 +13,10 @@ interface WaterDataCardProps {
     diffBankM?: number | null;
     diffBankText?: string;
   } | null;
+  tide?: EstuarineTideResult | null;
 }
 
-export function WaterDataCard({ water, extra }: WaterDataCardProps) {
+export function WaterDataCard({ water, extra, tide }: WaterDataCardProps) {
   const {
     station,
     current,
@@ -232,6 +234,66 @@ export function WaterDataCard({ water, extra }: WaterDataCardProps) {
             {rateMetersPerHour >= 0 ? "+" : ""}
             {rateMetersPerHour.toFixed(3)} ม./ชม.
           </span>
+        </div>
+      )}
+
+      {/* Daily High / Low Tide Extremes (เวลาน้ำขึ้น/ลง สูงสุดในแต่ละวัน) */}
+      {tide?.dailyExtremes && (
+        <div
+          style={{
+            marginTop: "12px",
+            paddingTop: "9px",
+            borderTop: "1px dashed var(--color-border)",
+            fontSize: "0.73rem",
+            color: "var(--color-text-secondary)",
+            lineHeight: 1.45,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "3px",
+            }}
+          >
+            <span
+              style={{
+                fontWeight: 600,
+                color: "var(--color-accent)",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+              }}
+            >
+              <span>🌊</span>
+              <span>เวลาน้ำทะเลหนุนวันนี้ ({tide.phaseLabel})</span>
+            </span>
+            <span
+              style={{
+                fontSize: "0.68rem",
+                color: "var(--color-text-muted)",
+              }}
+            >
+              อิงปากอ่าว/กรุงเทพฯ
+            </span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            <span>
+              น้ำขึ้นสูงสุด: <strong>~{tide.dailyExtremes.highTideTime}</strong> (+{tide.dailyExtremes.highTideLevelM.toFixed(2)} ม.รทก.)
+            </span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            <span>
+              น้ำลงต่ำสุด: <strong>~{tide.dailyExtremes.lowTideTime}</strong> (+{tide.dailyExtremes.lowTideLevelM.toFixed(2)} ม.รทก.)
+            </span>
+          </div>
         </div>
       )}
     </div>

@@ -504,6 +504,7 @@ export default function HomePage() {
               data._northernRunoff?.corridor.nearest?.stationName ??
               data.water?.station?.name
             }
+            tideExtremes={data._tide?.dailyExtremes}
           />
         ) : null}
 
@@ -785,7 +786,11 @@ export default function HomePage() {
           >
             {data ? (
               <>
-                <WaterDataCard water={data.water} extra={data._waterExtra} />
+                <WaterDataCard
+                  water={data.water}
+                  extra={data._waterExtra}
+                  tide={data._tide}
+                />
                 <RainDataCard rain={data.rain} />
 
                 {/* Reservoir overview card */}

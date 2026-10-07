@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Ruler, Home, Anchor, Waves } from "lucide-react";
+import type { DailyTideExtremes } from "@/lib/risk/tide";
 
 interface WaterElevationCrossSectionProps {
   /** House ground elevation in meters above sea level (ม.รทก.) */
@@ -16,6 +17,8 @@ interface WaterElevationCrossSectionProps {
   diffBankM: number | null | undefined;
   /** Station name */
   stationName?: string;
+  /** Daily astronomical tide extremes (high/low peaks) */
+  tideExtremes?: DailyTideExtremes | null;
 }
 
 export function WaterElevationCrossSection({
@@ -25,6 +28,7 @@ export function WaterElevationCrossSection({
   elevationMarginM,
   diffBankM,
   stationName,
+  tideExtremes,
 }: WaterElevationCrossSectionProps) {
   // If no water level data at all
   if (riverWaterLevelM === null || riverWaterLevelM === undefined) {
@@ -505,18 +509,50 @@ export function WaterElevationCrossSection({
         </div>
       </div>
 
-      {stationName && (
-        <div
-          style={{
-            fontSize: "0.68rem",
-            color: "var(--color-text-muted)",
-            marginTop: "8px",
-            textAlign: "right",
-          }}
-        >
-          อิงระดับน้ำจาก: {stationName}
-        </div>
-      )}
+      {/* Bottom info bar: Daily Tide Extremes text & Station reference */}
+      <div
+        style={{
+          marginTop: "10px",
+          paddingTop: "6px",
+          borderTop: "1px dashed var(--color-border)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: "6px",
+          fontSize: "0.69rem",
+          color: "var(--color-text-muted)",
+        }}
+      >
+        {tideExtremes ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+              color: "var(--color-text-secondary)",
+              lineHeight: 1.4,
+            }}
+          >
+            <span>🌊</span>
+            <span>
+              น้ำขึ้นสูงสุด: <strong>~{tideExtremes.highTideTime}</strong> (+{tideExtremes.highTideLevelM.toFixed(2)} ม.)
+            </span>
+            <span style={{ opacity: 0.4 }}>•</span>
+            <span>
+              น้ำลงต่ำสุด: <strong>~{tideExtremes.lowTideTime}</strong> (+{tideExtremes.lowTideLevelM.toFixed(2)} ม.)
+            </span>
+          </div>
+        ) : (
+          <div />
+        )}
+
+        {stationName && (
+          <div style={{ textAlign: "right", opacity: 0.85 }}>
+            อิงระดับน้ำจาก: {stationName}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -9,6 +9,14 @@
  * Estuary Datum: Mean Sea Level (ม.รทก.) at Fort Chula Chomklao (ป้อมพระจุลจอมเกล้า)
  */
 
+export type DailyTideExtremes = {
+  highTideTime: string; // e.g. "17:04 น."
+  highTideLevelM: number; // e.g. 1.56 (ม.รทก.)
+  lowTideTime: string; // e.g. "09:52 น."
+  lowTideLevelM: number; // e.g. 0.46 (ม.รทก.)
+  summaryText: string; // e.g. "น้ำขึ้นสูงสุด ~17:04 น. (+1.56 ม.) • น้ำลงต่ำสุด ~09:52 น. (+0.46 ม.)"
+};
+
 export type EstuarineTideResult = {
   tideRisk: number; // 0–1 normalized risk
   astronomicalLevelM: number; // estimated tidal water level in meters MSL
@@ -16,6 +24,7 @@ export type EstuarineTideResult = {
   phaseLabel: string;
   isHighTideAlert: boolean;
   distanceToEstuaryKm: number;
+  dailyExtremes: DailyTideExtremes;
 };
 
 // Fort Chula Chomklao station coordinates (Mouth of Chao Phraya River)
@@ -144,6 +153,13 @@ export function calcEstuarineTideRisk(
   const isHighTideAlert =
     astro.phase === "spring_tide" || (tideRisk >= 0.65 && astro.approxMsl >= 1.7);
 
+  const dailyExtremes = calcDailyTideExtremes(
+    date,
+    distKmRound,
+    astro.approxMsl,
+    astro.phase,
+  );
+
   return {
     tideRisk,
     astronomicalLevelM: astro.approxMsl,
@@ -151,5 +167,67 @@ export function calcEstuarineTideRisk(
     phaseLabel: astro.label,
     isHighTideAlert,
     distanceToEstuaryKm: distKmRound,
+    dailyExtremes,
+  };
+}
+
+/**
+ * Calculate the estimated daily high tide peak and low tide times.
+ */
+function calcDailyTideExtremes(
+  date: Date,
+  distKmRound: number,
+  approxMsl: number,
+  phase: "spring_tide" | "moderate" | "neap_tide",
+): DailyTideExtremes {
+  const age = getApproximateLunarAge(date);
+  // Mean lunar transit time in Bangkok solar time (0–24 hours)
+  const transitHours = (age * (24 / 29.53058867)) % 24;
+  // High Water interval at Chao Phraya mouth (~7.2 hours after lunar transit)
+  const mouthHighHours = (transitHours + 7.2) % 24;
+
+  // Prefer daytime/evening peak (05:30 - 22:30) that residents monitor
+  let primaryHighHours = mouthHighHours;
+  if (primaryHighHours < 5.0) {
+    primaryHighHours = (primaryHighHours + 12.4) % 24;
+  } else if (primaryHighHours > 23.0) {
+    primaryHighHours = (primaryHighHours - 12.4 + 24) % 24;
+  }
+
+  // Tidal wave celerity: propagates upstream at ~22 km/h
+  const upstreamDelay = Math.min(2.5, distKmRound / 22);
+  const localHighHours = (primaryHighHours + upstreamDelay) % 24;
+
+  // In mixed/diurnal tide, the daytime low tide within the same 24-hour day
+  let localLowHours: number;
+  if (localHighHours >= 12.0) {
+    localLowHours = (localHighHours - 7.2 + 24) % 24;
+  } else {
+    localLowHours = (localHighHours + 7.2) % 24;
+  }
+
+  const formatTime = (h: number): string => {
+    const hh = Math.floor(h) % 24;
+    const mm = Math.round((h - Math.floor(h)) * 60) % 60;
+    return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")} น.`;
+  };
+
+  const highTideTime = formatTime(localHighHours);
+  const lowTideTime = formatTime(localLowHours);
+
+  const tidalRange =
+    phase === "spring_tide" ? 1.45 : phase === "neap_tide" ? 0.75 : 1.1;
+  const highTideLevelM = Math.round(approxMsl * 100) / 100;
+  const lowTideLevelM =
+    Math.max(0.15, Math.round((approxMsl - tidalRange) * 100) / 100);
+
+  const summaryText = `น้ำขึ้นสูงสุด ~${highTideTime} (+${highTideLevelM.toFixed(2)} ม.) • น้ำลงต่ำสุด ~${lowTideTime} (+${lowTideLevelM.toFixed(2)} ม.)`;
+
+  return {
+    highTideTime,
+    highTideLevelM,
+    lowTideTime,
+    lowTideLevelM,
+    summaryText,
   };
 }
