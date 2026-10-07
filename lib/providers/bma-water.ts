@@ -54,25 +54,8 @@ let memoryCache: {
   timestamp: number;
   isFallback: boolean;
 } | null = null;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
-
-function calculateHaversineKm(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number,
-): number {
-  const dLat = ((lat2 - lat1) * Math.PI) / 180;
-  const dLon = ((lon2 - lon1) * Math.PI) / 180;
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return 6371 * c;
-}
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes for successful live data
+const FALLBACK_CACHE_TTL_MS = 30 * 1000; // 30 seconds for fallback, so we retry soon
 
 export type BMAFetchResponse = {
   data: BMAWaterStationRaw[];
@@ -81,8 +64,11 @@ export type BMAFetchResponse = {
 
 export async function fetchBMAStationsWithStatus(): Promise<BMAFetchResponse> {
   const now = Date.now();
-  if (memoryCache && now - memoryCache.timestamp < CACHE_TTL_MS) {
-    return { data: memoryCache.data, isFallback: memoryCache.isFallback };
+  if (memoryCache) {
+    const ttl = memoryCache.isFallback ? FALLBACK_CACHE_TTL_MS : CACHE_TTL_MS;
+    if (now - memoryCache.timestamp < ttl) {
+      return { data: memoryCache.data, isFallback: memoryCache.isFallback };
+    }
   }
 
   const fallbackList =
@@ -100,16 +86,21 @@ export async function fetchBMAStationsWithStatus(): Promise<BMAFetchResponse> {
         Accept: "application/json, text/javascript, */*; q=0.01",
       },
       body: "payload=TEST_DATA_GOES_HERE",
-      signal: AbortSignal.timeout(6000),
+      signal: AbortSignal.timeout(10000),
     });
 
     if (!res.ok) {
       console.warn(
         `[bma-water] HTTP ${res.status}: ${res.statusText}, using fallback stations (${fallbackList.length})`,
       );
-      return {
+      memoryCache = {
         data: memoryCache?.data ?? fallbackList,
-        isFallback: memoryCache ? memoryCache.isFallback : true,
+        timestamp: now,
+        isFallback: true,
+      };
+      return {
+        data: memoryCache.data,
+        isFallback: true,
       };
     }
 
@@ -118,9 +109,14 @@ export async function fetchBMAStationsWithStatus(): Promise<BMAFetchResponse> {
       console.warn(
         `[bma-water] Response is empty, using fallback stations (${fallbackList.length})`,
       );
-      return {
+      memoryCache = {
         data: memoryCache?.data ?? fallbackList,
-        isFallback: memoryCache ? memoryCache.isFallback : true,
+        timestamp: now,
+        isFallback: true,
+      };
+      return {
+        data: memoryCache.data,
+        isFallback: true,
       };
     }
 
@@ -132,13 +128,18 @@ export async function fetchBMAStationsWithStatus(): Promise<BMAFetchResponse> {
 
     return { data, isFallback: false };
   } catch (err) {
-    console.error(
-      `[bma-water] Fetch failed, using fallback stations (${fallbackList.length}):`,
-      err,
+    console.warn(
+      `[bma-water] Live fetch failed, using fallback stations (${fallbackList.length}):`,
+      err instanceof Error ? err.message : err,
     );
-    return {
+    memoryCache = {
       data: memoryCache?.data ?? fallbackList,
-      isFallback: memoryCache ? memoryCache.isFallback : true,
+      timestamp: now,
+      isFallback: true,
+    };
+    return {
+      data: memoryCache.data,
+      isFallback: true,
     };
   }
 }
@@ -164,6 +165,25 @@ export type BMANearestResult = {
   isFallback: boolean;
 };
 
+export function calculateHaversineKm(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
 export async function findNearestBMAStation(
   lat: number,
   lng: number,
@@ -184,13 +204,18 @@ export async function findNearestBMAStation(
 
   if (valid.length === 0) return null;
 
-  // Calculate distance
+  // Calculate distance, preferring active stations over "ขัดข้อง" (offline/faulty sensor)
+  // if an active station is nearby (within +1.5 km)
   let nearest: BMAWaterStationRaw | null = null;
+  let minScore = Infinity;
   let minDist = Infinity;
 
   for (const s of valid) {
     const dist = calculateHaversineKm(lat, lng, s.latitude, s.longitude);
-    if (dist < minDist) {
+    const isFaulty = s.txtStatus?.includes("ขัดข้อง");
+    const score = dist + (isFaulty ? 1.5 : 0);
+    if (score < minScore) {
+      minScore = score;
       minDist = dist;
       nearest = s;
     }
