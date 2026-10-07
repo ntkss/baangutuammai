@@ -1,13 +1,48 @@
 "use client";
 
 import { useState } from "react";
+import type { RiskZone, RiskLevel } from "@/lib/types/domain";
+import type { EstuarineTideResult } from "@/lib/risk/tide";
 
 interface FloodTriggerFactorsCardProps {
+  // Area Model Context
+  zone?: RiskZone;
+  zoneLabel?: string;
+  riskLevel?: RiskLevel;
+
+  // Local Water Level vs Bank
+  localWaterStationName?: string;
+  localRiverName?: string;
+  localWaterLevelM?: number | null;
+  bankLevelM?: number | null;
+  diffBankM?: number | null;
+  diffBankText?: string;
+  waterLevelRisk?: number | null;
+  waterDistanceKm?: number | null;
+
+  // Upstream dam discharges
   c13Discharge?: number | null;
   c2Discharge?: number | null;
+
+  // Rainfall
   rain24hMm?: number | null;
+  rainPeak1hMm?: number | null;
+
+  // Dam storage
   reservoirPercent?: number | null;
+
+  // Elevation Margin (Freeboard)
   elevationMarginM?: number | null;
+
+  // Estuarine Tide
+  tide?: EstuarineTideResult | null;
+
+  // Blackspot
+  blackspot?: {
+    name: string;
+    distanceKm: number;
+    severity: "critical" | "warning" | "advisory";
+  } | null;
 }
 
 type TriggerFactor = {
@@ -15,44 +50,196 @@ type TriggerFactor = {
   icon: string;
   name: string;
   subtitle: string;
-  criticalThreshold: string;
-  currentValue: string;
+  currentDisplay: string;
+  thresholdDisplay: string;
   status: "safe" | "watch" | "critical" | "unknown";
   statusText: string;
   statusColor: string;
   impactExplanation: string;
+  isPriorityForZone?: boolean;
+  meterPercent: number; // 0 to 100 for visual gauge
+  safeZoneLabel: string;
+  watchZoneLabel: string;
+  criticalZoneLabel: string;
 };
 
 export function FloodTriggerFactorsCard({
+  zone = "bangkok_urban",
+  localWaterStationName,
+  localRiverName,
+  localWaterLevelM,
+  bankLevelM,
+  diffBankM,
+  diffBankText,
+  waterLevelRisk,
+  waterDistanceKm,
   c13Discharge,
   c2Discharge,
   rain24hMm,
+  rainPeak1hMm,
   reservoirPercent,
   elevationMarginM,
+  tide,
+  blackspot,
 }: FloodTriggerFactorsCardProps) {
-  const [expanded, setExpanded] = useState(true);
+  const [expandedDetailId, setExpandedDetailId] = useState<string | null>(null);
 
-  // 1. C.13 Status (Chao Phraya Dam Release) - Strictly check null
-  const c13Status: "safe" | "watch" | "critical" | "unknown" =
-    c13Discharge === null || c13Discharge === undefined
-      ? "unknown"
-      : c13Discharge >= 2700
-        ? "critical"
-        : c13Discharge >= 2000
-          ? "watch"
-          : "safe";
+  // ─────────────────────────────────────────────────────────────
+  // 1. Local Water Station & Bank Overflow Status
+  // diffBankM: positive = below bank (safe), negative = overflow (critical)
+  // ─────────────────────────────────────────────────────────────
+  let localBankStatus: "safe" | "watch" | "critical" | "unknown" = "unknown";
+  let localBankStatusText = "ไม่มีข้อมูล";
+  let localBankStatusColor = "var(--color-text-muted)";
+  let localBankCurrentVal = "ไม่มีข้อมูลตรวจวัด";
+  let localBankMeter = 20;
 
-  // 2. Local Heavy Rain Status (24h)
-  const rainStatus: "safe" | "watch" | "critical" | "unknown" =
-    rain24hMm === null || rain24hMm === undefined
-      ? "unknown"
-      : rain24hMm >= 100
-        ? "critical"
-        : rain24hMm >= 35
-          ? "watch"
-          : "safe";
+  if (diffBankM !== null && diffBankM !== undefined) {
+    if (diffBankM < 0) {
+      localBankStatus = "critical";
+      localBankStatusText = `ล้นตลิ่ง +${Math.abs(diffBankM).toFixed(2)} ม.`;
+      localBankStatusColor = "var(--color-severe)";
+      localBankMeter = Math.min(100, 80 + Math.abs(diffBankM) * 15);
+    } else if (diffBankM < 0.5) {
+      localBankStatus = "watch";
+      localBankStatusText = `ปริ่มตลิ่ง (${diffBankM.toFixed(2)} ม.)`;
+      localBankStatusColor = "var(--color-watch)";
+      localBankMeter = 60 + ((0.5 - diffBankM) / 0.5) * 15;
+    } else {
+      localBankStatus = "safe";
+      localBankStatusText = `ต่ำกว่าตลิ่ง ${diffBankM.toFixed(2)} ม.`;
+      localBankStatusColor = "var(--color-low)";
+      localBankMeter = Math.max(10, 45 - Math.min(diffBankM, 3) * 10);
+    }
 
+    const waterStr =
+      localWaterLevelM !== null && localWaterLevelM !== undefined
+        ? `+${localWaterLevelM.toFixed(2)} ม.`
+        : "";
+    const bankStr =
+      bankLevelM !== null && bankLevelM !== undefined
+        ? ` (ตลิ่ง +${bankLevelM.toFixed(2)} ม.)`
+        : "";
+    const statusNote = diffBankText ? ` • ${diffBankText}` : "";
+    localBankCurrentVal = `${waterStr}${bankStr}${statusNote}`.trim();
+  } else if (waterLevelRisk !== null && waterLevelRisk !== undefined) {
+    if (waterLevelRisk >= 0.75) {
+      localBankStatus = "critical";
+      localBankStatusText = "ระดับน้ำวิกฤต";
+      localBankStatusColor = "var(--color-severe)";
+      localBankMeter = 85;
+    } else if (waterLevelRisk >= 0.5) {
+      localBankStatus = "watch";
+      localBankStatusText = "ระดับเฝ้าระวัง";
+      localBankStatusColor = "var(--color-watch)";
+      localBankMeter = 65;
+    } else {
+      localBankStatus = "safe";
+      localBankStatusText = "ระดับปกติ";
+      localBankStatusColor = "var(--color-low)";
+      localBankMeter = 25;
+    }
+    if (localWaterLevelM !== null && localWaterLevelM !== undefined) {
+      localBankCurrentVal = `+${localWaterLevelM.toFixed(2)} ม.รทก.`;
+    }
+  }
+
+  const formattedRiver = localRiverName
+    ? localRiverName.startsWith("คลอง") || localRiverName.startsWith("แม่น้ำ")
+      ? localRiverName
+      : `แม่น้ำ${localRiverName}`
+    : "ลำน้ำใกล้บ้าน";
+
+  const localBankFactor: TriggerFactor = {
+    id: "local_bank",
+    icon: "🌊",
+    name: `ระดับน้ำ${formattedRiver}`,
+    subtitle: localWaterStationName
+      ? `${localWaterStationName}${waterDistanceKm ? ` (${waterDistanceKm} กม.)` : ""}`
+      : "สถานีโทรมาตรใกล้บ้าน",
+    currentDisplay: localBankCurrentVal,
+    thresholdDisplay:
+      bankLevelM !== null && bankLevelM !== undefined
+        ? `เสมอสันตลิ่ง (+${bankLevelM.toFixed(2)} ม.)`
+        : "ระดับเสมอสันตลิ่ง",
+    status: localBankStatus,
+    statusText: localBankStatusText,
+    statusColor: localBankStatusColor,
+    impactExplanation:
+      diffBankM !== null && diffBankM !== undefined && diffBankM < 0
+        ? `ระดับน้ำสูงกว่าสันตลิ่ง ${Math.abs(diffBankM).toFixed(2)} ม. มวลน้ำเอ่อดันเข้าท่อระบายน้ำและทะลักท่วมพื้นที่ลุ่มต่ำทันที`
+        : "เมื่อน้ำสูงเกินสันตลิ่ง จะดันย้อนเข้าท่อระบายน้ำชุมชนโดยไม่ต้องรอน้ำเหนือหลาก",
+    isPriorityForZone: true,
+    meterPercent: localBankMeter,
+    safeZoneLabel: "ต่ำกว่าตลิ่ง >0.5 ม.",
+    watchZoneLabel: "เหลือ <0.5 ม.",
+    criticalZoneLabel: "ล้นตลิ่ง",
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 2. Local Heavy Rain Status
+  // ─────────────────────────────────────────────────────────────
+  const isRainBurst =
+    rainPeak1hMm !== null && rainPeak1hMm !== undefined && rainPeak1hMm >= 50;
+  const isRainBurstWatch =
+    rainPeak1hMm !== null && rainPeak1hMm !== undefined && rainPeak1hMm >= 25;
+
+  let rainStatus: "safe" | "watch" | "critical" | "unknown" = "unknown";
+  let rainMeter = 10;
+  if (rain24hMm !== null && rain24hMm !== undefined) {
+    if (rain24hMm >= 100 || isRainBurst) {
+      rainStatus = "critical";
+      rainMeter = 85;
+    } else if (rain24hMm >= 35 || isRainBurstWatch) {
+      rainStatus = "watch";
+      rainMeter = 60 + ((rain24hMm - 35) / 65) * 15;
+    } else {
+      rainStatus = "safe";
+      rainMeter = Math.max(10, (rain24hMm / 35) * 45);
+    }
+  }
+
+  const rainFactor: TriggerFactor = {
+    id: "rain",
+    icon: "🌧️",
+    name: "ฝนตกสะสม & ตกหนักเฉียบพลัน",
+    subtitle: "น้ำรอระบาย & ขังฉับพลัน",
+    currentDisplay:
+      rain24hMm !== null && rain24hMm !== undefined
+        ? `${rain24hMm.toFixed(1)} มม. (24 ชม.)${rainPeak1hMm ? ` • พีค ${rainPeak1hMm.toFixed(1)} มม./ชม.` : ""}`
+        : "ไม่มีข้อมูล",
+    thresholdDisplay: "> 100 มม. (หรือ > 50 มม./ชม.)",
+    status: rainStatus,
+    statusText:
+      rainStatus === "critical"
+        ? isRainBurst
+          ? "ฝนหนักฉับพลัน"
+          : "ฝนสะสมวิกฤต"
+        : rainStatus === "watch"
+          ? "เฝ้าระวัง"
+          : rainStatus === "safe"
+            ? "ปกติ"
+            : "ไม่มีข้อมูล",
+    statusColor:
+      rainStatus === "critical"
+        ? "var(--color-severe)"
+        : rainStatus === "watch"
+          ? "var(--color-watch)"
+          : rainStatus === "safe"
+            ? "var(--color-low)"
+            : "var(--color-text-muted)",
+    impactExplanation:
+      "ฝนตกหนักเกิน 100 มม. ใน 24 ชม. หรือเกิน 50 มม./ชม. ระบบท่อระบายน้ำเมืองจะระบายไม่ทันและเอ่อท่วมผิวจราจรและพื้นบ้านทันที",
+    isPriorityForZone: zone === "bangkok_urban",
+    meterPercent: rainMeter,
+    safeZoneLabel: "< 35 มม.",
+    watchZoneLabel: "35–100 มม.",
+    criticalZoneLabel: "> 100 มม.",
+  };
+
+  // ─────────────────────────────────────────────────────────────
   // 3. Elevation Margin Status (Ground vs Water Level)
+  // ─────────────────────────────────────────────────────────────
   const marginStatus: "safe" | "watch" | "critical" | "unknown" =
     elevationMarginM === null || elevationMarginM === undefined
       ? "unknown"
@@ -62,7 +249,167 @@ export function FloodTriggerFactorsCard({
           ? "watch"
           : "safe";
 
-  // 4. C.2 Runoff Status (Nakhon Sawan)
+  let marginMeter = 25;
+  if (elevationMarginM !== null && elevationMarginM !== undefined) {
+    if (elevationMarginM <= 0.3) {
+      marginMeter = 90;
+    } else if (elevationMarginM <= 1.5) {
+      marginMeter = 65;
+    } else {
+      marginMeter = Math.max(15, 45 - (elevationMarginM - 1.5) * 8);
+    }
+  }
+
+  const marginFactor: TriggerFactor = {
+    id: "margin",
+    icon: "🏠",
+    name: "ระดับผิวน้ำเทียบพื้นดินบ้าน (Freeboard)",
+    subtitle: "ระยะปลอดภัยจากระดับน้ำถึงพื้นดิน",
+    currentDisplay:
+      elevationMarginM !== null && elevationMarginM !== undefined
+        ? `${elevationMarginM > 0 ? "+" : ""}${elevationMarginM.toFixed(2)} ม.`
+        : "ไม่มีข้อมูล",
+    thresholdDisplay: "ผิวน้ำเสมอพื้น (ระยะ ≤ 0.3 ม.)",
+    status: marginStatus,
+    statusText:
+      marginStatus === "critical"
+        ? "ผิวน้ำเสมอพื้นดิน"
+        : marginStatus === "watch"
+          ? "ระยะปลอดภัยต่ำ"
+          : marginStatus === "safe"
+            ? "ปลอดภัย"
+            : "ไม่มีข้อมูล",
+    statusColor:
+      marginStatus === "critical"
+        ? "var(--color-severe)"
+        : marginStatus === "watch"
+          ? "var(--color-watch)"
+          : marginStatus === "safe"
+            ? "var(--color-low)"
+            : "var(--color-text-muted)",
+    impactExplanation:
+      "เมื่อระยะห่างระหว่างระดับน้ำและพื้นดินเหลือน้อยกว่า 30 ซม. คลื่นน้ำหรือน้ำหนุนจะดันล้นเข้าตัวบ้านได้ง่าย",
+    meterPercent: marginMeter,
+    safeZoneLabel: "> 1.5 ม.",
+    watchZoneLabel: "0.3–1.5 ม.",
+    criticalZoneLabel: "≤ 0.3 ม.",
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 4. Estuarine High Tide Status
+  // ─────────────────────────────────────────────────────────────
+  let tideStatus: "safe" | "watch" | "critical" | "unknown" = "unknown";
+  let tideStatusText = "ไม่มีข้อมูล";
+  let tideStatusColor = "var(--color-text-muted)";
+  let tideCurrentVal = "ไม่มีข้อมูล";
+  let tideMeter = 20;
+
+  if (tide) {
+    if (tide.isHighTideAlert) {
+      tideStatus = "critical";
+      tideStatusText = "หนุนสูงวิกฤต";
+      tideStatusColor = "var(--color-severe)";
+      tideMeter = 88;
+    } else if (tide.tideRisk >= 0.4 || tide.astronomicalLevelM >= 1.4) {
+      tideStatus = "watch";
+      tideStatusText = "หนุนปานกลาง";
+      tideStatusColor = "var(--color-watch)";
+      tideMeter = 62;
+    } else {
+      tideStatus = "safe";
+      tideStatusText = "ปกติ";
+      tideStatusColor = "var(--color-low)";
+      tideMeter = 28;
+    }
+    tideCurrentVal = `+${tide.astronomicalLevelM.toFixed(2)} ม.รทก. (${tide.phaseLabel})`;
+  }
+
+  const tideFactor: TriggerFactor = {
+    id: "tide",
+    icon: "🌊",
+    name: "สภาวะน้ำทะเลหนุนสูง (Tide Surge)",
+    subtitle: "อิทธิพลน้ำทะเลหนุนปากแม่น้ำ",
+    currentDisplay: tideCurrentVal,
+    thresholdDisplay: "> +1.80 ม.รทก.",
+    status: tideStatus,
+    statusText: tideStatusText,
+    statusColor: tideStatusColor,
+    impactExplanation:
+      "น้ำทะเลหนุนสูงจะดันปิดปากแม่น้ำเจ้าพระยา ทำให้ระบายน้ำช้าลง และดันน้ำในคลองระบายน้ำให้สูงขึ้นตาม",
+    isPriorityForZone: zone === "bangkok_urban",
+    meterPercent: tideMeter,
+    safeZoneLabel: "< 1.4 ม.",
+    watchZoneLabel: "1.4–1.8 ม.",
+    criticalZoneLabel: "> 1.8 ม.",
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 5. C.13 Status (Chao Phraya Dam Release)
+  // ─────────────────────────────────────────────────────────────
+  const c13Status: "safe" | "watch" | "critical" | "unknown" =
+    c13Discharge === null || c13Discharge === undefined
+      ? "unknown"
+      : c13Discharge >= 2700
+        ? "critical"
+        : c13Discharge >= 2000
+          ? "watch"
+          : "safe";
+
+  let c13Meter = 20;
+  if (c13Discharge !== null && c13Discharge !== undefined) {
+    if (c13Discharge >= 2700) {
+      c13Meter = Math.min(100, 80 + ((c13Discharge - 2700) / 800) * 20);
+    } else if (c13Discharge >= 2000) {
+      c13Meter = 55 + ((c13Discharge - 2000) / 700) * 20;
+    } else {
+      c13Meter = Math.max(10, (c13Discharge / 2000) * 45);
+    }
+  }
+
+  const isUrbanBkk = zone === "bangkok_urban";
+
+  const c13Factor: TriggerFactor = {
+    id: "c13",
+    icon: "⚡",
+    name: isUrbanBkk
+      ? "เขื่อนเจ้าพระยาระบายน้ำ (C.13)"
+      : "ระบายน้ำเขื่อนเจ้าพระยา (C.13)",
+    subtitle: isUrbanBkk ? "น้ำเหนือนอกคันกั้นน้ำ" : "จุดชี้ชะตาน้ำหลากภาคกลาง",
+    currentDisplay:
+      c13Discharge !== null && c13Discharge !== undefined
+        ? `${c13Discharge.toLocaleString()} ลบ.ม./วิ`
+        : "ไม่มีข้อมูล",
+    thresholdDisplay: "> 2,700 ลบ.ม./วินาที",
+    status: c13Status,
+    statusText:
+      c13Status === "critical"
+        ? "วิกฤตเกินเกณฑ์"
+        : c13Status === "watch"
+          ? "เฝ้าระวัง"
+          : c13Status === "safe"
+            ? "ปกติ"
+            : "ไม่มีข้อมูล",
+    statusColor:
+      c13Status === "critical"
+        ? "var(--color-severe)"
+        : c13Status === "watch"
+          ? "var(--color-watch)"
+          : c13Status === "safe"
+            ? "var(--color-low)"
+            : "var(--color-text-muted)",
+    impactExplanation: isUrbanBkk
+      ? "กทม. มีคันกั้นน้ำรองรับได้ถึง 2,500–2,800 ลบ.ม./วิ หากเกิน 2,700 ลบ.ม./วิ ชุมชนนอกคันจะเริ่มได้รับผลกระทบ"
+      : "หากระบายเกิน 2,700 ลบ.ม./วิ พื้นที่ลุ่มต่ำ ชัยนาท สิงห์บุรี อ่างทอง อยุธยา จะเริ่มมีน้ำล้นตลิ่ง",
+    isPriorityForZone: zone === "chao_phraya_valley",
+    meterPercent: c13Meter,
+    safeZoneLabel: "< 2,000",
+    watchZoneLabel: "2,000–2,700",
+    criticalZoneLabel: "> 2,700",
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 6. C.2 Runoff Status (Nakhon Sawan)
+  // ─────────────────────────────────────────────────────────────
   const c2Status: "safe" | "watch" | "critical" | "unknown" =
     c2Discharge === null || c2Discharge === undefined
       ? "unknown"
@@ -72,7 +419,56 @@ export function FloodTriggerFactorsCard({
           ? "watch"
           : "safe";
 
-  // 5. Dam Storage Status
+  let c2Meter = 20;
+  if (c2Discharge !== null && c2Discharge !== undefined) {
+    if (c2Discharge >= 3500) {
+      c2Meter = Math.min(100, 80 + ((c2Discharge - 3500) / 1000) * 20);
+    } else if (c2Discharge >= 2500) {
+      c2Meter = 55 + ((c2Discharge - 2500) / 1000) * 20;
+    } else {
+      c2Meter = Math.max(10, (c2Discharge / 2500) * 45);
+    }
+  }
+
+  const c2Factor: TriggerFactor = {
+    id: "c2",
+    icon: "🏔️",
+    name: "น้ำหลากนครสวรรค์ (C.2)",
+    subtitle: "มวลน้ำเหนือก่อนถึงเขื่อน",
+    currentDisplay:
+      c2Discharge !== null && c2Discharge !== undefined
+        ? `${c2Discharge.toLocaleString()} ลบ.ม./วิ`
+        : "ไม่มีข้อมูล",
+    thresholdDisplay: "> 3,500 ลบ.ม./วินาที",
+    status: c2Status,
+    statusText:
+      c2Status === "critical"
+        ? "มวลน้ำเหนือวิกฤต"
+        : c2Status === "watch"
+          ? "น้ำหลากปานกลาง"
+          : c2Status === "safe"
+            ? "ปกติ"
+            : "ไม่มีข้อมูล",
+    statusColor:
+      c2Status === "critical"
+        ? "var(--color-severe)"
+        : c2Status === "watch"
+          ? "var(--color-watch)"
+          : c2Status === "safe"
+            ? "var(--color-low)"
+            : "var(--color-text-muted)",
+    impactExplanation:
+      "เตือนล่วงหน้า 2–4 วัน หากน้ำผ่านนครสวรรค์เกิน 3,500 ลบ.ม./วิ เขื่อนเจ้าพระยาจะต้องเร่งระบายน้ำเพิ่มตามมา",
+    isPriorityForZone: zone === "chao_phraya_valley",
+    meterPercent: c2Meter,
+    safeZoneLabel: "< 2,500",
+    watchZoneLabel: "2,500–3,500",
+    criticalZoneLabel: "> 3,500",
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 7. Dam Storage Status
+  // ─────────────────────────────────────────────────────────────
   const damStatus: "safe" | "watch" | "critical" | "unknown" =
     reservoirPercent === null || reservoirPercent === undefined
       ? "unknown"
@@ -82,519 +478,532 @@ export function FloodTriggerFactorsCard({
           ? "watch"
           : "safe";
 
-  const factors: TriggerFactor[] = [
-    {
-      id: "c13",
-      icon: "🌊",
-      name: "เขื่อนเจ้าพระยาระบายน้ำวิกฤต (C.13)",
-      subtitle: "หัวใจหลักชี้ชะตาน้ำล้นตลิ่งภาคกลาง",
-      criticalThreshold: "> 2,700 – 3,500 ลบ.ม./วินาที",
-      currentValue:
-        c13Discharge !== null && c13Discharge !== undefined
-          ? `${c13Discharge.toLocaleString()} ลบ.ม./วินาที`
-          : "ไม่มีข้อมูลตรวจวัด",
-      status: c13Status,
-      statusText:
-        c13Status === "critical"
-          ? "🚨 วิกฤตเกินเกณฑ์"
-          : c13Status === "watch"
-            ? "⚠️ ระดับเฝ้าระวัง"
-            : c13Status === "safe"
-              ? "🟢 ปลอดภัย"
-              : "⚪ ไม่มีข้อมูลสถานี",
-      statusColor:
-        c13Status === "critical"
-          ? "var(--color-severe)"
-          : c13Status === "watch"
-            ? "var(--color-watch)"
-            : c13Status === "safe"
-              ? "var(--color-low)"
-              : "var(--color-text-muted)",
-      impactExplanation:
-        "หากระบายเกิน 2,700 ลบ.ม./วิ พื้นที่นอกคันกั้นน้ำจะเริ่มท่วม และหากแตะ 3,500 ลบ.ม./วิ มวลน้ำจะเอ่อล้นเข้าท่วมพื้นที่ลุ่มต่ำ ชัยนาท สิงห์บุรี อ่างทอง อยุธยา ปทุมฯ นนทบุรี กทม.",
-    },
-    {
-      id: "rain",
-      icon: "🌧️",
-      name: "ฝนตกหนักแช่ขังในพื้นที่ (Local Rain)",
-      subtitle: "น้ำรอระบายและน้ำท่วมขังฉับพลัน",
-      criticalThreshold: "ฝนสะสม > 100 – 150 มม./24 ชม.",
-      currentValue:
-        rain24hMm !== null && rain24hMm !== undefined
-          ? `${rain24hMm.toFixed(1)} มม. (24 ชม.)`
-          : "ไม่มีข้อมูลตรวจวัด",
-      status: rainStatus,
-      statusText:
-        rainStatus === "critical"
-          ? "🚨 ฝนตกหนักวิกฤต"
-          : rainStatus === "watch"
-            ? "⚠️ มีฝนปานกลาง"
-            : rainStatus === "safe"
-              ? "🟢 ฝนน้อย/ไม่มี"
-              : "⚪ ไม่มีข้อมูลสถานี",
-      statusColor:
-        rainStatus === "critical"
-          ? "var(--color-severe)"
-          : rainStatus === "watch"
-            ? "var(--color-watch)"
-            : rainStatus === "safe"
-              ? "var(--color-low)"
-              : "var(--color-text-muted)",
-      impactExplanation:
-        "แม้แม่น้ำจะไม่ล้นตลิ่ง แต่ถ้ามีฝนตกหนักเกิน 100 มม. แช่ขังในพื้นที่ ท่อระบายน้ำเมืองและเครื่องสูบน้ำจะระบายไม่ทัน ทำให้เกิดน้ำท่วมขังถึงพื้นบ้านทันที",
-    },
-    {
-      id: "margin",
-      icon: "🏠",
-      name: "ระดับผิวน้ำเทียบระดับพื้นดินบ้าน (Freeboard)",
-      subtitle: "ความสูงต่างระหว่างผิวน้ำแม่น้ำกับระดับดินบ้านคุณ",
-      criticalThreshold: "ผิวน้ำเสมอพื้น (≤ 0.00 ม.)",
-      currentValue:
-        elevationMarginM !== null && elevationMarginM !== undefined
-          ? elevationMarginM > 0
-            ? `+${elevationMarginM.toFixed(2)} ม.`
-            : `${elevationMarginM.toFixed(2)} ม.`
-          : "ไม่มีข้อมูลความสูง",
-      status: marginStatus,
-      statusText:
-        marginStatus === "critical"
-          ? "🚨 ผิวน้ำสูงกว่าพื้นดิน"
-          : marginStatus === "watch"
-            ? "⚠️ ระยะปลอดภัยต่ำ"
-            : marginStatus === "safe"
-              ? "🟢 พื้นดินสูงกว่าน้ำ"
-              : "⚪ ไม่มีข้อมูล",
-      statusColor:
-        marginStatus === "critical"
-          ? "var(--color-severe)"
-          : marginStatus === "watch"
-            ? "var(--color-watch)"
-            : marginStatus === "safe"
-              ? "var(--color-low)"
-              : "var(--color-text-muted)",
-      impactExplanation:
-        "หากผิวน้ำสูงกว่าระดับดิน (Margin ติดลบ) จะท่วมทันทีหากอยู่นอกคันกั้นน้ำ ส่วนในคันกั้นน้ำต้องระวังน้ำดันย้อนท่อระบายน้ำ",
-    },
-    {
-      id: "c2",
-      icon: "🏔️",
-      name: "น้ำหลากจากนครสวรรค์ (C.2)",
-      subtitle: "มวลน้ำเหนือก่อนไหลเข้าสู่เขื่อนเจ้าพระยา",
-      criticalThreshold: "> 3,500 – 4,000 ลบ.ม./วินาที",
-      currentValue:
-        c2Discharge !== null && c2Discharge !== undefined
-          ? `${c2Discharge.toLocaleString()} ลบ.ม./วินาที`
-          : "ไม่มีข้อมูลตรวจวัด",
-      status: c2Status,
-      statusText:
-        c2Status === "critical"
-          ? "🚨 มวลน้ำเหนือวิกฤต"
-          : c2Status === "watch"
-            ? "⚠️ น้ำหลากปานกลาง"
-            : c2Status === "safe"
-              ? "🟢 ปลอดภัย"
-              : "⚪ ไม่มีข้อมูลสถานี",
-      statusColor:
-        c2Status === "critical"
-          ? "var(--color-severe)"
-          : c2Status === "watch"
-            ? "var(--color-watch)"
-            : c2Status === "safe"
-              ? "var(--color-low)"
-              : "var(--color-text-muted)",
-      impactExplanation:
-        "เป็นสัญญาณเตือนภัยล่วงหน้า 2–4 วัน ถ้าน้ำผ่านนครสวรรค์เกิน 3,500 ลบ.ม./วิ เขื่อนเจ้าพระยาจะถูกบีบให้ต้องเร่งระบายน้ำเพิ่มขึ้นอย่างหลีกเลี่ยงไม่ได้",
-    },
-    {
-      id: "dam",
-      icon: "🏞️",
-      name: "ปริมาตรน้ำเขื่อนหลักลุ่มเจ้าพระยา",
-      subtitle: "เขื่อนภูมิพล สิริกิติ์ แควน้อย ป่าสักฯ",
-      criticalThreshold: "กักเก็บเกิน > 85% – 90% ของความจุ",
-      currentValue:
-        reservoirPercent !== null && reservoirPercent !== undefined
-          ? `${reservoirPercent.toFixed(1)}% ของความจุ (เฉพาะเขื่อนที่รายงาน)`
-          : "ไม่มีข้อมูลตรวจวัด",
-      status: damStatus,
-      statusText:
-        damStatus === "critical"
-          ? "🚨 เขื่อนเต็มความจุ"
-          : damStatus === "watch"
-            ? "⚠️ กักเก็บค่อนข้างสูง"
-            : damStatus === "safe"
-              ? "🟢 ยังรองรับน้ำได้"
-              : "⚪ ไม่มีข้อมูลเขื่อน",
-      statusColor:
-        damStatus === "critical"
-          ? "var(--color-severe)"
-          : damStatus === "watch"
-            ? "var(--color-watch)"
-            : damStatus === "safe"
-              ? "var(--color-low)"
-              : "var(--color-text-muted)",
-      impactExplanation:
-        "เมื่อเขื่อนหลักเต็มความจุ เขื่อนจะไม่สามารถช่วยหน่วงน้ำเหนือได้อีกต่อไป และจำเป็นต้องระบายน้ำออกตามธรรมชาติ ทำให้มวลน้ำทั้งหมดไหลเทลงมาพร้อมกัน",
-    },
-  ];
+  let damMeter = 20;
+  if (reservoirPercent !== null && reservoirPercent !== undefined) {
+    damMeter = Math.min(100, Math.max(5, reservoirPercent));
+  }
 
-  const criticalCount = factors.filter((f) => f.status === "critical").length;
+  const damFactor: TriggerFactor = {
+    id: "dam",
+    icon: "🏞️",
+    name: "น้ำในเขื่อนหลักลุ่มเจ้าพระยา",
+    subtitle: "ความจุกักเก็บเฉลี่ย",
+    currentDisplay:
+      reservoirPercent !== null && reservoirPercent !== undefined
+        ? `${reservoirPercent.toFixed(1)}%`
+        : "ไม่มีข้อมูล",
+    thresholdDisplay: "> 85% – 90% ของความจุ",
+    status: damStatus,
+    statusText:
+      damStatus === "critical"
+        ? "เขื่อนใกล้เต็ม"
+        : damStatus === "watch"
+          ? "กักเก็บสูง"
+          : damStatus === "safe"
+            ? "รับน้ำได้"
+            : "ไม่มีข้อมูล",
+    statusColor:
+      damStatus === "critical"
+        ? "var(--color-severe)"
+        : damStatus === "watch"
+          ? "var(--color-watch)"
+          : damStatus === "safe"
+            ? "var(--color-low)"
+            : "var(--color-text-muted)",
+    impactExplanation:
+      "เมื่อเขื่อนหลักใกล้เต็มความจุ จะไม่สามารถหน่วงน้ำได้อีก และต้องระบายน้ำออกตามธรรมชาติ",
+    meterPercent: damMeter,
+    safeZoneLabel: "< 80%",
+    watchZoneLabel: "80–90%",
+    criticalZoneLabel: "> 90%",
+  };
+
+  // Order factors based on zone
+  let factors: TriggerFactor[] = [];
+  if (zone === "bangkok_urban") {
+    factors = [
+      localBankFactor,
+      rainFactor,
+      marginFactor,
+      tideFactor,
+      c13Factor,
+      damFactor,
+    ];
+  } else if (zone === "chao_phraya_valley") {
+    factors = [
+      c13Factor,
+      localBankFactor,
+      c2Factor,
+      marginFactor,
+      damFactor,
+      rainFactor,
+    ];
+  } else {
+    factors = [
+      localBankFactor,
+      rainFactor,
+      marginFactor,
+      c13Factor,
+      c2Factor,
+      damFactor,
+    ];
+  }
+
+  const criticalFactors = factors.filter((f) => f.status === "critical");
+  const criticalCount = criticalFactors.length;
   const watchCount = factors.filter((f) => f.status === "watch").length;
   const safeCount = factors.filter((f) => f.status === "safe").length;
   const unknownCount = factors.filter((f) => f.status === "unknown").length;
 
+  // The Big 3 Disaster Formula components
+  const big3 = [
+    {
+      label: "น้ำเหนือ (C.13)",
+      icon: "🏔️",
+      val: c13Discharge ? `${c13Discharge.toLocaleString()} ลบ.ม.` : "ปกติ",
+      status: c13Status,
+      isTriggered: c13Status === "critical",
+    },
+    {
+      label: "น้ำฝนสะสม",
+      icon: "🌧️",
+      val: rain24hMm ? `${rain24hMm.toFixed(1)} มม.` : "ปกติ",
+      status: rainStatus,
+      isTriggered: rainStatus === "critical",
+    },
+    {
+      label: "น้ำหนุนสูง",
+      icon: "🌊",
+      val: tide ? `+${tide.astronomicalLevelM.toFixed(2)} ม.` : "ปกติ",
+      status: tideStatus,
+      isTriggered: tideStatus === "critical",
+    },
+  ];
+  const big3TriggerCount = big3.filter((b) => b.isTriggered).length;
+
   return (
     <div
-      className="card"
       style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "16px",
         marginBottom: "16px",
-        background: "var(--color-surface)",
-        border:
-          criticalCount >= 2
-            ? "2px solid var(--color-severe)"
-            : criticalCount === 1
-              ? "1px solid var(--color-high)"
-              : "1px solid var(--color-border)",
-        borderRadius: "12px",
-        overflow: "hidden",
       }}
     >
-      {/* ── Card Header ────────────────────────────────────────── */}
+      {/* ── 1. The Big 3 Disaster Formula Infographic ─────────────── */}
       <div
+        className="card"
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "12px",
-          gap: "8px",
-        }}
-      >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <span style={{ fontSize: "1.1rem" }}>🚨</span>
-            <h2
-              style={{
-                fontSize: "0.95rem",
-                fontWeight: 700,
-                color: "var(--color-text-primary)",
-                margin: 0,
-              }}
-            >
-              สัญญาณวิกฤต: ปัจจัยที่ทำให้น้ำท่วมถึงบ้านคุณ
-            </h2>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setExpanded(!expanded)}
-          style={{
-            background: "transparent",
-            border: "none",
-            color: "var(--color-text-muted)",
-            fontSize: "0.8rem",
-            cursor: "pointer",
-            padding: "4px 8px",
-          }}
-          aria-label="ย่อขยาย"
-        >
-          {expanded ? "ย่อ ▲" : "ดูรายละเอียด ▼"}
-        </button>
-      </div>
-
-      {/* ── Summary Gauge ──────────────────────────────────────── */}
-      <div
-        style={{
-          background:
-            criticalCount >= 2
-              ? "rgba(220, 38, 38, 0.08)"
-              : criticalCount === 1
-                ? "rgba(234, 88, 12, 0.06)"
-                : unknownCount === 5
-                  ? "rgba(148, 163, 184, 0.08)"
-                  : "rgba(16, 185, 129, 0.06)",
-          borderRadius: "12px",
-          padding: "14px 16px",
-          marginBottom: "14px",
+          background: "var(--color-surface)",
           border:
-            criticalCount >= 2
+            big3TriggerCount >= 2
               ? "2px solid var(--color-severe)"
-              : criticalCount === 1
-                ? "1.5px solid var(--color-high)"
-                : unknownCount === 5
-                  ? "1px solid var(--color-border)"
-                  : "1px solid var(--color-low-border)",
+              : "1px solid var(--color-border)",
+          borderRadius: "16px",
+          padding: "16px",
+          boxShadow: "var(--shadow-sm)",
         }}
       >
-        {/* Top Status Headline */}
-        <div style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
-          <span style={{ fontSize: "1.45rem", lineHeight: 1 }}>
-            {criticalCount >= 2
-              ? "🔴"
-              : criticalCount === 1
-                ? "🟠"
-                : unknownCount === 5
-                  ? "⚪"
-                  : "🟢"}
-          </span>
-          <div style={{ flex: 1 }}>
-            <div
-              style={{
-                fontSize: "0.92rem",
-                fontWeight: 750,
-                color:
-                  criticalCount >= 2
-                    ? "var(--color-severe)"
-                    : criticalCount === 1
-                      ? "var(--color-high)"
-                      : unknownCount === 5
-                        ? "var(--color-text-muted)"
-                        : "var(--color-low)",
-                lineHeight: 1.35,
-              }}
-            >
-              {criticalCount >= 2
-                ? `เข้าเกณฑ์อันตรายแล้ว ${criticalCount} จาก 5 ปัจจัย!`
-                : criticalCount === 1
-                  ? `เข้าเกณฑ์อันตราย 1 ปัจจัย (เฝ้าระวัง ${watchCount}${unknownCount > 0 ? `, ไม่มีข้อมูล ${unknownCount}` : ""})`
-                  : unknownCount === 5
-                    ? "รอข้อมูลตรวจวัดจากสถานี (ไม่มีข้อมูลล่าสุด)"
-                    : `ปัจจุบันเข้าเกณฑ์อันตราย 0 จาก 5 ปัจจัย${unknownCount > 0 ? ` (ไม่มีข้อมูล ${unknownCount} ปัจจัย)` : " (ยังปลอดภัย)"}`}
-            </div>
-            <div
-              style={{
-                fontSize: "0.72rem",
-                color: "var(--color-text-secondary)",
-                marginTop: "3px",
-                lineHeight: 1.4,
-              }}
-            >
-              {criticalCount >= 1
-                ? "มีปัจจัยเสี่ยงเริ่มตรงตามเงื่อนไข ควรติดตามระดับน้ำอย่างใกล้ชิด"
-                : unknownCount > 0
-                  ? `มี ${unknownCount} ปัจจัยที่ยังไม่มีรายงานตรวจวัดล่าสุดจากสถานี/หน่วยงาน`
-                  : "สถานการณ์น้ำขณะนี้ยังอยู่ในเกณฑ์ที่ระบบชลประทานควบคุมได้"}
-            </div>
-          </div>
-        </div>
-
-        {/* Big & Prominent Counters: เฝ้าระวัง X / วิกฤต X */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "10px",
-            marginTop: "12px",
-          }}
-        >
-          {/* Card: เฝ้าระวัง */}
-          <div
-            style={{
-              background: "var(--color-surface)",
-              border:
-                watchCount > 0
-                  ? "2px solid var(--color-watch)"
-                  : "1px solid var(--color-border)",
-              borderRadius: "10px",
-              padding: "10px 14px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              boxShadow:
-                watchCount > 0 ? "0 2px 8px rgba(217, 119, 6, 0.15)" : "none",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                  color: "var(--color-watch)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
-                <span>⚠️</span>
-                <span>เฝ้าระวัง</span>
-              </div>
-              <div
-                style={{
-                  fontSize: "0.64rem",
-                  color: "var(--color-text-muted)",
-                  marginTop: "2px",
-                }}
-              >
-                ใกล้จุดอันตราย
-              </div>
-            </div>
-
-            <div
-              style={{ display: "flex", alignItems: "baseline", gap: "3px" }}
-            >
-              <span
-                style={{
-                  fontSize: "1.85rem",
-                  fontWeight: 800,
-                  color: "var(--color-watch)",
-                  lineHeight: 1,
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {watchCount}
-              </span>
-              <span
-                style={{
-                  fontSize: "0.68rem",
-                  fontWeight: 600,
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                ปัจจัย
-              </span>
-            </div>
-          </div>
-
-          {/* Card: วิกฤต */}
-          <div
-            style={{
-              background: "var(--color-surface)",
-              border:
-                criticalCount > 0
-                  ? "2px solid var(--color-severe)"
-                  : "1px solid var(--color-border)",
-              borderRadius: "10px",
-              padding: "10px 14px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              boxShadow:
-                criticalCount > 0
-                  ? "0 2px 8px rgba(220, 38, 38, 0.15)"
-                  : "none",
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 700,
-                  color: "var(--color-severe)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
-                <span>🚨</span>
-                <span>วิกฤต</span>
-              </div>
-              <div
-                style={{
-                  fontSize: "0.64rem",
-                  color: "var(--color-text-muted)",
-                  marginTop: "2px",
-                }}
-              >
-                แตะเกณฑ์น้ำท่วม
-              </div>
-            </div>
-
-            <div
-              style={{ display: "flex", alignItems: "baseline", gap: "3px" }}
-            >
-              <span
-                style={{
-                  fontSize: "1.85rem",
-                  fontWeight: 800,
-                  color: "var(--color-severe)",
-                  lineHeight: 1,
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
-                {criticalCount}
-              </span>
-              <span
-                style={{
-                  fontSize: "0.68rem",
-                  fontWeight: 600,
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                ปัจจัย
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Subtle Bottom Indicators */}
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginTop: "10px",
-            paddingTop: "8px",
-            borderTop: "1px dashed rgba(0, 0, 0, 0.08)",
-            fontSize: "0.7rem",
-            color: "var(--color-text-secondary)",
+            marginBottom: "12px",
           }}
         >
-          <span style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <span style={{ fontSize: "1.2rem" }}>⚡</span>
+            <div>
+              <div
+                style={{
+                  fontSize: "0.88rem",
+                  fontWeight: 700,
+                  color: "var(--color-text-primary)",
+                }}
+              >
+                ผัง 3 ปัจจัยมหาอุทกภัย (The Big 3 Synergy)
+              </div>
+              <div
+                style={{ fontSize: "0.7rem", color: "var(--color-text-muted)" }}
+              >
+                จุดเสี่ยงสูงสุดเมื่อทั้ง 3 ปัจจัยมาบรรจบพร้อมกัน
+              </div>
+            </div>
+          </div>
+
+          <span
+            style={{
+              fontSize: "0.72rem",
+              fontWeight: 700,
+              padding: "3px 8px",
+              borderRadius: "999px",
+              background:
+                big3TriggerCount >= 2
+                  ? "var(--color-severe-bg)"
+                  : big3TriggerCount === 1
+                    ? "var(--color-watch-bg)"
+                    : "var(--color-low-bg)",
+              color:
+                big3TriggerCount >= 2
+                  ? "var(--color-severe)"
+                  : big3TriggerCount === 1
+                    ? "var(--color-watch)"
+                    : "var(--color-low)",
+              border: `1px solid ${
+                big3TriggerCount >= 2
+                  ? "var(--color-severe-border)"
+                  : big3TriggerCount === 1
+                    ? "var(--color-watch-border)"
+                    : "var(--color-low-border)"
+              }`,
+            }}
+          >
+            {big3TriggerCount >= 2
+              ? "🚨 วิกฤตซ้อน"
+              : big3TriggerCount === 1
+                ? "⚠️ เฝ้าระวัง 1 ปัจจัย"
+                : "🟢 สภาวะปกติ"}
+          </span>
+        </div>
+
+        {/* 3 Pillars Grid Infographic */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "8px",
+            background: "var(--color-surface-2)",
+            padding: "10px",
+            borderRadius: "12px",
+          }}
+        >
+          {big3.map((item, idx) => (
+            <div
+              key={idx}
+              style={{
+                background: "var(--color-surface)",
+                borderRadius: "10px",
+                padding: "8px 6px",
+                textAlign: "center",
+                border: item.isTriggered
+                  ? "1.5px solid var(--color-severe)"
+                  : item.status === "watch"
+                    ? "1.5px solid var(--color-watch)"
+                    : "1px solid var(--color-border)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "2px",
+              }}
+            >
+              <span style={{ fontSize: "1.2rem" }}>{item.icon}</span>
+              <span
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  color: "var(--color-text-secondary)",
+                }}
+              >
+                {item.label}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.75rem",
+                  fontWeight: 700,
+                  color: item.isTriggered
+                    ? "var(--color-severe)"
+                    : item.status === "watch"
+                      ? "var(--color-watch)"
+                      : "var(--color-text-primary)",
+                }}
+              >
+                {item.val}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 700,
+                  color: item.isTriggered
+                    ? "var(--color-severe)"
+                    : item.status === "watch"
+                      ? "var(--color-watch)"
+                      : "var(--color-low)",
+                  marginTop: "2px",
+                }}
+              >
+                {item.isTriggered
+                  ? "🔴 วิกฤต"
+                  : item.status === "watch"
+                    ? "🟡 เฝ้าระวัง"
+                    : "🟢 ปกติ"}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Convergence Indicator Bar */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: "10px",
+            padding: "6px 10px",
+            borderRadius: "8px",
+            background:
+              big3TriggerCount >= 2
+                ? "rgba(220, 38, 38, 0.08)"
+                : "rgba(0, 0, 0, 0.02)",
+            fontSize: "0.74rem",
+          }}
+        >
+          <span style={{ color: "var(--color-text-muted)" }}>
+            ระดับการบรรจบ:
+          </span>
+          <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
             <span
               style={{
-                width: "7px",
-                height: "7px",
+                width: "8px",
+                height: "8px",
                 borderRadius: "50%",
-                background: "var(--color-low)",
-                display: "inline-block",
+                background:
+                  big3TriggerCount >= 1
+                    ? "var(--color-watch)"
+                    : "var(--color-border)",
               }}
             />
-            <span>
-              ปกติ / ปลอดภัย <strong>{safeCount}</strong> ปัจจัย
+            <span
+              style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background:
+                  big3TriggerCount >= 2
+                    ? "var(--color-severe)"
+                    : "var(--color-border)",
+              }}
+            />
+            <span
+              style={{
+                width: "8px",
+                height: "8px",
+                borderRadius: "50%",
+                background:
+                  big3TriggerCount >= 3
+                    ? "var(--color-severe)"
+                    : "var(--color-border)",
+              }}
+            />
+            <span
+              style={{
+                fontWeight: 700,
+                color:
+                  big3TriggerCount >= 2
+                    ? "var(--color-severe)"
+                    : big3TriggerCount === 1
+                      ? "var(--color-watch)"
+                      : "var(--color-low)",
+                marginLeft: "4px",
+              }}
+            >
+              {big3TriggerCount}/3 ปัจจัยวิกฤต
             </span>
-          </span>
-
-          {unknownCount > 0 && (
-            <span style={{ color: "var(--color-text-muted)" }}>
-              รอข้อมูลสถานี {unknownCount} ปัจจัย
-            </span>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* ── Factors List ───────────────────────────────────────── */}
-      {expanded && (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-          {factors.map((factor) => (
+      {/* ── 2. Summary Status Vitals ────────────────────────────── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gap: "8px",
+        }}
+      >
+        <div
+          style={{
+            background: "var(--color-surface)",
+            borderRadius: "12px",
+            padding: "10px 12px",
+            border: "1px solid var(--color-border)",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.68rem",
+              color: "var(--color-low)",
+              fontWeight: 700,
+            }}
+          >
+            🟢 ปกติ
+          </div>
+          <div
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 800,
+              color: "var(--color-low)",
+              lineHeight: 1.2,
+            }}
+          >
+            {safeCount}
+          </div>
+          <div
+            style={{ fontSize: "0.62rem", color: "var(--color-text-muted)" }}
+          >
+            ปัจจัยปลอดภัย
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "var(--color-surface)",
+            borderRadius: "12px",
+            padding: "10px 12px",
+            border:
+              watchCount > 0
+                ? "1.5px solid var(--color-watch)"
+                : "1px solid var(--color-border)",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.68rem",
+              color: "var(--color-watch)",
+              fontWeight: 700,
+            }}
+          >
+            🟡 เฝ้าระวัง
+          </div>
+          <div
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 800,
+              color: "var(--color-watch)",
+              lineHeight: 1.2,
+            }}
+          >
+            {watchCount}
+          </div>
+          <div
+            style={{ fontSize: "0.62rem", color: "var(--color-text-muted)" }}
+          >
+            ใกล้จุดอันตราย
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: "var(--color-surface)",
+            borderRadius: "12px",
+            padding: "10px 12px",
+            border:
+              criticalCount > 0
+                ? "2px solid var(--color-severe)"
+                : "1px solid var(--color-border)",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.68rem",
+              color: "var(--color-severe)",
+              fontWeight: 700,
+            }}
+          >
+            🔴 วิกฤต
+          </div>
+          <div
+            style={{
+              fontSize: "1.4rem",
+              fontWeight: 800,
+              color: "var(--color-severe)",
+              lineHeight: 1.2,
+            }}
+          >
+            {criticalCount}
+          </div>
+          <div
+            style={{ fontSize: "0.62rem", color: "var(--color-text-muted)" }}
+          >
+            แตะเกณฑ์ท่วม
+          </div>
+        </div>
+      </div>
+
+      {unknownCount > 0 && (
+        <div
+          style={{
+            fontSize: "0.68rem",
+            color: "var(--color-text-muted)",
+            textAlign: "center",
+            marginTop: "-8px",
+          }}
+        >
+          รอข้อมูลสถานีตรวจวัด {unknownCount} ปัจจัย
+        </div>
+      )}
+
+      {/* Near Blackspot Warning Chip if applicable */}
+      {blackspot && blackspot.distanceKm <= 0.8 && (
+        <div
+          style={{
+            padding: "8px 12px",
+            borderRadius: "8px",
+            background: "var(--color-severe-bg)",
+            border: "1px solid var(--color-severe-border)",
+            color: "var(--color-severe)",
+            fontSize: "0.75rem",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <span>⚠️</span>
+          <span>
+            ใกล้จุดเสี่ยงน้ำท่วมขัง กทม.: <strong>{blackspot.name}</strong> (
+            {Math.round(blackspot.distanceKm * 1000)} ม.)
+          </span>
+        </div>
+      )}
+
+      {/* ── 3. Visual Infographic Meters for All Factors ─────────── */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+        {factors.map((factor) => {
+          const isExpanded = expandedDetailId === factor.id;
+          return (
             <div
               key={factor.id}
               style={{
-                background:
-                  factor.status === "critical"
-                    ? "rgba(220, 38, 38, 0.04)"
-                    : "var(--color-surface)",
+                background: "var(--color-surface)",
+                borderRadius: "12px",
+                padding: "12px 14px",
                 border:
                   factor.status === "critical"
-                    ? "1px solid rgba(220, 38, 38, 0.3)"
+                    ? "1.5px solid var(--color-severe)"
                     : "1px solid var(--color-border)",
-                borderRadius: "8px",
-                padding: "10px 12px",
+                boxShadow: "var(--shadow-sm)",
               }}
             >
-              {/* Factor Header */}
+              {/* Header: Icon + Name + Value */}
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
                   gap: "8px",
-                  marginBottom: "6px",
+                  marginBottom: "8px",
                 }}
               >
                 <div
-                  style={{ display: "flex", alignItems: "center", gap: "6px" }}
+                  style={{ display: "flex", alignItems: "center", gap: "8px" }}
                 >
-                  <span style={{ fontSize: "1rem" }}>{factor.icon}</span>
+                  <span style={{ fontSize: "1.2rem" }}>{factor.icon}</span>
                   <div>
-                    <span
+                    <div
                       style={{
                         fontSize: "0.84rem",
                         fontWeight: 700,
@@ -602,7 +1011,7 @@ export function FloodTriggerFactorsCard({
                       }}
                     >
                       {factor.name}
-                    </span>
+                    </div>
                     <div
                       style={{
                         fontSize: "0.68rem",
@@ -614,140 +1023,150 @@ export function FloodTriggerFactorsCard({
                   </div>
                 </div>
 
-                <span
-                  style={{
-                    fontSize: "0.7rem",
-                    fontWeight: 700,
-                    color: factor.statusColor,
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    background:
-                      factor.status === "critical"
-                        ? "rgba(220, 38, 38, 0.12)"
-                        : factor.status === "watch"
-                          ? "rgba(234, 88, 12, 0.12)"
-                          : factor.status === "safe"
-                            ? "rgba(16, 185, 129, 0.12)"
-                            : "rgba(148, 163, 184, 0.15)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {factor.statusText}
-                </span>
+                <div style={{ textAlign: "right" }}>
+                  <div
+                    style={{
+                      fontSize: "0.85rem",
+                      fontWeight: 800,
+                      color: factor.statusColor,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {factor.currentDisplay}
+                  </div>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      fontSize: "0.64rem",
+                      fontWeight: 700,
+                      color: factor.statusColor,
+                      background:
+                        factor.status === "critical"
+                          ? "var(--color-severe-bg)"
+                          : factor.status === "watch"
+                            ? "var(--color-watch-bg)"
+                            : factor.status === "safe"
+                              ? "var(--color-low-bg)"
+                              : "rgba(100,116,139,0.1)",
+                      padding: "1px 6px",
+                      borderRadius: "4px",
+                      marginTop: "2px",
+                    }}
+                  >
+                    {factor.statusText}
+                  </span>
+                </div>
               </div>
 
-              {/* Threshold vs Current Comparison */}
+              {/* ── Visual Spectrum Meter (Infographic Gauge) ────── */}
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "8px",
-                  background: "rgba(0, 0, 0, 0.02)",
-                  padding: "6px 10px",
-                  borderRadius: "6px",
+                  position: "relative",
+                  marginTop: "10px",
                   marginBottom: "6px",
                 }}
               >
-                <div>
-                  <div
-                    style={{
-                      fontSize: "0.65rem",
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
-                    🎯 เกณฑ์อันตรายที่ทำให้น้ำท่วม:
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      color: "var(--color-severe)",
-                    }}
-                  >
-                    {factor.criticalThreshold}
-                  </div>
-                </div>
+                {/* 3-Zone Segmented Bar */}
+                <div
+                  style={{
+                    height: "8px",
+                    borderRadius: "999px",
+                    background:
+                      "linear-gradient(to right, #10b981 0%, #10b981 50%, #f59e0b 50%, #f59e0b 75%, #ef4444 75%, #ef4444 100%)",
+                    position: "relative",
+                  }}
+                />
 
-                <div>
-                  <div
-                    style={{
-                      fontSize: "0.65rem",
-                      color: "var(--color-text-muted)",
-                    }}
-                  >
-                    📡 ตรวจวัดจริงขณะนี้:
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "0.75rem",
-                      fontWeight: 700,
-                      color: factor.statusColor,
-                    }}
-                  >
-                    {factor.currentValue}
-                  </div>
-                </div>
+                {/* Needle / Value Pin Indicator */}
+                <div
+                  style={{
+                    position: "absolute",
+                    left: `${Math.min(96, Math.max(4, factor.meterPercent))}%`,
+                    top: "-3px",
+                    transform: "translateX(-50%)",
+                    width: "14px",
+                    height: "14px",
+                    borderRadius: "50%",
+                    background: "#ffffff",
+                    border: `3px solid ${factor.statusColor}`,
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.25)",
+                    transition: "left 0.3s ease",
+                  }}
+                />
               </div>
 
-              {/* Impact Explanation */}
-              {/* <div
+              {/* Gauge Scale Labels */}
+              <div
                 style={{
-                  fontSize: "0.7rem",
-                  color: "var(--color-text-secondary)",
-                  lineHeight: 1.4,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontSize: "0.62rem",
+                  color: "var(--color-text-muted)",
+                  padding: "0 2px",
                 }}
               >
-                <span
+                <span>🟢 {factor.safeZoneLabel}</span>
+                <span>🟡 {factor.watchZoneLabel}</span>
+                <span style={{ color: "var(--color-severe)", fontWeight: 600 }}>
+                  🔴 {factor.criticalZoneLabel}
+                </span>
+              </div>
+
+              {/* Toggleable detail chip */}
+              <div
+                style={{
+                  marginTop: "8px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  fontSize: "0.68rem",
+                  borderTop: "1px dashed var(--color-border)",
+                  paddingTop: "6px",
+                }}
+              >
+                <span style={{ color: "var(--color-text-muted)" }}>
+                  เกณฑ์เสี่ยง: <strong>{factor.thresholdDisplay}</strong>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExpandedDetailId(isExpanded ? null : factor.id)
+                  }
                   style={{
+                    background: "none",
+                    border: "none",
+                    color: "var(--color-accent)",
                     fontWeight: 600,
-                    color: "var(--color-text-primary)",
+                    cursor: "pointer",
+                    padding: 0,
+                    fontSize: "0.68rem",
                   }}
                 >
-                  ผลกระทบ:{" "}
-                </span>
-                {factor.impactExplanation}
-              </div> */}
-            </div>
-          ))}
+                  {isExpanded ? "ซ่อนคำอธิบาย ▲" : "ผลกระทบต่อบ้าน ▼"}
+                </button>
+              </div>
 
-          {/* ── 3-Factors Disaster Formula Banner ──────────────────── */}
-          <div
-            style={{
-              background: "rgba(29, 90, 168, 0.05)",
-              border: "1px dashed rgba(29, 90, 168, 0.3)",
-              borderRadius: "8px",
-              padding: "10px 12px",
-              marginTop: "4px",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                color: "var(--color-accent)",
-                marginBottom: "4px",
-              }}
-            >
-              💡 กฎ 3 ปัจจัยมหาอุทกภัย (จุดแตกหักที่บ้านคุณจะท่วมแน่นอน):
+              {/* Collapsed impact text */}
+              {isExpanded && (
+                <div
+                  style={{
+                    marginTop: "6px",
+                    padding: "6px 8px",
+                    borderRadius: "6px",
+                    background: "var(--color-surface-2)",
+                    fontSize: "0.7rem",
+                    color: "var(--color-text-secondary)",
+                    lineHeight: 1.4,
+                  }}
+                >
+                  💡 {factor.impactExplanation}
+                </div>
+              )}
             </div>
-            <div
-              style={{
-                fontSize: "0.7rem",
-                color: "var(--color-text-secondary)",
-                lineHeight: 1.5,
-              }}
-            >
-              น้ำท่วมใหญ่ในภาคกลางจะเกิดขึ้นเมื่อเกิด{" "}
-              <strong>3 ปัจจัยพร้อมกัน</strong>: <strong>น้ำเหนือ</strong>{" "}
-              (เขื่อนปล่อยเกิน 2,700–3,500 ลบ.ม./วิ) + <strong>น้ำฝน</strong>{" "}
-              (ร่องมรสุมตกซ้ำในพื้นที่เกิน 100 มม.) + <strong>น้ำหนุน</strong>{" "}
-              (น้ำทะเลอ่าวไทยหนุนสูงปิดทางน้ำ)
-              หากครบทั้งสามปัจจัยในสัปดาห์เดียวกัน
-              มวลน้ำจะเอ่อล้นเข้าท่วมแน่นอนครับ
-            </div>
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 }
