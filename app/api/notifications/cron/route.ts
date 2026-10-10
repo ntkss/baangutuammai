@@ -10,13 +10,22 @@ export async function GET(request: Request) {
     const authHeader = request.headers.get("authorization");
     const cronSecret = process.env.CRON_SECRET;
 
-    // Optional verification if CRON_SECRET is set in environment
-    if (cronSecret) {
-      const providedSecret =
-        authHeader?.replace("Bearer ", "") || searchParams.get("secret");
-      if (providedSecret !== cronSecret) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+    // CRON_SECRET is mandatory — endpoint must not be publicly accessible.
+    // Vercel Cron automatically sends Authorization: Bearer <CRON_SECRET>.
+    if (!cronSecret) {
+      console.error(
+        "[Cron Push] CRON_SECRET env var is not set. Refusing to execute.",
+      );
+      return NextResponse.json(
+        { error: "Server misconfiguration: CRON_SECRET is required" },
+        { status: 503 },
+      );
+    }
+
+    const providedSecret =
+      authHeader?.replace("Bearer ", "") || searchParams.get("secret");
+    if (providedSecret !== cronSecret) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Default reference coordinate (Nonthaburi / Chao Phraya corridor)

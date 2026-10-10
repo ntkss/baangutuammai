@@ -5,6 +5,16 @@ import type { MapMarker } from "@/components/map/FloodMap";
 
 export const dynamic = "force-dynamic";
 
+/** Escape HTML special characters to prevent XSS in Leaflet popup strings. */
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function GET() {
   try {
     const [rawStations, bmaResult] = await Promise.all([
@@ -52,9 +62,9 @@ export async function GET() {
         statusText = "ปลอดภัย";
       }
 
-      const name = s.station.tele_station_name.th || `สถานี ${s.station.id}`;
-      const prov = s.geocode?.province_name?.th || "";
-      const river = s.river_name || "ลำน้ำ";
+      const name = esc(s.station.tele_station_name.th || `สถานี ${s.station.id}`);
+      const prov = esc(s.geocode?.province_name?.th || "");
+      const river = esc(s.river_name || "ลำน้ำ");
 
       const popup = `
         <div style="font-family: sans-serif; font-size: 13px; line-height: 1.5; color: #1e293b;">
@@ -119,9 +129,9 @@ export async function GET() {
           color = "#2d7d46";
         }
 
-        const name = s.water_name;
-        const dist = s.district_name ? ` (${s.district_name})` : "";
-        const river = s.river_name || "คลองในพื้นที่ กทม.";
+        const name = esc(s.water_name);
+        const dist = s.district_name ? ` (${esc(s.district_name)})` : "";
+        const river = esc(s.river_name || "คลองในพื้นที่ กทม.");
 
         const popup = `
           <div style="font-family: sans-serif; font-size: 13px; line-height: 1.5; color: #1e293b;">

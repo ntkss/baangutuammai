@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { sendTestNotificationToEndpoint } from "@/lib/notifications/pushService";
+import { getAllSubscriptions } from "@/lib/notifications/storage";
 
 export async function POST(request: Request) {
   try {
@@ -10,6 +11,17 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Missing subscription keys or endpoint" },
         { status: 400 },
+      );
+    }
+
+    // Security: only allow sending test notifications to known subscribers.
+    // This prevents this endpoint from being abused as a push-spam proxy.
+    const allSubs = await getAllSubscriptions();
+    const isKnown = allSubs.some((s) => s.endpoint === endpoint);
+    if (!isKnown) {
+      return NextResponse.json(
+        { error: "Endpoint is not a registered subscriber" },
+        { status: 403 },
       );
     }
 

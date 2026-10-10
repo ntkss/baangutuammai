@@ -2,6 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
+// ── Simple in-memory rate limiter (per IP, resets on cold-start) ──────────────
+// For serverless, this only works within a single function instance.
+// For stricter limits, replace with Vercel KV / Redis.
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_MAX = 60; // requests per window
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now >= entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= RATE_LIMIT_MAX) return false;
+  entry.count++;
+  return true;
+}
+
 interface GoogleGeocodeResultItem {
   place_id: string;
   formatted_address: string;
@@ -23,16 +42,34 @@ interface NominatimResultItem {
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = req.nextUrl;
-  const q = searchParams.get("q")?.trim() ?? "";
-
-  if (!q) {
-    return NextResponse.json({ results: [] });
+  // ── Rate limiting ────────────────────────────────────────────────────────
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  if (!checkRateLimit(ip)) {
+    return NextResponse.json(
+      { error: "Too many requests. Please try again in a minute." },
+      { status: 429, headers: { "Retry-After": "60" } },
+    );
   }
 
-  const googleApiKey =
-    process.env.GOOGLE_MAPS_API_KEY ||
-    process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+  const { searchParams } = req.nextUrl;
+  const raw = searchParams.get("q")?.trim() ?? "";
+
+  // ── Input validation ─────────────────────────────────────────────────────
+  if (!raw) {
+    return NextResponse.json({ results: [] });
+  }
+  if (raw.length > 200) {
+    return NextResponse.json(
+      { error: "Query too long (max 200 characters)" },
+      { status: 400 },
+    );
+  }
+  const q = raw;
+
+  // Only use the server-side key (never NEXT_PUBLIC_ on the server).
+  // NEXT_PUBLIC_ keys are embedded in the client bundle and visible to everyone.
+  const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
 
   // 1. If Google Maps API key is configured, use official Google Geocoding API
   if (googleApiKey) {
